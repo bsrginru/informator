@@ -1,0 +1,14 @@
+[
+{
+  "modid": "avttrue_informator",
+  "name": "AVTTRUE:Informator",
+  "description": "Show Buffs & Enchants, Held Item information, Time & Moon Phases, Blocks & Mobs information, etc.",
+  "mcversion": "${mcversion}",
+  "logoFile": "avttrue.informator.logo.png",
+  "url": "https://yadi.sk/d/3gOAaj6jrRSEJ",
+  "updateUrl": "",
+  "requiredMods": [ "Forge" ],
+  "credits": "Thank, Rumickon! Thank for open sources BSPKRS, NEI, LL Overlay Reloaded (www.mmyzd.com)!",
+  "authorList": ["avttrue (truetrifonov@yandex.ru)"]
+}
+]
