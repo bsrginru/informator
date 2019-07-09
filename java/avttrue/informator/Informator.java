@@ -1,4 +1,4 @@
-/*
+﻿/*
  * 
  * На этом моде я изучаю джаву и форж
  * 
@@ -8,40 +8,41 @@ package avttrue.informator;
 
 import java.util.Date;
 
-import avttrue.informator.Events.OnClientConnectedToServer;
-import avttrue.informator.Events.OnClientTick;
-import avttrue.informator.Events.OnKeyInput;
-import avttrue.informator.Events.OnMouseInput;
-import avttrue.informator.Events.OnPlayerTick;
-import avttrue.informator.Events.OnRenderGameOverlay;
-import avttrue.informator.Events.OnRenderWorldLastEvent;
-import avttrue.informator.Tools.TxtRes;
+//import avttrue.informator.Events.OnClientConnectedToServer;
+//import avttrue.informator.Events.OnClientTick;
+//import avttrue.informator.Events.OnKeyInput;
+//import avttrue.informator.Events.OnMouseInput;
+//import avttrue.informator.Events.OnPlayerTick;
+//import avttrue.informator.Events.OnRenderGameOverlay;
+//import avttrue.informator.Events.OnRenderWorldLastEvent;
+//import avttrue.informator.Tools.TxtRes;
 import avttrue.informator.Tools.VersionChecker;
 import avttrue.informator.Tools.Profile.ProfileCashList;
 import avttrue.informator.Tools.Profile.ProfileWebChecker;
 import avttrue.informator.Tools.Surface.OverlayRenderer;
 import avttrue.informator.Tools.Surface.SurfaceChecker;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraft.entity.LivingEntity;
+//import net.minecraftforge.common.MinecraftForge;
+//import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+//import net.minecraftforge.common.config.Configuration;
+//import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+//import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+//import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+//import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid = Informator.MODID, 
-	name = Informator.MODNAME, 
-	version =Informator.MODVER,
-	useMetadata = true, 
-	guiFactory = "avttrue.informator.GUIFactory")
+@Mod("avttrue_informator")
+//@Mod(modid = Informator.MODID, 
+//	name = Informator.MODNAME, 
+//	version =Informator.MODVER,
+//	useMetadata = true, 
+//	guiFactory = "avttrue.informator.GUIFactory")
 
 public class Informator
 {
-	public static final String MODID = "avttrue_informator";
-    public static final String MODNAME = "AVTTRUE:Informator";
-    public static final String MODVER = "[1.11] 0.9.0";
+	//public static final String MODID = "avttrue_informator";
+    //public static final String MODNAME = "AVTTRUE:Informator";
+    //public static final String MODVER = "[1.14.3] 0.10.0";
     
     public static final String INFORMATORDOWNLOAD_URL = "https://goo.gl/vSq65V";
     public static final String MINECRAFTING_URL = "http://www.minecrafting.ru";
@@ -49,13 +50,12 @@ public class Informator
     public static final String PROFILEFILENAME = "InformatorProfilesCash.json";
     public static final String THESAURUSCONFIGFILENAME = "InformatorThesaurusConfig.json";
     
-	
-    public static Configuration configFile;
+	//public static Configuration configFile;
     
     public static VersionChecker versionChecker;
     public static boolean haveWarnedVersionOutOfDate = false;
     
-    @Mod.Instance(value = Informator.MODID)
+    //@Mod.Instance(value = Informator.MODID)
     public static Informator instance;
     
     // используется для контроля игрового времени
@@ -69,7 +69,7 @@ public class Informator
     public static double Speed = 0;
     
     // испольуется в показе (с задержкой) информации о мобе
-    public static EntityLivingBase lastmob = null;
+    public static LivingEntity lastmob = null;
     public static Date lastmobtime = new Date();
     
     //Global
@@ -147,8 +147,8 @@ public class Informator
     public static boolean SurfaceCheckerIsActive = false; // включено
     public static OverlayRenderer overlayRenderer = null; // Отрисовка
    
-    
     // TODO onFMLPreInitialization()
+/*
     @Mod.EventHandler
     public void onFMLPreInitialization(FMLPreInitializationEvent event)
     {
@@ -159,8 +159,9 @@ public class Informator
     	
     	MinecraftForge.EVENT_BUS.register(instance);
      }
-    
+*/
     // TODO onFMLInitialization()
+/*
     @Mod.EventHandler
     public void onFMLInitialization(FMLInitializationEvent event)
     {
@@ -172,8 +173,10 @@ public class Informator
     	MinecraftForge.EVENT_BUS.register(new OnRenderWorldLastEvent());
     	MinecraftForge.EVENT_BUS.register(new OnClientConnectedToServer());
     }
-    
+*/
+
     // TODO onFMLPostInitialization()
+/*
     @Mod.EventHandler
     public void onFMLPostInitialization(FMLPostInitializationEvent event) 
     {
@@ -193,10 +196,11 @@ public class Informator
     	overlayRenderer = new OverlayRenderer();
     	surfaceChecker = new SurfaceChecker();
     	LaunchSurfaceChecker();
-    	
     }
-     
+*/
+   
     // TODO onConfigChanged()
+/*
     @SubscribeEvent 
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) 
     {
@@ -212,8 +216,10 @@ public class Informator
         	ProfileWebCheckerThread.suspend();
         System.out.println("\nProfileWebCheckerThread: " + ProfileWebCheckerThread.getState());
     }
-    
+*/
+
     // TODO syncAllConfig()
+/*
     public static void syncAllConfig()
     {
     	String gen_category = Configuration.CATEGORY_GENERAL;
@@ -338,8 +344,10 @@ public class Informator
 
        System.out.println("\nConfigFile: \"" + configFile.getConfigFile().getPath() + "\"");
     }
+*/
 
     // TODO LaunchSurfaceChecker
+/*
     public static void LaunchSurfaceChecker() 
     {
 		for (int i = 0; i < 3; i++) 
@@ -358,4 +366,5 @@ public class Informator
 			}
 		}
 	}
+*/
 }

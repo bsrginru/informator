@@ -1,39 +1,42 @@
-package avttrue.informator.Tools;
+﻿package avttrue.informator.Tools;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+//import java.util.Iterator;
+//import java.util.List;
 
 import avttrue.informator.Informator;
 import net.minecraft.block.Block;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.entity.passive.EntityHorse;
-import net.minecraft.entity.passive.EntitySkeletonHorse;
-import net.minecraft.entity.passive.EntityOcelot;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.entity.monster.CreeperEntity;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.entity.passive.horse.SkeletonHorseEntity;
+import net.minecraft.entity.passive.CatEntity;
+import net.minecraft.entity.merchant.villager.VillagerEntity;
+import net.minecraft.entity.merchant.villager.VillagerProfession;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.BlockRayTraceResult;
+//import net.minecraft.util.math.Vec3d;
+//import net.minecraft.util.math.AxisAlignedBB;
+//import net.minecraft.block.properties.IProperty;
+//import net.minecraft.block.properties.PropertyInteger;
+//import net.minecraft.entity.item.EntityItemFrame;
 
 public class View 
 {
-	public RayTraceResult targetEntity = null;
-    public RayTraceResult targetBlock = null;
+	//public EntityRayTraceResult targetEntity = null;
+    public BlockRayTraceResult targetBlock = null;
     public BlockPos tBlockPosition = null;
     public Block tBlock = null;
-    public IBlockState tBlockState = null;
+    public BlockState tBlockState = null;
 	public int MobHealth = 0;
     public int MobMaxHealth = 0;
     public int MobTotalArmor = 0;
@@ -46,30 +49,37 @@ public class View
     public boolean IsHorseSkeletonTrap = false;
     public boolean ISee = false; // флаг, что кого-то видим вообще
     public boolean ISeeNow = false;  // флаг, что кого-то видим прямо сейчас (учёт индикации задержки)
-    public EntityLivingBase elb = null;
-    private Minecraft mc = Minecraft.getMinecraft();
+    public LivingEntity elb = null;
+    private Minecraft mc = Minecraft.getInstance();
 	private Entity vEntity = null;
 
 	public View()
 	{
 		try
 		{
-			vEntity = mc.getRenderViewEntity();
-			targetBlock = vEntity.rayTrace(Informator.Global_DistanceView, 1);
-		
-			// определяем блок на который смотрим
-			if (targetBlock != null) 
+			//было:vEntity = mc.getRenderViewEntity();
+			//было:targetBlock = vEntity.rayTrace(Informator.Global_DistanceView, 1);
+			RayTraceResult rtr = mc.objectMouseOver;
+			if (rtr == null) return;
+			if (rtr.getType() == RayTraceResult.Type.ENTITY)
 			{
-				tBlockPosition = targetBlock.getBlockPos();
-				tBlock = this.mc.theWorld.getBlockState(tBlockPosition).getBlock();
-				tBlockState = this.mc.theWorld.getBlockState(tBlockPosition);
-				
+				vEntity = ((EntityRayTraceResult)rtr).getEntity();
+			}
+			// определяем блок на который смотрим
+			else if (rtr.getType() == RayTraceResult.Type.BLOCK)
+			{
+				targetBlock = ((BlockRayTraceResult)rtr);
+				tBlockPosition = targetBlock.getPos();
+				if (!mc.world.isAirBlock(tBlockPosition))
+				{
+					tBlockState = this.mc.world.getBlockState(tBlockPosition);
+					if (tBlockState != null)
+						tBlock = tBlockState.getBlock();
+				}
 			}
 		
-		//TODO сущность, на которую смотрим
-		// сущность, на которую смотрим
-			if (!Informator.TargetMobBar_Show) // если вообще нужно показывать, для экономии
-				return;
+			// сущность, на которую смотрим
+			if (!Informator.TargetMobBar_Show) return; // если вообще нужно показывать, для экономии
 			
 			// на кого смотрим
 			elb = getTarget(Informator.Global_DistanceView, 1, targetBlock);
@@ -84,9 +94,9 @@ public class View
 			// реализуем задержку при показе
 			if (elb == null && 					// если в текущий момент моба не наблюдаем
 				Informator.lastmob != null &&	 // последний виденный моб есть?
-				!mc.thePlayer.isDead &&			// игрок жив ли?
-				!Informator.lastmob.isDead &&	// моб жив ли?
-				Informator.lastmob.getDistanceToEntity(mc.thePlayer) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
+				mc.player.isAlive() &&			// игрок жив ли?
+				Informator.lastmob.isAlive() &&	// моб жив ли?
+				Informator.lastmob.getDistance(mc.player) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
 			{
 				ISeeNow = false;
 				Date currtime = new Date(); // текущее время
@@ -106,18 +116,17 @@ public class View
 			ISee = true;
 			MobHealth = (int)(elb.getHealth());
 			MobMaxHealth = (int)(elb.getMaxHealth());
-			DistToPlayer = new BigDecimal(elb.getDistanceToEntity(mc.thePlayer)).
-												setScale(1, RoundingMode.UP).doubleValue();
+			DistToPlayer = new BigDecimal(elb.getDistance(mc.player)).setScale(1,RoundingMode.UP).doubleValue();
 			MobTotalArmor = elb.getTotalArmorValue();
 			
-				
 			// конь
-			if(elb instanceof EntityHorse)
+			if(elb instanceof AbstractHorseEntity)
 			{
-				double jstrength = ((EntityHorse)elb).getHorseJumpStrength();
+				double jstrength = ((AbstractHorseEntity)elb).getHorseJumpStrength();
 				
 				// TODO проверять в новых версиях
 				// метод вычисления скорости из изысканий Румикона
+				// (проверено по исходникам Spigot-а в феврале 2019)
 				double jheight= 0;
 				while (jstrength > 0)
 				{
@@ -126,49 +135,52 @@ public class View
 				}
 				
 				// 43 - волшебная константа из изысканий Румикона
-				double speed = 43.0D * ((EntityHorse)elb).getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).
-																			getAttributeValue();
+				double speed = 43.0D * ((AbstractHorseEntity)elb).getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue();
 				
-				MobOwner = Functions.getUsernameByUUID(((EntityHorse)elb).getOwnerUniqueId());
+				MobOwner = Functions.getUsernameByUUID(((AbstractHorseEntity)elb).getOwnerUniqueId());
 				MobMovementSpeed = new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
 				MobJumpHeight = new BigDecimal(jheight).setScale(3, RoundingMode.UP).doubleValue();
 				
-				IsHorseSkeletonTrap = false;
-			}
-			else if (elb instanceof EntitySkeletonHorse)
-			{
-				IsHorseSkeletonTrap = true;
-			}
-			// волк
-			else if (elb instanceof EntityWolf)
-			{
-				MobOwner = Functions.getUsernameByUUID(((EntityWolf)elb).getOwnerId());
-			}
-			// котик
-			else if(elb instanceof EntityOcelot)
-			{
-				MobOwner = Functions.getUsernameByUUID(((EntityOcelot)elb).getOwnerId());
-			}
-			// криппер
-			else if(elb instanceof EntityCreeper)
-			{
-				IsCreeperPowered = ((EntityCreeper)elb).getPowered();
-			}
-		
-		// имя
-			if(elb.hasCustomName())
-				MobName =  "\'" + elb.getCustomNameTag() + "\'";
-			else
-			{
-				if(elb instanceof EntityVillager)
+				if (elb instanceof SkeletonHorseEntity)
 				{
-					EntityVillager villager = (EntityVillager)elb;
-					MobName = TxtRes.GetVillagerProfession(villager.getProfession());					
+					IsHorseSkeletonTrap = true;
 				}
 				else
 				{
-					MobName = elb.getName();
+					IsHorseSkeletonTrap = false;
 				}
+			}
+			// волк
+			else if (elb instanceof WolfEntity)
+			{
+				MobOwner = Functions.getUsernameByUUID(((WolfEntity)elb).getOwnerId());
+			}
+			// котик
+			else if(elb instanceof CatEntity)
+			{
+				MobOwner = Functions.getUsernameByUUID(((CatEntity)elb).getOwnerId());
+			}
+			// криппер
+			else if(elb instanceof CreeperEntity)
+			{
+				IsCreeperPowered = ((CreeperEntity)elb).getPowered();
+			}
+		
+			// имя
+			if(elb.hasCustomName())
+			{
+				MobName =  "\'" + elb.getCustomName() + "\'";
+			}
+			// крестьянин
+			else if(elb instanceof VillagerEntity)
+			{
+				VillagerEntity villager = (VillagerEntity)elb;
+				VillagerProfession profession = villager.getVillagerData().getProfession();
+				MobName = TxtRes.GetVillagerProfession(profession.getPointOfInterest().toString()); // "unemployed", "cleric", "farmer",...		
+			}
+			else
+			{
+				MobName = elb.getEntityString();
 			}
 		
 			// добавки к имени
@@ -180,20 +192,30 @@ public class View
 			
 			if(IsHorseSkeletonTrap)
 				MobName += ", " + TxtRes.GetLocalText("avttrue.informator.53", "Trap");
+		}
+		catch (Exception e) 
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			Informator.lastmob = null;
+			ISee = false;
+		}
 	}
-	catch (Exception e) 
-	{
-		System.out.println(e.getMessage());
-		e.printStackTrace();
-		Informator.lastmob = null;
-		ISee = false;
-	}
-}
 	
 	// TODO определяем сущность, на которую смотрим
 	// http://gamedev.stackexchange.com/questions/59858/how-to-find-the-entity-im-looking-at
 	// см. также getMouseOver в коде MC
-	private EntityLivingBase getTarget(double distance, 
+	private LivingEntity getTarget(double distance, 
+			float tick, 
+			RayTraceResult CheckBlock)
+	{
+		if(vEntity instanceof LivingEntity)
+			return (LivingEntity)vEntity;
+		else
+			return null;
+	}
+/*
+	private LivingEntity getTarget(double distance, 
 										float tick, 
 										RayTraceResult CheckBlock)
 	{
@@ -212,7 +234,7 @@ public class View
 	   
 	    try
 	    {
-	    	List list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), 
+	    	List list = mc.world.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), 
 	    			vEntity.getEntityBoundingBox().addCoord(vec31.xCoord * d0, vec31.yCoord * d0, vec31.zCoord * d0).
 	    			expand((double)f1, (double)f1, (double)f1));
 	    	double d2 = d1;
@@ -266,7 +288,7 @@ public class View
 	    	{
 	    		rtr = new RayTraceResult(pointedEntity, vec33);
 
-	    		if (pointedEntity instanceof EntityLivingBase || 
+	    		if (pointedEntity instanceof LivingEntity || 
 	    				pointedEntity instanceof EntityItemFrame)
 	    		{
 	    			mc.pointedEntity = pointedEntity;
@@ -275,7 +297,7 @@ public class View
 	   
 	    	if (rtr != null &&
 	    		rtr.typeOfHit == RayTraceResult.Type.ENTITY &&
-	    		rtr.entityHit instanceof EntityLivingBase)
+	    		rtr.entityHit instanceof LivingEntity)
 	    	{
 	    		// проверка, что сущность дальше блока
 	    		// чтобы не смотреть сквозь стены
@@ -292,7 +314,7 @@ public class View
 		    			return null;
 		    		}
 		    	}
-	    		return (EntityLivingBase)rtr.entityHit;
+	    		return (LivingEntity)rtr.entityHit;
 	    	}
 	    }
 	    catch (Exception e) 
@@ -303,11 +325,13 @@ public class View
 		}
 	    return null;
 	}
+*/
 	
 //	
 // TODO повреждение блока
 //	
-	public int GetBlockDamage()
+/*
+ 	public int GetBlockDamage()
 	{
 		if(tBlockState == null || 
 				tBlock == null)
@@ -336,4 +360,5 @@ public class View
 			return -1;
 		}
 	}
+*/
 }

@@ -1,4 +1,4 @@
-package avttrue.informator.Tools;
+﻿package avttrue.informator.Tools;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 
 public class Drawing 
@@ -15,7 +15,7 @@ public class Drawing
 	// TODO отрисовка модели сущности на экране
 	public static void drawEntityOnScreen(int x, int y, int scale, 
 											float mouseX, float mouseY, 
-											EntityLivingBase entity_elb)
+											LivingEntity entity_elb)
     {
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();

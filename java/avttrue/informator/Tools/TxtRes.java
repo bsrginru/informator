@@ -1,11 +1,11 @@
-package avttrue.informator.Tools;
+﻿package avttrue.informator.Tools;
 
 import java.nio.charset.Charset;
 
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
 
-import net.minecraft.util.text.translation.I18n;
+import net.minecraft.client.resources.I18n;
 
 public class TxtRes 
 {
@@ -19,43 +19,43 @@ public class TxtRes
 		switch(EID)
 		{	
 			//Armour
-			case 0: return I18n.translateToLocal("enchantment.protect.all");
-			case 1: return I18n.translateToLocal("enchantment.protect.fire");
-			case 2: return I18n.translateToLocal("enchantment.protect.fall");
-			case 3: return I18n.translateToLocal("enchantment.protect.explosion");	
-			case 4: return I18n.translateToLocal("enchantment.protect.projectile");
-			case 5: return I18n.translateToLocal("enchantment.oxygen");
-			case 6: return I18n.translateToLocal("enchantment.waterWorker");
-			case 7: return I18n.translateToLocal("enchantment.thorns");
-			case 8: return I18n.translateToLocal("enchantment.waterWalker");
-			case 9: return I18n.translateToLocal("enchantment.frostWalker");
+			case 0: return I18n.format("enchantment.protect.all");
+			case 1: return I18n.format("enchantment.protect.fire");
+			case 2: return I18n.format("enchantment.protect.fall");
+			case 3: return I18n.format("enchantment.protect.explosion");	
+			case 4: return I18n.format("enchantment.protect.projectile");
+			case 5: return I18n.format("enchantment.oxygen");
+			case 6: return I18n.format("enchantment.waterWorker");
+			case 7: return I18n.format("enchantment.thorns");
+			case 8: return I18n.format("enchantment.waterWalker");
+			case 9: return I18n.format("enchantment.frostWalker");
 			
 			//Weapons
-			case 16: return I18n.translateToLocal("enchantment.damage.all");
-			case 17: return I18n.translateToLocal("enchantment.damage.undead");
-			case 18: return I18n.translateToLocal("enchantment.damage.arthropods");
-			case 19: return I18n.translateToLocal("enchantment.knockback");
-			case 20: return I18n.translateToLocal("enchantment.fire");
-			case 21: return I18n.translateToLocal("enchantment.lootBonus");
+			case 16: return I18n.format("enchantment.damage.all");
+			case 17: return I18n.format("enchantment.damage.undead");
+			case 18: return I18n.format("enchantment.damage.arthropods");
+			case 19: return I18n.format("enchantment.knockback");
+			case 20: return I18n.format("enchantment.fire");
+			case 21: return I18n.format("enchantment.lootBonus");
 			
 			//Tools
-			case 32: return I18n.translateToLocal("enchantment.digging");
-			case 33: return I18n.translateToLocal("enchantment.untouching");
-			case 35: return I18n.translateToLocal("enchantment.lootBonusDigger");
+			case 32: return I18n.format("enchantment.digging");
+			case 33: return I18n.format("enchantment.untouching");
+			case 35: return I18n.format("enchantment.lootBonusDigger");
 				
 			//Bows
-			case 48: return I18n.translateToLocal("enchantment.arrowDamage");
-			case 49: return I18n.translateToLocal("enchantment.arrowKnockback");
-			case 50: return I18n.translateToLocal("enchantment.arrowFire");
-			case 51: return I18n.translateToLocal("enchantment.arrowInfinite");	
+			case 48: return I18n.format("enchantment.arrowDamage");
+			case 49: return I18n.format("enchantment.arrowKnockback");
+			case 50: return I18n.format("enchantment.arrowFire");
+			case 51: return I18n.format("enchantment.arrowInfinite");	
 			
 			//Fishing Rods
-			case 61: return I18n.translateToLocal("enchantment.lootBonusFishing");
-			case 62: return I18n.translateToLocal("enchantment.fishingSpeed");
+			case 61: return I18n.format("enchantment.lootBonusFishing");
+			case 62: return I18n.format("enchantment.fishingSpeed");
 				
 			//Common
-			case 34: return I18n.translateToLocal("enchantment.durability");
-			case 70: return I18n.translateToLocal("enchantment.mending");
+			case 34: return I18n.format("enchantment.durability");
+			case 70: return I18n.format("enchantment.mending");
 		}
 		//не найдено	
 		return Integer.toString(EID);
@@ -89,7 +89,7 @@ public class TxtRes
 	public static String GetLocalText(String key, String defvalue)
 	{
 		//LOGGER.info("GetLocalText: key="+key+"; defvalue="+defvalue);
-		String s = I18n.translateToLocal(key);
+		String s = I18n.format(key);
 		if (s.equals(key)) 
 			return defvalue;
 		else 
@@ -100,18 +100,26 @@ public class TxtRes
 	// возвращает название профессии селянина по ID
 	//
 	
-	public static String GetVillagerProfession(int id_profession)
+	public static String GetVillagerProfession(String id_profession)
 	{
-		switch (id_profession)
-        {
-            case 0: return I18n.translateToLocal("avttrue.informator.21");
-            case 1: return I18n.translateToLocal("avttrue.informator.22");
-            case 2: return I18n.translateToLocal("avttrue.informator.23");
-            case 3: return I18n.translateToLocal("avttrue.informator.24");
-            case 4: return I18n.translateToLocal("avttrue.informator.25");            	
-        }
-
-        return "Profession " + id_profession;
+		if (id_profession == "unemployed") return I18n.format("avttrue.informator.57");
+		else if (id_profession == "armorer") return I18n.format("avttrue.informator.24");
+		else if (id_profession == "butcher") return I18n.format("avttrue.informator.25");
+		else if (id_profession == "cartographer") return I18n.format("avttrue.informator.58");
+		else if (id_profession == "cleric") return I18n.format("avttrue.informator.23");
+		else if (id_profession == "farmer") return I18n.format("avttrue.informator.21");
+		else if (id_profession == "fisherman") return I18n.format("avttrue.informator.59");
+		else if (id_profession == "fletcher") return I18n.format("avttrue.informator.60");
+		else if (id_profession == "leatherworker") return I18n.format("avttrue.informator.61");
+		else if (id_profession == "librarian") return I18n.format("avttrue.informator.22");
+		else if (id_profession == "mason") return I18n.format("avttrue.informator.62");
+		else if (id_profession == "nitwit") return I18n.format("avttrue.informator.63");
+		else if (id_profession == "shepherd") return I18n.format("avttrue.informator.64");
+		else if (id_profession == "toolsmith") return I18n.format("avttrue.informator.65");
+		else if (id_profession == "weaponsmith") return I18n.format("avttrue.informator.66");
+		else if (id_profession == "home") return I18n.format("avttrue.informator.67");
+		else if (id_profession == "meeting") return I18n.format("avttrue.informator.68");
+        return I18n.format("avttrue.informator.69", id_profession); // Профессия %s
 	}
 	
 	public static String RemoveFormat(String s)
