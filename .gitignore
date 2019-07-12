@@ -19,6 +19,7 @@ build
 
 # Files from Forge MDK
 forge*changelog.txt 
+gradle
 LICENSE.txt
 README.txt
 gradlew
@@ -26,6 +27,7 @@ gradlew.bat
 CREDITS.txt
 changelog.txt
 src/test
+src/main/java/com/example
 
 # other
 eclipse
