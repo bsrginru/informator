@@ -32,15 +32,24 @@
 
 Для сборки и запуска собранного mod-а потребуется более 2Гб свободного места на диске!
 
-### Подготовка к сборке
-1. Cкачиваем forge mdk ( напр., forge-1.14.3-27.0.47-mdk.zip ) распаковываем в папку informator.
-2. Cкачиваем jdk и jre ( jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe ) устанавливаем.
-3. Скачиваем eclipse ( напр., eclipse-java-2019-06-R-win32-x86_64.zip ) распаковываем.
-4. Создаём каталог для файлов проекта, например ./informator/, переходим в созданный каталог и в командной консоли выполняем:
+### Подготовка к сборке мода для minecraft-1.14.3 и forge-27.0.47
+1. Создаём каталог для файлов проекта, например ./informator/, переходим в созданный каталог и в командной консоли выполняем:
 
     git clone git@github.com:bsrginru/informator.git .
 
     (в созданном каталоге ./informator/ должны появиться файлы проекта, напр. README.md, а также каталог ./informator/src/main/)
+2. Cкачиваем [Forge MDK](https://files.minecraftforge.net/ "например, forge-1.14.3-27.0.47-mdk.zip") и распаковываем в папку ./informator/:
+ 1. каталог mdk/gradle/
+ 2. и файл mdk/gradlew.bat для Windows, либо файл mdk/gradlew для Linux
+ 3. уже существующие файлы ./informator/.gitignore и ./informator/build.gradle следует оставить без изменений!
+ однако, в случае сборки с версией Forge, отличной от приведённой в примере forge-1.14.3-27.0.47, потребуется сравнить и отредактировать файлы:
+  - ./informator/build.gradle
+  - ./informator/src/main/resources/pack.mcmeta
+  - ./informator/src/main/resources/META-INF/mods.toml
+3. В Windows скачиваем [JDK и JRE] (https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html "например, jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe" ) устанавливаем. В Linux в конмандной консоли выполняем:
+
+    sudo apt install openjdk-8-jre openjdk-8-jdk
+4. Скачиваем [Eclipse IDE for Java Developers](https://www.eclipse.org/downloads/packages/ "например eclipse-java-2019-06-R-win32-x86_64.zip") распаковываем (в скачанном пакете должна присутствовать 'Gradle integration').
 5. *Примечание: выполнить 'Getting Started with Forge - [From Zero to Modding](https://mcforge.readthedocs.io/en/latest/gettingstarted/ "From Zero to Modding")' и собрать проект с декомпиляцией исходников minecraft из Eclipse не удалось, официальная инструкция явно устарела.*
 Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.47, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
 
@@ -55,7 +64,7 @@
  2. во вкладке 'Package Explorer' открываем 'Properties for informator', изменяем 'Text file encoding' на 'Other UTF-8', нажимаем 'Apply and Close'
 
 ### Подготовка к запуску
-1. скачиваем инсталлятор Forge ( напр., forge-1.14.3-27.0.47-installer.jar )
+1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.47-installer.jar")
 2. выбираем папку, где расположены клиентские файлы и нажимаем кнопку 'Install Client'
 3. в этой же папке создаём каталог mods, копируем в него файл ./informator/build/libs/informator.jar
-4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( напр., forge-1.14.3-27.0.47 )
+4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.47 )
