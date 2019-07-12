@@ -2,6 +2,8 @@
 
 ## Mod к игре Minecraft - Informator
 
+![Logo](https://github.com/bsrginru/informator/blob/v1.14.3-restructure/src/main/resources/avttrue.informator.logo.png)
+
 На данный момент выводится следующая информация:
 * Баффы и дебаффы.
 * Износ оружия или инструмента в руке, износ одетой брони.
