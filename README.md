@@ -34,12 +34,11 @@
 Настройка:
 Основное меню Майнкрафта (там, где кнопки "Одиночная игра" и "Сетевая игра") -> кнопка "Mods" ("Модификации") -> выбираем мод Информатор -> кнопка Config
 
-## Сборка исходных кодов
+# Сборка исходных кодов
 
 Для сборки и запуска собранного mod-а потребуется более 2Гб свободного места на диске!
-Для запуска собираемого мода из среды разработки потребуется более 4Гб памяти.
 
-### Подготовка к сборке мода для minecraft-1.14.3 и forge-27.0.47
+## Сборка мода для minecraft-1.14.3 и forge-27.0.47
 1. Создаём каталог для файлов проекта, например ./informator/, переходим в созданный каталог и в командной консоли выполняем:
 
     git clone git@github.com:bsrginru/informator.git .
@@ -56,22 +55,33 @@
 3. В Windows скачиваем [JDK и JRE] (https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html "например, jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe" ) устанавливаем. В Linux в конмандной консоли выполняем:
 
     sudo apt install openjdk-8-jre openjdk-8-jdk
-4. Скачиваем [Eclipse IDE for Java Developers](https://www.eclipse.org/downloads/packages/ "например eclipse-java-2019-06-R-win32-x86_64.zip") распаковываем (в скачанном пакете должна присутствовать 'Gradle integration').
-5. *Примечание: выполнить 'Getting Started with Forge - [From Zero to Modding](https://mcforge.readthedocs.io/en/latest/gettingstarted/ "From Zero to Modding")' и собрать проект с декомпиляцией исходников minecraft из Eclipse не удалось, официальная инструкция явно устарела.*
-Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.47, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
+4. Выполняем в командной консоли:
 
-    Выполняем в командной консоли:
+    gradlew build
+
+    Указанных команд достаточно для того, чтобы собрать .jar файл и установить его в качается mod-а.
+
+## Настройка среды разработки
+
+Для запуска собираемого мода из среды разработки потребуется более 3Гб памяти.
+
+1. Скачиваем [Eclipse IDE for Java Developers](https://www.eclipse.org/downloads/packages/ "например eclipse-java-2019-06-R-win32-x86_64.zip") распаковываем (в скачанном пакете должна присутствовать 'Gradle integration').
+2. *Примечание: выполнить 'Getting Started with Forge - [From Zero to Modding](https://mcforge.readthedocs.io/en/latest/gettingstarted/ "From Zero to Modding")' и собрать проект с декомпиляцией исходников minecraft из Eclipse не удалось, официальная инструкция явно устарела.*
+Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.47, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
+3. Выполняем в командной консоли:
 
     gradlew eclipse
-    gradlew decompileMC
 
-    (последний пункт приведёт к декомпиляции исходных кодов minecraft, в которые постоянно приходится заглядывать и подсматривать что именно и как изменилось, единственный возможный путь в отсутствие документации).
-6. Запускаем Eclipse
+    Для того, чтобы продолжить разработку, потребуется декомпиляция исходных кодов minecraft, в которые постоянно приходится заглядывать и подсматривать что именно и как изменилось (единственный возможный путь в отсутствие документации).
+
+    gradlew --refresh-dependencies decompileMC
+4. Запускаем Eclipse
  1. во вкладке Package Explorer находим папку src\main, выделяем в ней подкаталоги java и resources и в меню 'Build Path' выбираем пункт 'Use as Source Folder'
  2. во вкладке 'Package Explorer' открываем 'Properties for informator', изменяем 'Text file encoding' на 'Other UTF-8', нажимаем 'Apply and Close'
 
-### Подготовка к запуску
+# Запуск Minecraft вместе с Mod-ом
 1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.47-installer.jar")
 2. выбираем папку, где расположены клиентские файлы и нажимаем кнопку 'Install Client'
 3. в этой же папке создаём каталог mods, копируем в него файл ./informator/build/libs/informator.jar
 4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.47 )
+5. нажимаем кнопку 'ИГРАТЬ'
