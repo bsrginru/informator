@@ -19,7 +19,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.translation.LanguageMap;
 
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -164,13 +163,14 @@ public class Informator
                 map(m->m.getMessageSupplier().get()).
                 collect(Collectors.toList()));
     }
+
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
         // do something when the server starts
         LOGGER.info("HELLO from server starting");
     }
-    
+
     @SubscribeEvent
     public void hadDrinken(PlayerInteractEvent.RightClickBlock event)
     {
@@ -197,7 +197,7 @@ public class Informator
             //перегрузка:LOGGER.info("RayTraceResult block at {}", s, bp);
         }
     }
-    
+
     protected RayTraceResult rayTrace(ClientWorld worldIn, PlayerEntity playerIn, boolean useLiquids)
     {
         float f = playerIn.rotationPitch;
@@ -223,12 +223,6 @@ public class Informator
         RayTraceContext ctx = new RayTraceContext(vec3d1, vec3d1, bm, fm, playerIn);
         LOGGER.info("rayTrace ctx {}", ctx.toString());
         return worldIn.rayTraceBlocks(ctx);
-    }
-    
-    @SubscribeEvent
-    public void onRenderExperienceBar(RenderGameOverlayEvent event) 
-    {
-        //LOGGER.info("onRenderExperienceBar {}", event.toString());
     }
 
     // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD

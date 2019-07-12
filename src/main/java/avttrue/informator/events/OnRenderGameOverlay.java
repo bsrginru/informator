@@ -56,7 +56,7 @@ public class OnRenderGameOverlay //extends Gui
     private int mainWndScaledHeight;
 
     @SubscribeEvent
-    public void onRenderExperienceBar(RenderGameOverlayEvent.Post event) 
+    public void onRenderExperienceBar(RenderGameOverlayEvent event) 
     {
         // выключили по горячей клавише
         if (!Informator.Global_ON) return;
