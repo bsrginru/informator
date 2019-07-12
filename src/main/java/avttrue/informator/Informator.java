@@ -88,16 +88,16 @@ public class Informator
     public static int VelocityBar_yOffset = 0;
 
     //TimeBar
-	public static boolean TimeBar_Show = true;
-	public static int TimeBar_xOffset = 0;
-	public static int TimeBar_yOffset = 0;
-	public static boolean TimeBarMoon_Show = true;
-	public static boolean TimeBarWeather_Show = true;
-	public static boolean TimeBarWeatherPretty_Show = true;
-	public static int TimeBar_alignMode = 0; // 0 top_left; 1 top_right; 2 bottom_left; 3 bottom_right
-	public static boolean TimeBarWeather_WithMoonPhases = true;
-	public static boolean TimeBarBed_Show = true;
-	
+    public static boolean TimeBar_Show = true;
+    public static int TimeBar_xOffset = 0;
+    public static int TimeBar_yOffset = 0;
+    public static boolean TimeBarMoon_Show = true;
+    public static boolean TimeBarWeather_Show = true;
+    public static boolean TimeBarWeatherPretty_Show = true;
+    public static int TimeBar_alignMode = 0; // 0 top_left; 1 top_right; 2 bottom_left; 3 bottom_right
+    public static boolean TimeBarWeather_WithMoonPhases = true;
+    public static boolean TimeBarBed_Show = true;
+    
     // EnchantBar
     public static int EnchantBar_xOffset = 0;
     public static int EnchantBar_yOffset = 0;
@@ -117,7 +117,7 @@ public class Informator
 //    public static boolean TargetMobBar_SeachOwnerInWeb;
 //    public static int TargetMobBar_OwnerDataPeriod;
 
-	public Informator() {
+    public Informator() {
         // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         // Register the enqueueIMC method for modloading
@@ -185,15 +185,15 @@ public class Informator
 
         if (rtr.getType() == RayTraceResult.Type.ENTITY)
         {
-        	Entity lookedEntity = ((EntityRayTraceResult)rtr).getEntity();
-        	String s = lookedEntity.getName().toString();
+            Entity lookedEntity = ((EntityRayTraceResult)rtr).getEntity();
+            String s = lookedEntity.getName().toString();
             LOGGER.info("RayTraceResult entity {}", s);
         }
         else if (rtr.getType() == RayTraceResult.Type.BLOCK)
         {
-        	//BlockPos bp = ((BlockRayTraceResult)rtr).getPos();
-        	//BlockState bs = world.getBlockState(bp);
-        	//String s = bs.toString();
+            //BlockPos bp = ((BlockRayTraceResult)rtr).getPos();
+            //BlockState bs = world.getBlockState(bp);
+            //String s = bs.toString();
             //перегрузка:LOGGER.info("RayTraceResult block at {}", s, bp);
         }
     }
@@ -226,10 +226,10 @@ public class Informator
     }
     
     @SubscribeEvent
-	public void onRenderExperienceBar(RenderGameOverlayEvent event) 
-	{
-    	//LOGGER.info("onRenderExperienceBar {}", event.toString());
-	}
+    public void onRenderExperienceBar(RenderGameOverlayEvent event) 
+    {
+        //LOGGER.info("onRenderExperienceBar {}", event.toString());
+    }
 
     // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
     // Event bus for receiving Registry Events)
