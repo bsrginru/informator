@@ -15,11 +15,15 @@
 * Информация о мобе, на которого направлен взгляд (для коня и питомцев дополнительно (если есть): владелец, прыгучесть, быстрота).
 * Информация о полученном опыте.
 
+![Screenshot](https://github.com/bsrginru/informator/blob/v1.10.x/screenshots/2016-05-02_19.11.54.png)
+
 ## Информация об освещённости
 
 Отображается информация об освещённости поверхности (по нажатию на кнопку F12)
 
-Установка:
+![Screenshot](https://github.com/bsrginru/informator/blob/v1.10.x/screenshots/2016-05-02_19.13.01.png)
+
+## Установка
 1. Установить Minecraft Forge, рекомендуемую версию (http://files.minecraftforge.net/)
 2. Поместить файл mod'а в каталог ...\AppData\Roaming\.minecraft\mods
 
