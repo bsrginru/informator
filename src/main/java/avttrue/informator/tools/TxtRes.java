@@ -1,95 +1,25 @@
-﻿package avttrue.informator.Tools;
+package avttrue.informator.tools;
 
 import java.nio.charset.Charset;
 
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
-
 import net.minecraft.client.resources.I18n;
+//import avttrue.informator.Informator;
+//import net.minecraft.util.text.translation.LanguageMap;
+//import java.util.Locale;
+//import avttrue.informator.Informator;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class TxtRes 
 {
-	//private static final Logger LOGGER = LogManager.getLogger();
-
-//
-// Возвращает название зачарования по EID
-//	
-	public static String GetEnchantmentNameByEID(int EID)
-	{
-		switch(EID)
-		{	
-			//Armour
-			case 0: return I18n.format("enchantment.protect.all");
-			case 1: return I18n.format("enchantment.protect.fire");
-			case 2: return I18n.format("enchantment.protect.fall");
-			case 3: return I18n.format("enchantment.protect.explosion");	
-			case 4: return I18n.format("enchantment.protect.projectile");
-			case 5: return I18n.format("enchantment.oxygen");
-			case 6: return I18n.format("enchantment.waterWorker");
-			case 7: return I18n.format("enchantment.thorns");
-			case 8: return I18n.format("enchantment.waterWalker");
-			case 9: return I18n.format("enchantment.frostWalker");
-			
-			//Weapons
-			case 16: return I18n.format("enchantment.damage.all");
-			case 17: return I18n.format("enchantment.damage.undead");
-			case 18: return I18n.format("enchantment.damage.arthropods");
-			case 19: return I18n.format("enchantment.knockback");
-			case 20: return I18n.format("enchantment.fire");
-			case 21: return I18n.format("enchantment.lootBonus");
-			
-			//Tools
-			case 32: return I18n.format("enchantment.digging");
-			case 33: return I18n.format("enchantment.untouching");
-			case 35: return I18n.format("enchantment.lootBonusDigger");
-				
-			//Bows
-			case 48: return I18n.format("enchantment.arrowDamage");
-			case 49: return I18n.format("enchantment.arrowKnockback");
-			case 50: return I18n.format("enchantment.arrowFire");
-			case 51: return I18n.format("enchantment.arrowInfinite");	
-			
-			//Fishing Rods
-			case 61: return I18n.format("enchantment.lootBonusFishing");
-			case 62: return I18n.format("enchantment.fishingSpeed");
-				
-			//Common
-			case 34: return I18n.format("enchantment.durability");
-			case 70: return I18n.format("enchantment.mending");
-		}
-		//не найдено	
-		return Integer.toString(EID);
-	}
-	
-//
-// преобразует арабскую цифру в латинскую
-//
-	public static String ArabToLatinNumber(int number)
-	{
-		switch(number)
-		{
-			case 1: return "I";
-			case 2: return "II";
-			case 3: return "III";
-			case 4: return "IV";
-			case 5: return "V";
-			case 6: return "VI";
-			case 7: return "VII";
-			case 8: return "VIII";
-			case 9: return "IX";
-			case 10: return "X";
-		}
-		// прочее
-		return Integer.toString(number);
-	}
-
 	//
 	// получает ключ в файле локализации и дефолтное значение, а возвращает значение по ключу
-	//	
+	//
 	public static String GetLocalText(String key, String defvalue)
 	{
-		//LOGGER.info("GetLocalText: key="+key+"; defvalue="+defvalue);
-		String s = I18n.format(key);
+		//х.з., не работает почему-то:Informator.LOGGER.info("GetLocalText >> {}", LanguageMap.getInstance().translateKey(key));
+		String s =  (new TranslationTextComponent(key)).getString();
+		//String s = String.format(Locale.ROOT, "%s", key);
+		//Informator.LOGGER.info("debug >> {}", s);
 		if (s.equals(key)) 
 			return defvalue;
 		else 
@@ -99,7 +29,6 @@ public class TxtRes
 	//
 	// возвращает название профессии селянина по ID
 	//
-	
 	public static String GetVillagerProfession(String id_profession)
 	{
 		if (id_profession == "unemployed") return I18n.format("avttrue.informator.57");
