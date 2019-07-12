@@ -28,7 +28,7 @@ issueTrackerURL="http://minecrafting.ru/topic/12250/" #optional
 	#updateJSONURL="http://myurl.me/" #optional
 	
 	# A URL for the "homepage" for this mod, displayed in the mod UI
-	displayURL="http://www.minecrafting.ru" #optional
+	displayURL="http://minecrafting.ru/topic/12250/" #optional
 	
 	# A file name (in the root of the mod JAR) containing a logo for display
 	logoFile="avttrue.informator.logo.png" #optional
