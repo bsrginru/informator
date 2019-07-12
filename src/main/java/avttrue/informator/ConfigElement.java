@@ -11,7 +11,7 @@ public enum ConfigElement
     CLOCK_ALIGN_MODE("Time Bar Align Mode",
             "Valid alignment strings are Custom, BottomTight, TopRight, TopLeft, BottomLeft",
             new String[] { "Custom", "BottomRight", "TopRight", "TopLeft", "BottomLeft"}),
-	INFOBLOCK_ALIGN_MODE("InfoBlock Bar Align Mode",
+    INFOBLOCK_ALIGN_MODE("InfoBlock Bar Align Mode",
             "Valid alignment strings are Custom, BottomRight, TopRight, TopLeft, BottomLeft",
             new String[] { "Custom", "BottomRight", "TopRight", "TopLeft", "BottomLeft"});
 

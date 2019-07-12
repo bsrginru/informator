@@ -1,12 +1,28 @@
 package avttrue.informator;
 
-import avttrue.informator.events.*;
-import avttrue.informator.tools.TextTranslation;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.translation.LanguageMap;
+
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -16,25 +32,12 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import java.util.stream.Collectors;
-import net.minecraft.util.text.translation.LanguageMap;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
+
+import avttrue.informator.events.OnClientTick;
+import avttrue.informator.events.OnKeyInput;
+import avttrue.informator.events.OnRenderGameOverlay;
+import avttrue.informator.tools.Functions;
+import avttrue.informator.tools.TextTranslation;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("avttrue_informator")
@@ -44,6 +47,8 @@ public class Informator
     public static final Logger LOGGER = LogManager.getLogger();
     // Статический транслятор, который регистрирует "самопереводящиеся" текстовые ресурсы
     public static final TextTranslation TRANSLATOR = TextTranslation.getInstance();
+    // Статические функции модуля, в которых есть всяко-разно для упрощения кода функциональных шклассов-обработчиков
+    public static final Functions TOOLS = Functions.getInstance();
 
     // используется для контроля игрового времени
     public static long worldTime = -1;

@@ -1,19 +1,19 @@
 package avttrue.informator.tools;
 
-import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 
-public class Drawing 
+public class Drawing
 {
-
-	// TODO отрисовка модели сущности на экране
-	public static void drawEntityOnScreen(int x, int y, int scale, float mouseX, float mouseY, LivingEntity entity_elb)
+    // отрисовка модели сущности на экране
+    public static void drawEntityOnScreen(int x, int y, int scale, float mouseX, float mouseY, LivingEntity entity_elb)
     {
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
@@ -53,14 +53,14 @@ public class Drawing
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
 
     }
-	
-	// TODO отрисовка иконки куба на экране
-	public static void DrawItemStack(ItemRenderer renderitem, ItemStack istack, int xPos, int yPos)
-	{
-		GlStateManager.blendFuncSeparate(770, 771, 1, 0);
-		RenderHelper.enableGUIStandardItemLighting();
-		renderitem.zLevel = 200.0F;
-		renderitem.renderItemAndEffectIntoGUI(istack, xPos, yPos);		
-	}
-	
+
+    // отрисовка иконки куба на экране
+    public static void DrawItemStack(ItemRenderer renderitem, ItemStack istack, int xPos, int yPos)
+    {
+        GlStateManager.blendFuncSeparate(770, 771, 1, 0);
+        RenderHelper.enableGUIStandardItemLighting();
+        renderitem.zLevel = 200.0F;
+        renderitem.renderItemAndEffectIntoGUI(istack, xPos, yPos);
+    }
+    
 }
