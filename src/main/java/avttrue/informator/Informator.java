@@ -1,5 +1,7 @@
 package avttrue.informator;
 
+import avttrue.informator.events.*;
+import avttrue.informator.tools.TextTranslation;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
@@ -33,7 +35,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import avttrue.informator.events.*;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("avttrue_informator")
@@ -41,6 +42,8 @@ public class Informator
 {
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
+    // Статический транслятор, который регистрирует "самопереводящиеся" текстовые ресурсы
+    public static final TextTranslation TRANSLATOR = TextTranslation.getInstance();
 
     // используется для контроля игрового времени
     public static long worldTime = -1;

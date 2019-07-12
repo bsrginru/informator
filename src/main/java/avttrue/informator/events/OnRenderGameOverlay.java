@@ -8,8 +8,8 @@ import java.util.List;
 
 import avttrue.informator.Informator;
 import avttrue.informator.tools.Drawing;
+import avttrue.informator.tools.TextTranslation;
 //import avttrue.informator.Tools.Functions;
-import avttrue.informator.tools.TxtRes;
 //import avttrue.informator.Tools.View;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -74,8 +74,6 @@ public class OnRenderGameOverlay //extends Gui
 	private int mainWndScaledWidth;
 	private int mainWndScaledHeight;
 	
-private ITextComponent field_209515_s = new TranslationTextComponent("avttrue.thesaurus.1");
-
 	@SubscribeEvent
 	public void onRenderExperienceBar(RenderGameOverlayEvent.Post event) 
 	{
@@ -218,7 +216,7 @@ private ITextComponent field_209515_s = new TranslationTextComponent("avttrue.th
 			Informator.Global_ON = false;
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			//Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			//Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 			// "The mod Informator made a mistake and was off"), null);
 		}
 	}
@@ -230,9 +228,11 @@ private ITextComponent field_209515_s = new TranslationTextComponent("avttrue.th
 			final int VelocityBar_xPos = Informator.VelocityBar_xOffset;
 			final int VelocityBar_yPos = Informator.VelocityBar_yOffset +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
 
-			final String sVelocity =
-					TxtRes.GetLocalText("avttrue.informator.1", "Velocity") +
-					String.format(": %1$5.2f %2$s", Informator.velocity, TxtRes.GetLocalText("avttrue.informator.15", "b/s")); 
+			final String sVelocity = String.format(
+					"%1$s: %2$5.2f %3$s",
+					Informator.TRANSLATOR.field_velocity.getFormattedText(),
+					Informator.velocity,
+					Informator.TRANSLATOR.field_blocks_per_sec.getFormattedText()); 
 			final int iVelocityLen = mc.fontRenderer.getStringWidth(sVelocity) + STRING_GROW_px;
 
 			// отрисовка панели
@@ -260,7 +260,7 @@ private ITextComponent field_209515_s = new TranslationTextComponent("avttrue.th
 			Informator.Global_ON = false;
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			//Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			//Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 			// "The mod Informator made a mistake and was off"), null);
 		}
 	}
@@ -299,8 +299,6 @@ private ITextComponent field_209515_s = new TranslationTextComponent("avttrue.th
  			{
  				currentTime = String.format("%1$tT | ??:??", date.getTime());
  			}
- 			
-currentTime += this.field_209515_s.getFormattedText();
 
  			// время бодрствования
  			boolean restTimeHourOverhead = false;
@@ -351,7 +349,7 @@ currentTime += this.field_209515_s.getFormattedText();
 
 			final int moonPhase = mc.world.getMoonPhase();
 			int moon_xPos = time_xPos, moon_yPos = time_yPos;
-			int moonPhaseFactorLen = 0; // длина текста фазы луны
+			int moonPhaseLen = 0; // длина текста фазы луны
 			String sMoonPhase = null;
 			String sMoonPhaseFactor = null;
 
@@ -393,29 +391,11 @@ currentTime += this.field_209515_s.getFormattedText();
 				//182000 — Прибывающая луна.
 	 			if (Informator.TimeBarMoon_Show)
 	 			{
-	 				final float moonPhaseFactor = mc.world.getCurrentMoonPhaseFactor();
-	 				sMoonPhase = TxtRes.GetLocalText("avttrue.informator.4", "Phase") + ": " + moonPhase;
-	 				String sMoonPhase_FACTOR = TxtRes.GetLocalText("avttrue.informator.5", "Factor");
-	
-	 				// расшифровка фактора фазы луны
-	 				if (moonPhaseFactor == 1.0) 
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " +
-	 											TxtRes.GetLocalText("avttrue.informator.6", "Full");
-	 				else if (moonPhaseFactor == 0.75) 
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " +
-												TxtRes.GetLocalText("avttrue.informator.7", "Gibbous");
-	 				else if (moonPhaseFactor == 0.5) 
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " +
-	 											TxtRes.GetLocalText("avttrue.informator.8", "Quarter");
-	 				else if (moonPhaseFactor == 0.25) 
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " +
-												TxtRes.GetLocalText("avttrue.informator.9", "Crescent");
-	 				else if (moonPhaseFactor == 0.0) 
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " +
-	 											TxtRes.GetLocalText("avttrue.informator.10", "New");
-	 				else
-	 					sMoonPhaseFactor = sMoonPhase_FACTOR + ": " + moonPhaseFactor;
-	 				moonPhaseFactorLen = mc.fontRenderer.getStringWidth(sMoonPhaseFactor) + STRING_GROW_px;
+	 				//final float moonPhaseFactor = mc.world.getCurrentMoonPhaseFactor(); // 1.0 полнолуние .. 0.0 новолуние
+	 				sMoonPhase = Informator.TRANSLATOR.field_moon_phase.getFormattedText() + ": ";
+	 				// расшифровка фазы луны (ранее выводился фактор, см. переменную выше)
+	 				sMoonPhaseFactor = Informator.TRANSLATOR.field_moon_phases[moonPhase].getFormattedText();
+	 				moonPhaseLen = Math.max(mc.fontRenderer.getStringWidth(sMoonPhase), mc.fontRenderer.getStringWidth(sMoonPhaseFactor)) + STRING_GROW_px;
 	
 	 			    // позиция и размеры
 	 	 			switch (Informator.TimeBar_alignMode)
@@ -426,14 +406,14 @@ currentTime += this.field_209515_s.getFormattedText();
 	 					moon_yPos = 0;
 	 	 				break;
 	 	 			case 1: // topright
-	 	 				moon_xPos = mainWndScaledWidth - moonPhaseFactorLen - (1+Skin.ICON_MOON.size+1);
+	 	 				moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
 	 	 				moon_yPos = 0;
 	 	 				break;
 	 	 			case 2: // bottomleft
 	 					moon_xPos = Informator.TimeBarWeather_Show ? Skin.ICON_WEATHER_PRETTY.size : 0;
 	 	 				break;
 	 	 			case 3: // bottomright
-	 	 				moon_xPos = mainWndScaledWidth - moonPhaseFactorLen - (1+Skin.ICON_MOON.size+1);
+	 	 				moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
 	 	 				break;
 	 	 			}
 	 			}
@@ -454,14 +434,14 @@ currentTime += this.field_209515_s.getFormattedText();
 						weather_yPos = 0;
 	 	 				break;
 	 	 			case 1: // topright
-	 	 				weather_xPos = mainWndScaledWidth - moonPhaseFactorLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+	 	 				weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
 	 	 				weather_yPos = 0;
 	 	 				break;
 	 	 			case 2: // bottomleft
 						weather_xPos = 0;
 	 	 				break;
 	 	 			case 3: // bottomright
-	 	 				weather_xPos = mainWndScaledWidth - moonPhaseFactorLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+	 	 				weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
 	 	 				break;
 	 	 			}
 	 			}
@@ -493,7 +473,7 @@ currentTime += this.field_209515_s.getFormattedText();
 					GuiUtils.drawGradientRect(0,
 							moon_xPos,
 							moon_yPos + Skin.MC_ICON_SIZE,
-							moon_xPos + moonPhaseFactorLen + 1+Skin.ICON_MOON.size+1,
+							moon_xPos + moonPhaseLen + 1+Skin.ICON_MOON.size+1,
 							moon_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
 							PANEL_STEEL,
 							PANEL_TRANSPARENT);
@@ -592,7 +572,7 @@ currentTime += this.field_209515_s.getFormattedText();
 			Informator.Global_ON = false;
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			//Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			//Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 			//		"The mod Informator made a mistake and was off"), null);
 		}
 	}
@@ -668,7 +648,7 @@ currentTime += this.field_209515_s.getFormattedText();
 			Informator.Global_ON = false;
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			//Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			//Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 			// "The mod Informator made a mistake and was off"), null);
 		}
 	}
@@ -745,22 +725,22 @@ currentTime += this.field_209515_s.getFormattedText();
 			String BlockLight = "";
 			if (upBlockPos.getY() > 254)  // выше 255 строить нельзя
 			{
-				BlockLight = " " + TxtRes.GetLocalText("avttrue.informator.2", "Light") +
+				BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
 						"=" + EnumSkyBlock.BLOCK.defaultLightValue + " / " + 
 						EnumSkyBlock.SKY.defaultLightValue + " (" + 
-						TxtRes.GetLocalText("avttrue.informator.14", "sky") + ") ";
+						TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";
 			}
 			else
 			{
 				Chunk c = mc.theWorld.getChunkFromBlockCoords(upBlockPos);
-				BlockLight = " " + TxtRes.GetLocalText("avttrue.informator.2", "Light") +
+				BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
 						"=" + c.getLightFor(EnumSkyBlock.BLOCK, upBlockPos) + " / " + 
 						c.getLightFor(EnumSkyBlock.SKY, upBlockPos) + " (" + 
-						TxtRes.GetLocalText("avttrue.informator.14", "sky") + ") ";	
+						TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";	
 			}
 
 			// заряд блока
-			String BlockPower = " " + TxtRes.GetLocalText("avttrue.informator.3", "Power") +
+			String BlockPower = " " + TextTranslation.GetLocalText("avttrue.informator.3", "Power") +
 					"=" + Functions.GetTextPower(mc, view.tBlock, view.tBlockPosition) + " ";
 			
 			int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRendererObj.getStringWidth(BlockXYZ),
@@ -853,7 +833,7 @@ currentTime += this.field_209515_s.getFormattedText();
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			Informator.Gobal_ON = false;
-			Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 					"The mod Informator made a mistake and was off"), null);
 		}
 	}*/
@@ -895,7 +875,7 @@ currentTime += this.field_209515_s.getFormattedText();
 			int mobnamexpos = TargetMobBar_x + 1 + (TargetMobBar_Len - 2 - mc.fontRendererObj.getStringWidth(mobname)) / 2;
 			
 			// дистанция
-			String mobdist = " " + TxtRes.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
+			String mobdist = " " + TextTranslation.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
 			int mobdistlen = mc.fontRendererObj.getStringWidth(mobdist);
 			
 			// доп. характеристики для коней
@@ -907,17 +887,17 @@ currentTime += this.field_209515_s.getFormattedText();
 			int mobaddsetts3len = 0;
 			if (view.MobOwner != null)
 			{
-				mobowner = " " + TxtRes.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
+				mobowner = " " + TextTranslation.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
 				mobaddsetts1len = mc.fontRendererObj.getStringWidth(mobowner);
 			}
 			if (view.MobMovementSpeed > 0)
 			{
-				mobspeed += " " + TxtRes.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
+				mobspeed += " " + TextTranslation.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
 				mobaddsetts2len = mc.fontRendererObj.getStringWidth(mobspeed);
 			}
 			if (view.MobJumpHeight > 0)
 			{
-				mobjamp += " " + TxtRes.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
+				mobjamp += " " + TextTranslation.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
 				mobaddsetts3len = mc.fontRendererObj.getStringWidth(mobjamp);
 			}
 						
@@ -943,9 +923,9 @@ currentTime += this.field_209515_s.getFormattedText();
 			}
 			
 			// панели здоровья
-			String mobhealth = TxtRes.GetLocalText("avttrue.informator.19", "Health") + " " +
+			String mobhealth = TextTranslation.GetLocalText("avttrue.informator.19", "Health") + " " +
 					view.MobHealth + " / " + view.MobMaxHealth + " | " +
-					TxtRes.GetLocalText("avttrue.informator.20", "Armor") + " " +
+					TextTranslation.GetLocalText("avttrue.informator.20", "Armor") + " " +
 					view.MobTotalArmor;
 			int mobhealslinelen = TargetMobBar_Len - 18;
 			int mobhealthXtxtpos = TargetMobBar_x + 18 + (mobhealslinelen - mc.fontRendererObj.getStringWidth(mobhealth)) / 2;
@@ -1035,7 +1015,7 @@ currentTime += this.field_209515_s.getFormattedText();
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			Informator.Gobal_ON = false;
-			Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
+			Functions.SendMessageToUser("\u00A7c" + TextTranslation.GetLocalText("avttrue.informator.26", 
 					"The mod Informator made a mistake and was off"), null);
 		}
 	}*/

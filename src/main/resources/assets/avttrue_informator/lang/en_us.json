@@ -1,0 +1,14 @@
+{
+  "avttrue.thesaurus.1": "Thesaurus",
+  "avttrue.informator.velocity": "Velocity",
+  "avttrue.informator.blocks_per_sec": "b/s",
+  "avttrue.informator.moon_phase": "Phase",
+  "avttrue.informator.moon_phase.0": "full",
+  "avttrue.informator.moon_phase.1": "waning gibbous",
+  "avttrue.informator.moon_phase.2": "last quarter",
+  "avttrue.informator.moon_phase.3": "waning crescent",
+  "avttrue.informator.moon_phase.4": "new moon",
+  "avttrue.informator.moon_phase.5": "waxing crescent",
+  "avttrue.informator.moon_phase.6": "first quarter",
+  "avttrue.informator.moon_phase.7": "waxing gibbous"
+}

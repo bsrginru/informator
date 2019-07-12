@@ -1,31 +1,30 @@
 package avttrue.informator.tools;
 
 import java.nio.charset.Charset;
-
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.text.ITextComponent;
 //import avttrue.informator.Informator;
 //import net.minecraft.util.text.translation.LanguageMap;
 //import java.util.Locale;
 //import avttrue.informator.Informator;
 import net.minecraft.util.text.TranslationTextComponent;
 
-public class TxtRes 
+public class TextTranslation
 {
-	//
-	// получает ключ в файле локализации и дефолтное значение, а возвращает значение по ключу
-	//
-	public static String GetLocalText(String key, String defvalue)
-	{
-		//х.з., не работает почему-то:Informator.LOGGER.info("GetLocalText >> {}", LanguageMap.getInstance().translateKey(key));
-		String s =  (new TranslationTextComponent(key)).getString();
-		//String s = String.format(Locale.ROOT, "%s", key);
-		//Informator.LOGGER.info("debug >> {}", s);
-		if (s.equals(key)) 
-			return defvalue;
-		else 
-			return s;
-	}
-	
+	public ITextComponent field_thesaurus = new TranslationTextComponent("avttrue.thesaurus.1");
+	public ITextComponent field_velocity = new TranslationTextComponent("avttrue.informator.velocity");
+	public ITextComponent field_blocks_per_sec = new TranslationTextComponent("avttrue.informator.blocks_per_sec");
+	public ITextComponent field_moon_phase = new TranslationTextComponent("avttrue.informator.moon_phase");
+	public ITextComponent[] field_moon_phases = {
+			new TranslationTextComponent("avttrue.informator.moon_phase.0"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.1"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.2"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.3"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.4"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.5"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.6"),
+			new TranslationTextComponent("avttrue.informator.moon_phase.7")};
+
 	//
 	// возвращает название профессии селянина по ID
 	//
@@ -82,5 +81,11 @@ public class TxtRes
 		//System.out.println("\n" + s + " | " + retValue);
 		return retValue;
 	}
-}
 
+	// синглтон транслятора
+	private static final TextTranslation instance = new TextTranslation();
+	public static TextTranslation getInstance()
+	{
+		return instance;
+	}
+}

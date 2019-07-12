@@ -1,3 +1,14 @@
 {
-  "avttrue.thesaurus.1": "Тезаурус"
+  "avttrue.thesaurus.1": "Тезаурус",
+  "avttrue.informator.velocity": "Скорость",
+  "avttrue.informator.blocks_per_sec": "б/с",
+  "avttrue.informator.moon_phase": "Фаза",
+  "avttrue.informator.moon_phase.0": "полнолуние",
+  "avttrue.informator.moon_phase.1": "убывающая луна",
+  "avttrue.informator.moon_phase.2": "третья четверть",
+  "avttrue.informator.moon_phase.3": "убывающий месяц",
+  "avttrue.informator.moon_phase.4": "новолуние",
+  "avttrue.informator.moon_phase.5": "растущий месяц",
+  "avttrue.informator.moon_phase.6": "первая четверть",
+  "avttrue.informator.moon_phase.7": "растущая луна"
 }

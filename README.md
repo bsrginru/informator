@@ -78,6 +78,7 @@
 4. Запускаем Eclipse
  1. во вкладке Package Explorer находим папку src\main, выделяем в ней подкаталоги java и resources и в меню 'Build Path' выбираем пункт 'Use as Source Folder'
  2. во вкладке 'Package Explorer' открываем 'Properties for informator', изменяем 'Text file encoding' на 'Other UTF-8', нажимаем 'Apply and Close'
+ 3. во вкладке 'Package Explorer' находим папку src\test и удаляем её
 
 # Запуск Minecraft вместе с Mod-ом
 1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.47-installer.jar")
