@@ -21,19 +21,9 @@ public class OnKeyInput
                 Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_enabled, (new Style()).setColor(TextFormatting.DARK_GRAY));
             else
                 Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_disabled, (new Style()).setColor(TextFormatting.DARK_GRAY));
-            
-//!!!debug only
-//static int kuk = 0;
-//OnKeyInput.kuk++; 
-//Informator.TimeBar_alignMode = OnKeyInput.kuk % 4;
-//Informator.TimeBarWeatherPretty_Show = ((OnKeyInput.kuk / 4) % 2) == 0;
-//Informator.TimeBarMoon_Show = ((OnKeyInput.kuk / 8) % 2) == 0;
-//Informator.TimeBarWeather_Show = ((OnKeyInput.kuk / 16) % 2) == 0;
-//Informator.TimeBar_Show = ((OnKeyInput.kuk / 32) % 2) == 0;
-    
         }
         
-        if (KeyBindings.InformatorSurfaceCheckerSwitch.isPressed())
+        else if (KeyBindings.InformatorSurfaceCheckerSwitch.isPressed())
         {
         //    Informator.SurfaceCheckerIsActive =! Informator.SurfaceCheckerIsActive;
         //    if (Informator.SurfaceCheckerIsActive)
@@ -49,5 +39,18 @@ public class OnKeyInput
         //                "Surface properties indication is OFF"), null);
         //    }
         }
+        
+        else if (KeyBindings.InformatorDebug.isPressed())
+        {
+            //!!!debug only
+            kuk++; 
+            Informator.TimeBar_alignMode = kuk % 4;
+            Informator.TimeBarWeatherPretty_Show = ((kuk / 4) % 2) == 0;
+            Informator.TimeBarMoon_Show = ((kuk / 8) % 2) == 0;
+            Informator.TimeBarWeather_Show = ((kuk / 16) % 2) == 0;
+            Informator.TimeBar_Show = ((kuk / 32) % 2) == 0;
+        }
     }
+    
+    static int kuk = 0;
 }

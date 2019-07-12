@@ -20,54 +20,26 @@ public class OnClientTick
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event)
     {
+        if (!Informator.Global_ON) return; // если выключены
+
+        if (event.phase.equals(Phase.START))
+        {
+            Informator.clock.collectDataDuringTick();
+            Informator.weather.collectDataDuringTick();
+        }
+
         final ClientWorld world = mc.world;
 
         try
         {
             // если игра ещё не начата вдруг
-            if (world == null) 
-            {
-                Informator.worldTime = -1;
-                return;
-            }
+            if (world == null) return;
             
             if (!Informator.Global_ON) return; // если выключены
             
             PlayerEntity player = mc.player;
             
-            //final StatisticsManager stats = ((ClientPlayerEntity)player).getStats();
-            //for(Stat<ResourceLocation> stat : Stats.CUSTOM) {
-            //    if (stat.getValue() == Stats.TIME_SINCE_REST)
-            //    {
-            //        // эта статистика почему-то не обновляется... запрашивается с сервера что ли? (замирает на последнем отображённом значении)
-            //        String s = stat.format(stats.getValue(stat));
-            //        break;
-            //    }
-            //}
-            
-            //Stats.TIME_SINCE_REST.toString();
-
-            if (event.phase.equals(Phase.START))
-            {
-                //
-                // вычисляем время
-                //
-                if (player.dimension.getId() == 0) // 0 в обычном мире, -1 в аду, 1 в енде
-                {
-                    Informator.worldTime = world.dimension.getWorldTime();
-                    if (player.isSleeping()) // поскольку в аду спать нельзя, то точка сохранения параметра только здесь
-                    {
-                        // Внимание! таймер сна на сервере запускается спустя 100 тиков
-                        Informator.wakeUpTime = Informator.worldTime;
-                    }
-                }
-                else if (Informator.worldTime != -1) // если не в обычном мире и время уже определено
-                {
-                    Informator.worldTime++;
-                }
-            }
-            
-            else if (event.phase.equals(Phase.END))
+            if (event.phase.equals(Phase.END))
             {
                 //
                 // вычисляем скорость
@@ -97,7 +69,6 @@ public class OnClientTick
         }
         catch(Exception e)
         {
-            Informator.worldTime = -1;
             System.out.println(e.getMessage());
             e.printStackTrace();
         }

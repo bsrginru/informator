@@ -32,6 +32,8 @@ import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.events.OnClientTick;
 import avttrue.informator.events.OnKeyInput;
 import avttrue.informator.events.OnRenderGameOverlay;
@@ -50,8 +52,8 @@ public class Informator
     public static final Functions TOOLS = Functions.getInstance();
 
     // используется для контроля игрового времени
-    public static long worldTime = -1;
-    public static long wakeUpTime = -1;
+    public static CollectedClockData clock = new CollectedClockData();
+    public static CollectedWeatherData weather = new CollectedWeatherData();
 
     // используется в рассчётах скорости
     public static double prevPayerX = 0;

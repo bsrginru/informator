@@ -2,7 +2,6 @@ package avttrue.informator.events;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -23,6 +22,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
+import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedWeatherData;
+import avttrue.informator.data.TimeOfDay;
 import avttrue.informator.tools.Drawing;
 
 public class OnRenderGameOverlay //extends Gui
@@ -248,118 +250,59 @@ public class OnRenderGameOverlay //extends Gui
     {
         try
         {
-             String currentTime = ""; // время реальное и игровое
-             
-             // Реальное время
-             final Date date = new Date();
-             long mcTimeHour = -1;
-             long mcTimeMin = -1;
+            final CollectedClockData.Data clock = Informator.clock.data;
+            final CollectedWeatherData.Data weather = Informator.weather.data;
+            if (!clock.valid || !weather.valid) return;
 
-             // игровое время
-             if (Informator.worldTime > -1) // если время определено
-             {
-                  /* ибо:
-                  * http://minecraft.gamepedia.com/Time
-                  * 1 tick of gameplay = 3.6 Minecraft seconds
-                  * + 6 часов, т.к. 0-й тик = 6:00
-                  * 6*60*60 = 21600
-                  * 24*60*60 = 86400
-                  */
-                 
-                 long mcTimeSec = (long) ((Informator.worldTime * 3.6 + 21600) % 86400); // секунд натикало в текущем дне
-                 mcTimeMin = (mcTimeSec - mcTimeSec % 60) / 60;
-                 mcTimeHour = (mcTimeMin - mcTimeMin % 60) / 60;
-                 mcTimeMin -= mcTimeHour * 60; // Нормализуем к часам
+            final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
+            final boolean showBedIcon = Informator.TimeBarBed_Show ? clock.restTimeHourOverhead : false;
 
-                 // для справки
-                 currentTime = String.format("%1$tT | %2$02d:%3$02d", date.getTime(), mcTimeHour, mcTimeMin);
-             } 
-             else // если время не определено
-             {
-                 currentTime = String.format("%1$tT | ??:??", date.getTime());
-             }
+            // учёт сдвига на размер иконки луны при прижатии книзу
+            final boolean isWeatherBarPresent = Informator.TimeBarMoon_Show || Informator.TimeBarWeather_Show;
+            final int weatherBarHeight = isWeatherBarPresent ? Skin.ICON_WEATHER_PRETTY.size : 0;
 
-             // время бодрствования
-             boolean restTimeHourOverhead = false;
-             if (Informator.TimeBarBed_Show)
-                 if (Informator.wakeUpTime > 0)
-                 {
-                     final long diff = Informator.worldTime - Informator.wakeUpTime;
-                     restTimeHourOverhead = diff >= 72000; // после 72000 тиков может активироваться спавнер Фантома
-                     //debug:final long restTimeSec = (long)(diff * 3.6); // секунд натикало с подъёма с кровати
-                     //debug:long restTimeMin = (restTimeSec - restTimeSec % 60) / 60;
-                     //debug:long restTimeHour = (restTimeMin - restTimeMin % 60) / 60;
-                     //debug:restTimeMin -= restTimeHour * 60; // Нормализуем к часам
-                     //debug:currentTime = currentTime + String.format("| %1$02d:%2$02d", restTimeHour, restTimeMin);
-                 }
-
-             final int currentTimeStrLen = mc.fontRenderer.getStringWidth(currentTime) + STRING_GROW_px;
-             
-             // учёт сдвига на размер иконки луны при прижатии книзу
-             final boolean isSubBarPresent = Informator.TimeBarMoon_Show || Informator.TimeBarWeather_Show;
-             final int subBarDeltaY = isSubBarPresent ? Skin.ICON_WEATHER_PRETTY.size : 0;
-
-             // расчёт размещения панели
-             int time_xPos = 0;
-             int time_yPos = 0;
-             switch (Informator.TimeBar_alignMode)
-             {
-             default:
-             case 0: // topleft
-                 //подразумевается:time_xPos = 0;
-                 //подразумевается:time_yPos = 0;
-                 break;
-             case 1: // topright
-                 time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
-                 //подразумевается:time_yPos = 0;
-                 break;
-             case 2: // bottomleft
-                 //подразумевается:time_xPos = 0;
-                 time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - subBarDeltaY;
-                 break;
-             case 3: // bottomright
-                 time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
-                 time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - subBarDeltaY;
-                 break;
-             }
-             time_xPos += Informator.TimeBar_xOffset;
-             time_yPos += Informator.TimeBar_yOffset;
-             
-
-            final int moonPhase = mc.world.getMoonPhase();
-            int moon_xPos = time_xPos, moon_yPos = time_yPos;
-            int moonPhaseLen = 0; // длина текста фазы луны
-            String sMoonPhase = null;
-            String sMoonPhaseFactor = null;
-
-            int weather_xPos = moon_xPos, weather_yPos = moon_yPos;
-            final int weatherPhase = mc.world.isThundering() ? 2 : (mc.world.isRaining() ? 0 : 1); // 0 дождь, 1 солнечно, 2 дождь с грозой
-            int weatherPhasePretty = weatherPhase * 2; // день: 0 дождь, 2 солнечно, 4 дождь с грозой
-            if (Informator.worldTime != -1)
+            // расчёт размещения панели
+            int time_xPos = 0;
+            int time_yPos = 0;
+            switch (Informator.TimeBar_alignMode)
             {
-                // чтобы не "дёргалась" погодная иконка при смене ночь->смена_фазы->день, что происходит меньше чем
-                // за 1 секунду, и заметно, то начинаем выводить "дневную иконку" ещё до того, как moonPhase увеличится
-                // проверку проводить на контрольных значениях (при включённом дожде):
-                //  23850 - переключение на убывающую луну
-                //  47850
-                //  71850
-                //  95850
-                //  119850
-                //  143850
-                //  167850
-                //  191850
-                //  215850
-                if (Informator.TimeBarWeather_WithMoonPhases && (mcTimeHour == 5 && mcTimeMin == 59))
-                    ; // в 5:59 считаем, что уже день
-                else if ((mcTimeHour < 6 || mcTimeHour > 18))
-                    weatherPhasePretty++; // ночь: 1 дождь, 3 солнечно, 5 дождь с грозой
+            default:
+            case 0: // topleft
+                //подразумевается:time_xPos = 0;
+                //подразумевается:time_yPos = 0;
+                break;
+            case 1: // topright
+                time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
+                //подразумевается:time_yPos = 0;
+                break;
+            case 2: // bottomleft
+                //подразумевается:time_xPos = 0;
+                time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
+                break;
+            case 3: // bottomright
+                time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
+                time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
+                break;
             }
+            time_xPos += Informator.TimeBar_xOffset;
+            time_yPos += Informator.TimeBar_yOffset;
 
-            if (isSubBarPresent)
-             {
-                 //
-                 // фазы луны
-                 //
+            int moon_xPos = time_xPos;
+            int moon_yPos = time_yPos;
+            int weather_xPos = moon_xPos;
+            int weather_yPos = moon_yPos;
+            int moonPhaseLen = 0; // длина текста фазы луны
+
+            // 0 дождь, 1 солнечно, 2 дождь с грозой
+            final int weatherPhase = weather.isThundering ? 2 : (weather.isRaining ? 0 : 1);
+            int weatherPhasePretty = weatherPhase * 2; // день: 0 дождь, 2 солнечно, 4 дождь с грозой
+            if (clock.timeOfDay == TimeOfDay.NIGHT) weatherPhasePretty++; // ночь: 1 дождь, 3 солнечно, 5 дождь с грозой
+
+            if (isWeatherBarPresent)
+            {
+                //
+                // фазы луны
+                //
                 //14000 — Полнолуние.
                 //38000 — Убывающая луна.
                 //62000 — Последняя четверть.
@@ -368,83 +311,80 @@ public class OnRenderGameOverlay //extends Gui
                 //134000 — Молодая луна.
                 //158000 — Первая четверть.
                 //182000 — Прибывающая луна.
-                 if (Informator.TimeBarMoon_Show)
-                 {
-                     //final float moonPhaseFactor = mc.world.getCurrentMoonPhaseFactor(); // 1.0 полнолуние .. 0.0 новолуние
-                     sMoonPhase = Informator.TRANSLATOR.field_moon_phase.getFormattedText() + ": ";
-                     // расшифровка фазы луны (ранее выводился фактор, см. переменную выше)
-                     sMoonPhaseFactor = Informator.TRANSLATOR.field_moon_phases[moonPhase].getFormattedText();
-                     moonPhaseLen = Math.max(mc.fontRenderer.getStringWidth(sMoonPhase), mc.fontRenderer.getStringWidth(sMoonPhaseFactor)) + STRING_GROW_px;
-    
-                     // позиция и размеры
-                      switch (Informator.TimeBar_alignMode)
-                      {
-                      default:
-                      case 0: // topleft
-                         moon_xPos = Informator.TimeBarWeather_Show ? Skin.ICON_WEATHER_PRETTY.size : 0;
-                         moon_yPos = 0;
-                          break;
-                      case 1: // topright
-                          moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
-                          moon_yPos = 0;
-                          break;
-                      case 2: // bottomleft
-                         moon_xPos = Informator.TimeBarWeather_Show ? Skin.ICON_WEATHER_PRETTY.size : 0;
-                          break;
-                      case 3: // bottomright
-                          moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
-                          break;
-                      }
-                 }
-                
+                if (Informator.TimeBarMoon_Show)
+                {
+                    moonPhaseLen = STRING_GROW_px + Math.max(
+                            mc.fontRenderer.getStringWidth(weather.sMoonPhase),
+                            mc.fontRenderer.getStringWidth(weather.sMoonPhaseFactor));
+                    // позиция и размеры
+                    switch (Informator.TimeBar_alignMode)
+                    {
+                    default:
+                    case 0: // topleft
+                        moon_xPos = Informator.TimeBarWeather_Show ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                        moon_yPos = 0;
+                        break;
+                    case 1: // topright
+                        moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
+                        moon_yPos = 0;
+                        break;
+                    case 2: // bottomleft
+                        moon_xPos = Informator.TimeBarWeather_Show ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                        break;
+                    case 3: // bottomright
+                        moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
+                        break;
+                    }
+                }
+
                 //
                 // погода
                 //
-                 weather_xPos = moon_xPos;
-                 weather_yPos = moon_yPos;
-                 if (Informator.TimeBarWeather_Show)
-                 {
-                     // позиция и размеры
-                      switch (Informator.TimeBar_alignMode)
-                      {
-                      default:
-                      case 0: // topleft
+                weather_xPos = moon_xPos;
+                weather_yPos = moon_yPos;
+                if (Informator.TimeBarWeather_Show)
+                {
+                    // позиция и размеры
+                    switch (Informator.TimeBar_alignMode)
+                    {
+                    default:
+                    case 0: // topleft
                         weather_xPos = 0;
                         weather_yPos = 0;
-                          break;
-                      case 1: // topright
-                          weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
-                          weather_yPos = 0;
-                          break;
-                      case 2: // bottomleft
+                        break;
+                    case 1: // topright
+                        weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                        weather_yPos = 0;
+                        break;
+                    case 2: // bottomleft
                         weather_xPos = 0;
-                          break;
-                      case 3: // bottomright
-                          weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
-                          break;
-                      }
-                 }
-             }
-            
+                        break;
+                    case 3: // bottomright
+                        weather_xPos = mainWndScaledWidth - moonPhaseLen - (Informator.TimeBarMoon_Show ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                        break;
+                    }
+                }
+            }
+
             // ВРЕМЯ: отрисовка панели
-             if (Informator.Global_ShowPanel) 
-             {
-                 GuiUtils.drawGradientRect(0,
-                         time_xPos,
-                         time_yPos, 
-                         time_xPos + Skin.MC_ICON_SIZE + currentTimeStrLen + (restTimeHourOverhead ? Skin.MC_ICON_SIZE : 0),
-                         time_yPos + Skin.MC_ICON_SIZE,
-                         PANEL_STEEL,
-                         PANEL_TRANSPARENT);
-             }
-             // ВРЕМЯ: отрисовка текста
-             mc.fontRenderer.drawStringWithShadow(
-                     currentTime,
-                     time_xPos + Skin.MC_ICON_SIZE + (restTimeHourOverhead ? Skin.MC_ICON_SIZE : 0) + STRING_PREFIX_px,
-                     time_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
-                     FONT_WHITE);
-             // ЛУНА и ПОГОДА: (погода отдельно не отображается, либо ВМЕСТЕ с луной, либо ВМЕСТО иконки времени) 
-             if (Informator.TimeBarMoon_Show)
+            if (Informator.Global_ShowPanel) 
+            {
+                GuiUtils.drawGradientRect(0,
+                        time_xPos,
+                        time_yPos, 
+                        time_xPos + Skin.MC_ICON_SIZE + currentTimeStrLen + (showBedIcon ? Skin.MC_ICON_SIZE : 0),
+                        time_yPos + Skin.MC_ICON_SIZE,
+                        PANEL_STEEL,
+                        PANEL_TRANSPARENT);
+            }
+            // ВРЕМЯ: отрисовка текста
+            mc.fontRenderer.drawStringWithShadow(
+                    clock.currentTime,
+                    time_xPos + Skin.MC_ICON_SIZE + (showBedIcon ? Skin.MC_ICON_SIZE : 0) + STRING_PREFIX_px,
+                    time_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                    FONT_WHITE);
+            // ЛУНА и ПОГОДА: (погода отдельно не отображается, либо ВМЕСТЕ с луной, либо ВМЕСТО иконки времени) 
+            if (Informator.TimeBarMoon_Show)
             {
                 // ЛУНА: отрисовка панели
                 if (Informator.Global_ShowPanel) 
@@ -459,12 +399,12 @@ public class OnRenderGameOverlay //extends Gui
                 }
                 // ЛУНА: отрисовка текста
                 mc.fontRenderer.drawStringWithShadow(
-                        sMoonPhase,
+                        weather.sMoonPhase,
                         moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
                         moon_yPos + Skin.MC_ICON_SIZE,
                         FONT_WHITE);
                 mc.fontRenderer.drawStringWithShadow(
-                        sMoonPhaseFactor,
+                        weather.sMoonPhaseFactor,
                         moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
                         moon_yPos + Skin.MC_ICON_SIZE + STRING_HEIGHT,
                         FONT_WHITE);
@@ -474,7 +414,7 @@ public class OnRenderGameOverlay //extends Gui
                 {
                     // ПОГОДА:отрисовка панели
                     if (Informator.Global_ShowPanel) 
-                     {
+                    {
                         GuiUtils.drawGradientRect(0,
                                 weather_xPos,
                                 weather_yPos + Skin.MC_ICON_SIZE,
@@ -482,23 +422,23 @@ public class OnRenderGameOverlay //extends Gui
                                 weather_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
                                 PANEL_STEEL,
                                 PANEL_TRANSPARENT);
-                     }
+                    }
                 }
             }
 
-             // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
+            // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
             mc.getTextureManager().bindTexture(new ResourceLocation("avttrue_informator:textures/wthr.png"));
             if (Informator.TimeBarMoon_Show)
-             {
+            {
                 // ЛУНА: отрисовка иконки луны
-                 DrawSkinIcon(
-                         moon_xPos+1,
-                         moon_yPos + Skin.MC_ICON_SIZE + (2*STRING_HEIGHT-Skin.ICON_MOON.size)/2,
+                DrawSkinIcon(
+                        moon_xPos+1,
+                        moon_yPos + Skin.MC_ICON_SIZE + (2*STRING_HEIGHT-Skin.ICON_MOON.size)/2,
                         Skin.ICON_MOON,
-                        moonPhase);
+                        weather.moonPhase);
                 // ПОГОДА: (отображается на отдельной панели только СОВМЕСТНО с луной)
-                 if (Informator.TimeBarWeather_Show)
-                 {
+                if (Informator.TimeBarWeather_Show)
+                {
                     // отрисовка иконки
                     if (!Informator.TimeBarWeatherPretty_Show)
                     {
@@ -515,18 +455,18 @@ public class OnRenderGameOverlay //extends Gui
                                 weather_yPos + Skin.MC_ICON_SIZE,
                                 false,
                                 weatherPhasePretty,
-                                moonPhase);
+                                weather.moonPhase);
                     }
-                 }
-             }
+                }
+            }
             // ВРЕМЯ: отрисовка иконки часов
-             if (Informator.TimeBarMoon_Show && Informator.TimeBarWeather_Show)
-             {
-                 Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.CLOCK), time_xPos, time_yPos);
-             }
-             // ВРЕМЯ (иконка погоды на месте иконки часов):
-             else
-             {
+            if (Informator.TimeBarMoon_Show && Informator.TimeBarWeather_Show)
+            {
+                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.CLOCK), time_xPos, time_yPos);
+            }
+            // ВРЕМЯ (иконка погоды на месте иконки часов):
+            else
+            {
                 //не пользуемся этим методом: иконка слишком маленькая, и новолуние неотличимо от дождя днём DrawWeatherAndMoon(
                 //        time_xPos,
                 //        time_yPos,
@@ -538,13 +478,12 @@ public class OnRenderGameOverlay //extends Gui
                         time_yPos,
                         Skin.ICON_WEATHER_TIME,
                         weatherPhasePretty);
-             }
-             
+            }
             // КРОВАТЬ: отрисовка иконки кровати
-             if (restTimeHourOverhead)
-             {
-                 Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.BLUE_BED), time_xPos + Skin.MC_ICON_SIZE, time_yPos);
-             }
+            if (showBedIcon)
+            {
+                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.BLUE_BED), time_xPos + Skin.MC_ICON_SIZE, time_yPos);
+            }
         }
         catch (Exception e) 
         {
