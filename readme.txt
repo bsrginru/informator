@@ -19,6 +19,7 @@
 
 после чего уже запускаем Eclipse
 во вкладке Package Explorer находим папку src\main, выделяем в ней подкаталоги java и resources и в меню 'Build Path' выбираем пункт 'Use as Source Folder'
+во вкладке 'Package Explorer' открываем 'Properties for informator', изменяем 'Text file encoding' на 'Other UTF-8', нажимаем 'Apply and Close'
 
 скачиваем инсталлятор Forge ( forge-1.14.3-27.0.43-installer.jar )
 выбираем папку, где расположены клиентские файлы и нажимаем кнопку 'Install Client'
