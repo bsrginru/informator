@@ -1,3 +1,9 @@
+# This is an example mods.toml file. It contains the data relating to the loading mods.
+# There are several mandatory fields (#mandatory), and many more that are optional (#optional).
+# The overall format is standard TOML format, v0.5.0.
+# Note that there are a couple of TOML lists in this file.
+# Find more information on toml format here:  https://github.com/toml-lang/toml
+
 # The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
 modLoader="javafml" #mandatory
 
@@ -9,37 +15,37 @@ loaderVersion="[26,)" #mandatory (26 is current forge version)
 
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]] #mandatory
-
-# The modid of the mod
-modId="avttrue_informator" #mandatory
-
-# The version number of the mod - there's a few well known ${} variables useable here or just hardcode it
-version="${file.jarVersion}" #mandatory
-
-# A display name for the mod
-displayName="AVTTRUE:Informator" #mandatory
-
-# A URL to query for updates for this mod. See the JSON update specification <here>
-updateJSONURL="https://goo.gl/vSq65V" #optional (prev: https://yadi.sk/d/3gOAaj6jrRSEJ)
-
-# A URL for the "homepage" for this mod, displayed in the mod UI
-displayURL="http://www.minecrafting.ru" #optional (or: https://github.com/bsrginru/informator)
-
-# A file name (in the root of the mod JAR) containing a logo for display
-logoFile="avttrue.informator.logo.png" #optional
-
-A text field displayed in the mod UI
-#credits="Thanks for this example mod goes to Java" #optional
-
-# A text field displayed in the mod UI
-authors="Chapaev, bsrgin" #optional
-
-# The description text for the mod (multi line!) (#mandatory)
-description='''
-Show Buffs & Enchants, Held Item information, Time & Moon Phases, Blocks & Mobs information, etc.
+	# The modid of the mod
+	modId="avttrue_informator" #mandatory
+	
+	# The version number of the mod - there's a few well known ${} variables useable here or just hardcode it
+	version="${version}" #mandatory
+	
+	 # A display name for the mod
+	displayName="Informator" #mandatory
+	
+	# A URL to query for updates for this mod. See the JSON update specification <here>
+	#updateJSONURL="http://myurl.me/" #optional
+	
+	# A URL for the "homepage" for this mod, displayed in the mod UI
+	displayURL="http://www.minecrafting.ru" #optional
+	
+	# A file name (in the root of the mod JAR) containing a logo for display
+	logoFile="avttrue.informator.logo.png" #optional
+	
+	# A text field displayed in the mod UI
+	credits="Thanks for this mod goes to http://www.minecrafting.ru" #optional
+	
+	# A text field displayed in the mod UI
+	authors="Chapaev, bsrgin" #optional
+	
+	# The description text for the mod (multi line!) (#mandatory)
+	description='''
+Show Buffs & Enchants, Held Item information, Time & Moon Phases, Blocks & Mobs information, etc. 
 '''
+
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.avttrue_informator]] #optional
+[[dependencies.examplemod]] #optional
     # the modid of the dependency
     modId="forge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
