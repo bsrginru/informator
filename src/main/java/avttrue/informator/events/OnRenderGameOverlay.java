@@ -41,7 +41,7 @@ public class OnRenderGameOverlay //extends Gui
     private static final int FONT_AQUA = 0x0080FF;
     private static final int FONT_RED = 0xFF0000;
     
-    private static int STRING_HEIGHT = 10;
+    private static int STRING_HEIGHT = 9;
     private static final int STRING_PREFIX_px = 4; // префикс (в пикселях) перед любой надписью на пенели
     private static final int STRING_POSTFIX_px = 4; // постфикс (в пикселях) после любой надписи на панелях
     private static final int STRING_GROW_px = STRING_PREFIX_px + STRING_POSTFIX_px;
@@ -56,7 +56,7 @@ public class OnRenderGameOverlay //extends Gui
     private int mainWndScaledHeight;
 
     @SubscribeEvent
-    public void onRenderExperienceBar(RenderGameOverlayEvent event) 
+    public void onRenderInformatorBars(RenderGameOverlayEvent event) 
     {
         // выключили по горячей клавише
         if (!Informator.Global_ON) return;
