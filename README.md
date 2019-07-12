@@ -27,3 +27,35 @@
 
 Настройка:
 Основное меню Майнкрафта (там, где кнопки "Одиночная игра" и "Сетевая игра") -> кнопка "Mods" ("Модификации") -> выбираем мод Информатор -> кнопка Config
+
+## Сборка исходных кодов
+
+Для сборки и запуска собранного mod-а потребуется более 2Гб свободного места на диске!
+
+### Подготовка к сборке
+1. Cкачиваем forge mdk ( напр., forge-1.14.3-27.0.47-mdk.zip ) распаковываем в папку informator.
+2. Cкачиваем jdk и jre ( jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe ) устанавливаем.
+3. Скачиваем eclipse ( напр., eclipse-java-2019-06-R-win32-x86_64.zip ) распаковываем.
+4. Создаём каталог для файлов проекта, например ./informator/, переходим в созданный каталог и в командной консоли выполняем:
+
+    git clone git@github.com:bsrginru/informator.git .
+
+    (в созданном каталоге ./informator/ должны появиться файлы проекта, напр. README.md, а также каталог ./informator/src/main/)
+5. *Примечание: выполнить 'Getting Started with Forge - [From Zero to Modding](https://mcforge.readthedocs.io/en/latest/gettingstarted/ "From Zero to Modding")' и собрать проект с декомпиляцией исходников minecraft из Eclipse не удалось, официальная инструкция явно устарела.*
+Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.47, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
+
+    Выполняем в командной консоли:
+
+    gradlew eclipse
+    gradlew decompileMC
+
+    (последний пункт приведёт к декомпиляции исходных кодов minecraft, в которые постоянно приходится заглядывать и подсматривать что именно и как изменилось, единственный возможный путь в отсутствие документации).
+6. Запускаем Eclipse
+ 1. во вкладке Package Explorer находим папку src\main, выделяем в ней подкаталоги java и resources и в меню 'Build Path' выбираем пункт 'Use as Source Folder'
+ 2. во вкладке 'Package Explorer' открываем 'Properties for informator', изменяем 'Text file encoding' на 'Other UTF-8', нажимаем 'Apply and Close'
+
+### Подготовка к запуску
+1. скачиваем инсталлятор Forge ( напр., forge-1.14.3-27.0.47-installer.jar )
+2. выбираем папку, где расположены клиентские файлы и нажимаем кнопку 'Install Client'
+3. в этой же папке создаём каталог mods, копируем в него файл ./informator/build/libs/informator.jar
+4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( напр., forge-1.14.3-27.0.47 )
