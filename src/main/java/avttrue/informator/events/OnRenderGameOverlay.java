@@ -144,6 +144,8 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
+    private long startDrawMaxVelocity = 0;
+
     private void drawVelocityBar()
     {
         try
@@ -166,12 +168,67 @@ public class OnRenderGameOverlay //extends Gui
                         PANEL_STEEL,
                         PANEL_TRANSPARENT);
             }
-            // отрисовка текста
-            mc.fontRenderer.drawStringWithShadow(
-                    velocity.sVelocity,
-                    VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
-                    VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
-                    FONT_WHITE);
+            // отрисовка текста: максимальная скорость
+            boolean showMaxVelocity = false;
+            int color = FONT_RED;
+            if (Informator.VelocityBar_ShowMax && velocity.isMotionless && velocity.knownVelocityPrevMax)
+            {
+                if (startDrawMaxVelocity == 0)
+                    startDrawMaxVelocity = Informator.realTimeTick;
+                final long diff = Informator.realTimeTick - startDrawMaxVelocity;
+                // дольше 5х секунд информацию о максимальной скорости не выводим
+                final int GLOW_DURATION = 250; // 5сек
+                final int FLICK_DURATION = 150; // 3сек
+                showMaxVelocity = diff <= GLOW_DURATION;
+                // добавляем эффект мерцания
+                int glow;
+                if (diff <= FLICK_DURATION)
+                {
+                    // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
+                    glow = (int)((float)diff * 5.1) % 0x100;
+                    if (glow >= 0x80) glow = 0x100 - glow;
+                }
+                
+                else
+                {
+                    // оставшиеся 2сек цвет спадает с 0xff0000 до 0xffffff
+                    glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
+                }
+                color = 0xff0000 | glow << 8 | glow;
+            }
+            if (velocity.knownVelocityPrevMax == false)
+                startDrawMaxVelocity = 0;
+            if (showMaxVelocity)
+            {
+                final int xPos = VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px;
+                final int yPos = VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2;
+                final int lenPrefix = mc.fontRenderer.getStringWidth(velocity.sVelocityPrefix);
+                final int lenVelocityMax = mc.fontRenderer.getStringWidth(velocity.sVelocityPrevMax);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPrefix,
+                        xPos,
+                        yPos,
+                        FONT_WHITE);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPrevMax,
+                        xPos + lenPrefix,
+                        yPos,
+                        color);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPostfix,
+                        xPos + lenPrefix + lenVelocityMax,
+                        yPos,
+                        color);
+            }
+            // отрисовка текста: текущая скорость
+            else
+            {
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocity,
+                        VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                        VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
+                        FONT_WHITE);
+            }
             // отрисовка иконки
              Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
         }

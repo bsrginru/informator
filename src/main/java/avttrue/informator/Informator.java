@@ -92,6 +92,7 @@ public class Informator
     public static boolean VelocityBar_Show = true;
     public static int VelocityBar_xOffset = 0;
     public static int VelocityBar_yOffset = 0;
+    public static boolean VelocityBar_ShowMax = true;
 
     //TimeBar
     public static boolean TimeBar_Show = true;

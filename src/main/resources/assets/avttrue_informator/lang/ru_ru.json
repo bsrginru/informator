@@ -3,7 +3,7 @@
   "avttrue_informator.key.keyboard.enable": "Вывод сведений на экран",
   "avttrue_informator.key.keyboard.lighting": "Отображение уровня освещённости",
   "avttrue.thesaurus.1": "Тезаурус",
-  "avttrue.informator.velocity": "Скорость",
+  "avttrue.informator.velocity": "Скорость: ",
   "avttrue.informator.blocks_per_sec": "б/с",
   "avttrue.informator.moon_phase": "Фаза",
   "avttrue.informator.moon_phase.0": "полнолуние",

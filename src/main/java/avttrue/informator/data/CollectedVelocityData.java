@@ -37,6 +37,16 @@ public class CollectedVelocityData
         // данные, вычисленные в результате анализа
         public double velocity = 0;
         public String sVelocity;
+        public String sVelocityPrefix;
+        public String sVelocityPostfix;
+        // признак того, что в настоязий момент персонаж не двигается
+        public boolean isMotionless;
+        // мгновенная максимальная скорость, напопленная за время перемещений, от начала движения
+        public double velocityMax;
+        // максимальная скорость, накопленная за всё время движения от начала перемещений и
+        // хранящаяся до тех пор, пока персонаж не двигается
+        public boolean knownVelocityPrevMax;
+        public String sVelocityPrevMax;
     }
 
     // если приращение по всем x,y,z-осям составит не больше этого значения, то им будет соответствовать
@@ -104,29 +114,81 @@ public class CollectedVelocityData
         final Location oldest = data.locations[oldestIndex];
         // проверяем, не оказались ли мы в точке, где уже были?
         // считаем, что персонаж не двигается, если скорость меньше или равна 0.01 б/с
-        if (Math.abs(prev.x-curr.x)<=SAME_LOCATION_INACCURACY &&
-            Math.abs(prev.y-curr.y)<=SAME_LOCATION_INACCURACY &&
-            Math.abs(prev.z-curr.z)<=SAME_LOCATION_INACCURACY)
+        final boolean samePositionFirst =
+                Math.abs(prev.x-curr.x)<=SAME_LOCATION_INACCURACY &&
+                Math.abs(prev.y-curr.y)<=SAME_LOCATION_INACCURACY &&
+                Math.abs(prev.z-curr.z)<=SAME_LOCATION_INACCURACY;
+        boolean samePosition = samePositionFirst;
+        if (samePosition)
         {
-            // если подпрыгнули и вернулись в ту же точку, то скорость = 0, а кол-во накопленных локаций = 1
+            // 2 последних позиции не поменялись, проверяем ещё 4 шт (итого 40+80=120ms нахождения в одном месте)
+            for (int i = 1; (i <= 4) && samePosition; ++i)
+            {
+                final int motionlessIndex = (prevIndex + Data.NUM_LOCATIONS - i) % Data.NUM_LOCATIONS;
+                final Location motionless = data.locations[motionlessIndex];
+                samePosition =
+                        Math.abs(motionless.x-curr.x)<=SAME_LOCATION_INACCURACY &&
+                        Math.abs(motionless.y-curr.y)<=SAME_LOCATION_INACCURACY &&
+                        Math.abs(motionless.z-curr.z)<=SAME_LOCATION_INACCURACY;
+            }
+        }
+        // если подпрыгнули и вернулись в ту же точку, то скорость = 0, а кол-во накопленных локаций = 1 (сбрасываем)
+        data.isMotionless = samePosition;
+        if (data.isMotionless)
+        {
+            // сохраняем максимальную скорость, накопленную за всё время перемещений с момента начала движения
+            // при этом проверяем, что персонаж двигался непрерывно длительное время
+            if (data.locNum == Data.NUM_LOCATIONS)
+                if (data.velocityMax > 6)
+                {
+                    formatVelocityMaxDesc();
+                }
+            data.velocityMax = 0;
             data.velocity = 0;
             data.locNum = 1;
         }
         else
         {
             data.velocity = CalcVelocity(oldest.x, curr.x, oldest.y, curr.y, oldest.z, curr.z, oldest.tick, curr.tick);
+            // если персонаж начал двигаться непрерывно длительное время, то сбрасываем сведения
+            // о накопленной ранее максимальной скорости
+            if (data.locNum == Data.NUM_LOCATIONS)
+                data.knownVelocityPrevMax = false;
+            // сохраняем мгновенную максимальную скорость
+            if (data.velocity > data.velocityMax)
+                data.velocityMax = data.velocity;
         }
         formatVelocityDesc();
+
+        //отладка измерения скорости:String str = String.format("velocity %5.2f from %.3f:%.3f:%.3f at %.3f:%.3f:%.3f to %.3f:%.3f:%.3f during %dms",
+        //отладка измерения скорости:        data.velocity,
+        //отладка измерения скорости:        oldest.x, oldest.y, oldest.z,     prev.x, prev.y, prev.z,     curr.x, curr.y, curr.z,
+        //отладка измерения скорости:        20*(int)(curr.tick - oldest.tick));
+        //отладка измерения скорости:if (samePositionFirst) str += ", same";
+        //отладка измерения скорости:if (samePosition) str += ", RESET";
+        //отладка измерения скорости:System.out.println(str);
+
+        //отладка максимальной скорости:String str = String.format("velocity %4.2f, max %4.2f, stored %s, num %d",
+        //отладка максимальной скорости:        data.velocity, data.velocityMax, data.sVelocityPrevMax, data.locNum);
+        //отладка максимальной скорости:if (data.knownVelocityPrevMax) str += ", known";
+        //отладка максимальной скорости:if (samePositionFirst) str += ", same";
+        //отладка максимальной скорости:if (samePosition) str += ", RESET";
+        //отладка максимальной скорости:System.out.println(str);
+
         data.valid = true;
     }
 
     private void formatVelocityDesc()
     {
-        data.sVelocity = String.format(
-                "%1$s: %2$5.2f %3$s",
-                Informator.TRANSLATOR.field_velocity.getFormattedText(),
-                data.velocity,
-                Informator.TRANSLATOR.field_blocks_per_sec.getFormattedText()); 
+        data.sVelocityPrefix = Informator.TRANSLATOR.field_velocity.getFormattedText();
+        data.sVelocityPostfix = " " + Informator.TRANSLATOR.field_blocks_per_sec.getFormattedText();
+        data.sVelocity = data.sVelocityPrefix + String.format("%5.2f", data.velocity) + data.sVelocityPostfix;
+    }
+
+    private void formatVelocityMaxDesc()
+    {
+        data.sVelocityPrevMax = String.format("%5.2f", data.velocityMax);
+        data.knownVelocityPrevMax = true;
     }
 
     private static double CalcVelocity(double x1, double x2, double y1, double y2, double z1, double z2, long tick1, long tick2)
