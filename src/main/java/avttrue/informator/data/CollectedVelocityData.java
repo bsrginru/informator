@@ -57,19 +57,22 @@ public class CollectedVelocityData
         }
         final Minecraft mc = Minecraft.getInstance();
         final ClientWorld world = mc.world;
+        final PlayerEntity player = mc.player;
         // если игра ещё не начата вдруг
-        if (world == null)
+        if (world == null || player == null)
         {
-            data.valid = false;
-            data.locCursor = 0;
-            data.locNum = 0;
+            if (data.valid)
+            {
+                data.valid = false;
+                data.locCursor = 0;
+                data.locNum = 0;
+            }
             return;
         }
         // сохраняем позицию игрока
         // поскольку всякая позиция сюда приходит каждый следующий tick, то неправильно считать "скорость в течении тика", т.к.
         // каждое подпрыгивание персонажа будет резко увеличивать скорость и резко уменьшать, и потому сведения о скорости окажутся
         // слишком быстро меняющимися, так что понять что будет написано на экране будет трудоёмко
-        final PlayerEntity player = mc.player;
         Location loc = data.locations[data.locCursor];
         loc.x = player.posX;
         loc.y = player.posY;

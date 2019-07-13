@@ -19,11 +19,12 @@ public class CollectedWeatherData
         public boolean isThundering;
         public boolean isRaining;
         // данные, вычисленные в результате анализа
+        private long lastUpdateRlTime;
         public String sMoonPhase;
         public String sMoonPhaseFactor;
     }
 
-    public void collectDataDuringTick()
+    public void collectDataDuringTick(long realTimeTick)
     {
         final Minecraft mc = Minecraft.getInstance();
         final ClientWorld world = mc.world;
@@ -33,9 +34,16 @@ public class CollectedWeatherData
             data.valid = false;
             return;
         }
+
         data.moonPhase = world.getMoonPhase();
         data.isThundering = mc.world.isThundering();
         data.isRaining = mc.world.isRaining();
+
+        // прореживаем обновления данных (раз в где-то 8*50=400ms), чаще не надо;
+        // простецким образом проверяем переход счётчика через 0
+        if (Math.abs(realTimeTick - data.lastUpdateRlTime) < 8) return;
+        data.lastUpdateRlTime = realTimeTick;
+
         refreshCalculatedData();
     }
     

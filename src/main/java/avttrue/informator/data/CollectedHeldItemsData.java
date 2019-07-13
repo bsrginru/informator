@@ -98,10 +98,11 @@ public class CollectedHeldItemsData
         };
         public int heldNum;
         // данные, вычисленные в результате анализа
+        private long lastUpdateRlTime;
         public ArrayList<HeldItem> held_damageable = new ArrayList<HeldItem>();
     }
 
-    public void collectDataDuringTick()
+    public void collectDataDuringTick(long realTimeTick)
     {
         final Minecraft mc = Minecraft.getInstance();
         final ClientWorld world = mc.world;
@@ -109,12 +110,19 @@ public class CollectedHeldItemsData
         // если игра ещё не начата вдруг
         if (world == null || player == null)
         {
-            data.valid = false;
-            for (int i = 0; i < Data.MAX_HELD_ITEMS; ++i) data.held[i].known = false;
-            data.held_damageable.clear();
-            data.heldNum = 0;
+            if (data.valid)
+            {
+                data.valid = false;
+                for (int i = 0; i < Data.MAX_HELD_ITEMS; ++i) data.held[i].known = false;
+                data.held_damageable.clear();
+                data.heldNum = 0;
+            }
             return;
         }
+        // прореживаем обновления данных (раз в где-то 4*50=200ms), чаще не надо;
+        // простецким образом проверяем переход счётчика через 0
+        if (Math.abs(realTimeTick - data.lastUpdateRlTime) < 3) return;
+        data.lastUpdateRlTime = realTimeTick;
 
         ItemStack [] stacks = {
                 player.getHeldItemMainhand(), // mainhand

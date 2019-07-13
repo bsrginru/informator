@@ -12,17 +12,10 @@ public class OnClientTick
     {
         Informator.realTimeTick++;
         if (!Informator.Global_ON) return; // если выключены
+        if (event.phase != TickEvent.Phase.START)
         try
         {
-            if (event.phase.equals(TickEvent.Phase.START))
-            {
-                Informator.clock.collectDataDuringTick();
-                Informator.weather.collectDataDuringTick();
-            }
-            else if (event.phase.equals(TickEvent.Phase.END))
-            {
-                Informator.velocity.collectDataDuringTick();
-            }
+            Informator.clock.collectDataDuringTick();
         }
         catch(Exception e)
         {

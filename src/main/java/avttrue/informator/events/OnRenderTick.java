@@ -7,22 +7,20 @@ import avttrue.informator.Informator;
 
 public class OnRenderTick
 {
-    private long lastUpdateRlTime = 0;
-
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.RenderTickEvent event)
+    public void onRenderTick(TickEvent.RenderTickEvent event)
     {
         if (!Informator.Global_ON) return; // если выключены
         try
         {
-            // прореживаем обновления held_info (раз в где-то 250ms)
-            if ((Informator.realTimeTick - lastUpdateRlTime) >= 5)
+            if (event.phase == TickEvent.Phase.START)
             {
-                lastUpdateRlTime = Informator.realTimeTick;
-                if (event.phase.equals(TickEvent.Phase.START))
-                {
-                    Informator.held_items.collectDataDuringTick();
-                }
+                Informator.held_items.collectDataDuringTick(Informator.realTimeTick);
+                Informator.weather.collectDataDuringTick(Informator.realTimeTick);
+            }
+            else //подразумевается: if (event.phase == TickEvent.Phase.END)
+            {
+                Informator.velocity.collectDataDuringTick();
             }
         }
         catch(Exception e)
