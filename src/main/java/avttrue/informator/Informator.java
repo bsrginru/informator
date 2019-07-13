@@ -33,6 +33,7 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.events.OnClientTick;
 import avttrue.informator.events.OnKeyInput;
@@ -54,13 +55,8 @@ public class Informator
     // используется для контроля игрового времени
     public static CollectedClockData clock = new CollectedClockData();
     public static CollectedWeatherData weather = new CollectedWeatherData();
-
-    // используется в рассчётах скорости
-    public static double prevPayerX = 0;
-    public static double prevPayerY = 0;
-    public static double prevPayerZ = 0;
-    public static long lastXYZTick = -1;
-    public static double velocity = 0;
+    // используется для контроля скорости перемещения игрока
+    public static CollectedVelocityData velocity = new CollectedVelocityData();
 
     //Global
     public static boolean Global_HideInDebugMode = true;

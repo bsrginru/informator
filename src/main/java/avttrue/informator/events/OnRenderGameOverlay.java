@@ -23,6 +23,7 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.data.TimeOfDay;
 import avttrue.informator.tools.Drawing;
@@ -207,19 +208,16 @@ public class OnRenderGameOverlay //extends Gui
     {
         try
         {
+            final CollectedVelocityData.Data velocity = Informator.velocity.data;
+            if (!velocity.valid) return;
+
             final int VelocityBar_xPos = Informator.VelocityBar_xOffset;
             final int VelocityBar_yPos = Informator.VelocityBar_yOffset +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
-
-            final String sVelocity = String.format(
-                    "%1$s: %2$5.2f %3$s",
-                    Informator.TRANSLATOR.field_velocity.getFormattedText(),
-                    Informator.velocity,
-                    Informator.TRANSLATOR.field_blocks_per_sec.getFormattedText()); 
-            final int iVelocityLen = mc.fontRenderer.getStringWidth(sVelocity) + STRING_GROW_px;
 
             // отрисовка панели
             if (Informator.Global_ShowPanel) 
             {
+                final int iVelocityLen = mc.fontRenderer.getStringWidth(velocity.sVelocity) + STRING_GROW_px;
                 GuiUtils.drawGradientRect(0,
                         VelocityBar_xPos,
                         VelocityBar_yPos,
@@ -230,12 +228,12 @@ public class OnRenderGameOverlay //extends Gui
             }
             // отрисовка текста
             mc.fontRenderer.drawStringWithShadow(
-                    sVelocity,
+                    velocity.sVelocity,
                     VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
                     VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
                     FONT_WHITE);
             // отрисовка иконки
-             Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);                
+             Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
         }
         catch (Exception e) 
         {
