@@ -5,37 +5,35 @@ import java.util.ArrayList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.item.Rarity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 
 
-public class CollectedHeldItemsData
+public class CollectedEnchantmentsData
 {
     public Data data = new Data();
 
     public class HeldItem
     {
         public boolean known;
-        public boolean isDamageable;
+        public boolean isEnchanted;
         public int id;
-        public int damageCurr;
-        public int damageMax;
-        public float damageFactor;
-        public String damageDesc;
+        public ArrayList<String> enchants;
         public Rarity rarity;
-        public int arrows;
         HeldItem()
         {
-            storeChanged(null, -1);
+            storeChanged(null);
         }
-        HeldItem(ItemStack stack, int arrows)
+        HeldItem(ItemStack stack)
         {
-            storeChanged(stack, arrows);
+            storeChanged(stack);
         }
-        public boolean isChanged(ItemStack stack, int arrows)
+        public boolean isChanged(ItemStack stack)
         {
             if (stack == null)
             {
@@ -47,31 +45,23 @@ public class CollectedHeldItemsData
                 if (!known) return true;
                 // далее требуется проверка содержимого стека
                 final Item item = stack.getItem();
-                if (item.isDamageable() ^ isDamageable) return true;
                 if (Item.getIdFromItem(item) != id) return true;
-                if (item.getDamage(stack) != damageCurr) return true;
-                if (item.getMaxDamage(stack) != damageMax) return true;
-                if (item == Items.BOW)
-                    if (arrows != this.arrows) return true;
-                if (item.getRarity(stack) != rarity) return true;
+                if (stack.hasTag() != isEnchanted) return true; // быстрый способ проверки наличия списка чар, все прочие - это медленная работа со строками
+                final ArrayList<String> enchants = getItemEnchants(stack);
+                if ((enchants == null) ^ (this.enchants == null)) return true;
+                if ((enchants != null) && !enchants.equals(this.enchants)) return true;
                 return false;
             }
         }
-        public void storeChanged(ItemStack stack, int arrows)
+        public void storeChanged(ItemStack stack)
         {
             known = stack != null;
             if (!known) return;
             final Item item = stack.getItem();
-            isDamageable = item.isDamageable();
-            if (!isDamageable) return;
+            enchants = getItemEnchants(stack);
+            isEnchanted = (enchants != null) && !enchants.isEmpty();
+            if (!isEnchanted) return;
             id = Item.getIdFromItem(item);
-            damageCurr = item.getDamage(stack);
-            damageMax = item.getMaxDamage(stack);
-            damageFactor = (float)(damageMax-damageCurr) / (float)damageMax; 
-            if (item != Items.BOW)
-                damageDesc = String.format("%d/%d", damageMax - damageCurr + 1, damageMax + 1);
-            else // ищем стрелы
-                damageDesc = String.format("%d/%d (%d)", damageMax - damageCurr + 1, damageMax + 1, arrows);
             rarity = item.getRarity(stack);
         }
     }
@@ -98,10 +88,10 @@ public class CollectedHeldItemsData
         };
         // данные, вычисленные в результате анализа
         private long lastUpdateRlTime;
-        public ArrayList<HeldItem> held_damageable = new ArrayList<HeldItem>();
+        public ArrayList<HeldItem> held_enchanted = new ArrayList<HeldItem>();
     }
 
-    public void collectDataDuringTick(long realTimeTick)
+    public void collectDataDuringTick(long realTimeTick, boolean inHands, boolean onBody)
     {
         final Minecraft mc = Minecraft.getInstance();
         final ClientWorld world = mc.world;
@@ -113,60 +103,75 @@ public class CollectedHeldItemsData
             {
                 data.valid = false;
                 for (int i = 0; i < Data.MAX_HELD_ITEMS; ++i) data.held[i].known = false;
-                data.held_damageable.clear();
+                data.held_enchanted.clear();
             }
             return;
         }
-        // прореживаем обновления данных (раз в где-то 4*50=200ms), чаще не надо;
-        // простецким образом проверяем переход счётчика через 0
-        if (Math.abs(realTimeTick - data.lastUpdateRlTime) < 3) return;
+        // прореживаем обновления данных: раз в 10*50=500ms, чаще не надо
+        // простецким образом проверяем переходы счётчиков через 0
+        if (Math.abs(realTimeTick - data.lastUpdateRlTime) < 10) return;
         data.lastUpdateRlTime = realTimeTick;
 
         ItemStack [] stacks = {
-                player.getHeldItemMainhand(), // mainhand
-                player.getHeldItemOffhand(), // offhand
-                player.inventory.armorItemInSlot(3), // head
-                player.inventory.armorItemInSlot(2), // body
-                player.inventory.armorItemInSlot(1), // legs
-                player.inventory.armorItemInSlot(0) // foots
+                inHands ? player.getHeldItemMainhand() : null, // mainhand
+                inHands ? player.getHeldItemOffhand() : null, // offhand
+                onBody ? player.inventory.armorItemInSlot(3) : null, // head
+                onBody ? player.inventory.armorItemInSlot(2) : null, // body
+                onBody ? player.inventory.armorItemInSlot(1) : null, // legs
+                onBody ? player.inventory.armorItemInSlot(0) : null // foots
         };
 
-        final int arrows = getArrowsCount(Minecraft.getInstance().player.inventory);
         // проверяем весь список надетых вещей, ищем изменения в ранее сохранённой информации
-        boolean anyDamageableChanged = false;
+        boolean anyEnchantmentChanged = false;
         for (int i = 0; i < Data.MAX_HELD_ITEMS; ++i)
         {
             HeldItem held = data.held[i];
-            if (!held.isChanged(stacks[i], arrows)) continue;
-            held.storeChanged(stacks[i], arrows);
-            anyDamageableChanged = true;
+            if (!held.isChanged(stacks[i])) continue;
+            held.storeChanged(stacks[i]);
+            anyEnchantmentChanged = true;
         }
         // раз изменился какой-либо элемент в списке, то надо пересобрать весь список (важен порядок)
-        if (anyDamageableChanged)
+        if (anyEnchantmentChanged)
         {
-            data.held_damageable.clear();
+            data.held_enchanted.clear();
             for (int i = 0; i < CollectedHeldItemsData.Data.MAX_HELD_ITEMS; ++i)
             {
                 HeldItem held = data.held[i];
                 if (!data.held[i].known) continue;
-                if (!data.held[i].isDamageable) continue;
-                data.held_damageable.add(held);
+                if (!data.held[i].isEnchanted) continue;
+                data.held_enchanted.add(held);
             }
         }
 
         data.valid = true;
     }
 
-    private int getArrowsCount(PlayerInventory inventory)
+    @SuppressWarnings("deprecation") // код взят из исходников майна, значит так и должно быть
+    private static ArrayList<String> getItemEnchants(ItemStack stack)
     {
-        int arrows = 0;
-        for (ItemStack its : inventory.mainInventory) 
+        ArrayList<String> list = new ArrayList<String>();
+        try 
         {
-            if (its == null) continue;
-            final Item item = its.getItem();
-            if (item == Items.ARROW || item == Items.SPECTRAL_ARROW || item == Items.TIPPED_ARROW)
-                arrows += its.getCount();
+            if (stack == null) return null;
+            if (!stack.hasTag()) return null;
+            if (!stack.isEnchanted()) return null;
+            ListNBT enchants = stack.getEnchantmentTagList();
+            if (enchants == null) return null;
+            if (enchants.isEmpty()) return null;
+            for (int i = 0; i < enchants.size(); i++) 
+            {
+                CompoundNBT enchant = enchants.getCompound(i);
+                Registry.ENCHANTMENT.getValue(ResourceLocation.tryCreate(enchant.getString("id"))).ifPresent(
+                        (itxtcmp) -> { list.add(itxtcmp.getDisplayName(enchant.getInt("lvl")).getString()); }
+                );
+            }
+            return list;
         }
-        return arrows;
+        catch (Exception e) 
+        {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }

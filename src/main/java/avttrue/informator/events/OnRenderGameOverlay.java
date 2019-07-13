@@ -1,8 +1,6 @@
 package avttrue.informator.events;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
@@ -10,10 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -22,6 +17,7 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
 import avttrue.informator.data.CollectedHeldItemsData.HeldItem;
 import avttrue.informator.data.CollectedVelocityData;
@@ -75,13 +71,13 @@ public class OnRenderGameOverlay //extends Gui
 
         // === ИНФОРМАЦИОННЫЕ ПАНЕЛИ НА ЭКРАНЕ ===
         // Clock bar
-        if (Informator.TimeBar_Show) CreateClockBar();
+        if (Informator.TimeBar_Show) drawClockBar();
         // Velocity Bar
-        if(Informator.VelocityBar_Show) CreateVelocityBar();
+        if(Informator.VelocityBar_Show) drawVelocityBar();
         // Held item bar
-        if (Informator.HeldItemDetails_Show) CreateHeldItemBar();
+        if (Informator.HeldItemDetails_Show) drawHeldItemBar();
         // Current Enchantments
-        if (Informator.EnchantBar_Show) CreateEnchantBar();
+        if (Informator.EnchantBar_Show) drawEnchantBar();
 
         // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
 //view = new View();
@@ -94,7 +90,7 @@ public class OnRenderGameOverlay //extends Gui
 //DrawThesaurusButton();
     }
 
-    private void CreateHeldItemBar()
+    private void drawHeldItemBar()
     {
         try
         {
@@ -148,7 +144,7 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    private void CreateVelocityBar()
+    private void drawVelocityBar()
     {
         try
         {
@@ -188,13 +184,15 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    private void CreateClockBar()
+    private void drawClockBar()
     {
         try
         {
             final CollectedClockData.Data clock = Informator.clock.data;
             final CollectedWeatherData.Data weather = Informator.weather.data;
             if (!clock.valid || !weather.valid) return;
+
+            //debug:clock.currentTime = Informator.R1 + " | " + Informator.R2 + " | " + Informator.R3 + " | " + String.format("%1$5.2f", Informator.R0);
 
             final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
             final boolean showBedIcon = Informator.TimeBarBed_Show ? clock.restTimeHourOverhead : false;
@@ -436,45 +434,33 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    public void CreateEnchantBar()
+    public void drawEnchantBar()
     {
         try
         {
-            ArrayList<String> EnchantmentsList = null; // список зачарований на предмете
-            List<ItemStack> istacks = new ArrayList<ItemStack>(); // список предметов
-                    
-            if (Informator.EnchantBar_ShowHands) 
-            {
-                istacks.add(mc.player.getHeldItemMainhand()); //добавляем удерживаемый предмет в основной руке
-                istacks.add(mc.player.getHeldItemOffhand()); //добавляем удерживаемый предмет во второй руке
-            }
-            
-            if (Informator.EnchantBar_ShowBody)
-            {
-                for (int i = 0; i < 4; i++) 
-                    istacks.add(mc.player.inventory.armorInventory.get(i)); // надетые предметы
-            }
-            
+            final CollectedEnchantmentsData.Data enchantments = Informator.enchantments.data;
+            if (!enchantments.valid) return;
+            if (enchantments.held_enchanted.isEmpty()) return;
+
             int deltaY = Informator.EnchantBar_yOffset; // смещение по высоте
             final int xPos = Informator.EnchantBar_xOffset + mainWndScaledWidth; // правая граница панелей
-            for (ItemStack istack : istacks)
+
+            // перебираем список зачарованных предметов
+            // (список отфильтрован флагами Informator.EnchantBar_ShowHands, Informator.EnchantBar_ShowBody)
+            for (CollectedEnchantmentsData.HeldItem hitm : enchantments.held_enchanted)
             {
-                EnchantmentsList = getItemEnchants(istack);
-                if (EnchantmentsList == null) continue;
-                
-                final int enchantmentsCount = EnchantmentsList.size();
-                if (enchantmentsCount == 0) continue;
-                
+                // список наложенных чар всегда не пуст, т.ч. кол-во чарок != 0
+                final int count = hitm.enchants.size();
+                // ДВУХПРОХОДОВЫЙ АЛГОРИТМ: сначала считаем длину строк, потом отрисовываем
                 // расчёт размера панели
                 int textMaxLen = 0;
-                for (final String text : EnchantmentsList)
+                for (final String text : hitm.enchants)
                 {
                     final int textLen = mc.fontRenderer.getStringWidth(text) + STRING_GROW_px;
                     if (textLen > textMaxLen) textMaxLen = textLen;
                 }
-
                 // отрисовка панели
-                final int panelHeight = (enchantmentsCount == 1) ? Skin.MC_ICON_SIZE : (STRING_HEIGHT * enchantmentsCount + 1);
+                final int panelHeight = (count == 1) ? Skin.MC_ICON_SIZE : (STRING_HEIGHT * count + 1);
                 if (Informator.Global_ShowPanel) 
                 {
                     GuiUtils.drawGradientRect(0,
@@ -486,16 +472,16 @@ public class OnRenderGameOverlay //extends Gui
                             PANEL_TRANSPARENT);
                 }   
                 // отрисовка иконки
-                Drawing.DrawItemStack(mc.getItemRenderer(), istack, xPos - Skin.MC_ICON_SIZE - textMaxLen, deltaY);
-
+                final Item item = Item.getItemById(hitm.id);
+                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos - Skin.MC_ICON_SIZE - textMaxLen, deltaY);
+                // отрисовка текста
                 final int prevDeltaY = deltaY;
-                for (final String text : EnchantmentsList)
+                for (final String text : hitm.enchants)
                 {
-                    // отрисовка текста
                     mc.fontRenderer.drawStringWithShadow(
                             text,
                             xPos - textMaxLen + STRING_PREFIX_px,
-                            deltaY + ((enchantmentsCount == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1) : 0),
+                            deltaY + ((count == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1) : 0),
                             FONT_WHITE);
                     deltaY += STRING_HEIGHT;
                 }
@@ -508,34 +494,6 @@ public class OnRenderGameOverlay //extends Gui
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
-        }
-    }
-    
-    private static ArrayList<String> getItemEnchants(ItemStack stack) 
-    {
-        ArrayList<String> list = new ArrayList<String>();
-        try 
-        {
-            if (stack == null) return null;
-            if (!stack.isEnchanted()) return null;
-            if (!stack.hasTag()) return null;
-            ListNBT enchants = stack.getEnchantmentTagList();
-            if (enchants == null) return null;
-            if (enchants.isEmpty()) return null;
-            for (int i = 0; i < enchants.size(); i++) 
-            {
-                CompoundNBT enchant = enchants.getCompound(i);
-                Registry.ENCHANTMENT.getValue(ResourceLocation.tryCreate(enchant.getString("id"))).ifPresent(
-                        (itxtcmp) -> { list.add(itxtcmp.getDisplayName(enchant.getInt("lvl")).getString()); }
-                );
-            }
-            return list;
-        }
-        catch (Exception e) 
-        {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            return null;
         }
     }
 

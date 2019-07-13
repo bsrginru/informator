@@ -33,6 +33,7 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
 import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
@@ -63,6 +64,8 @@ public class Informator
     public static CollectedVelocityData velocity = new CollectedVelocityData();
     // используется для контроля удерживаемых и надетых предметов
     public static CollectedHeldItemsData held_items = new CollectedHeldItemsData();
+    // используется для контроля заколдованных предметов
+    public static CollectedEnchantmentsData enchantments = new CollectedEnchantmentsData();
 
     //Global
     public static boolean Global_HideInDebugMode = true;
@@ -119,6 +122,10 @@ public class Informator
 //    public static int TargetMobBar_ViewDelay;
 //    public static boolean TargetMobBar_SeachOwnerInWeb;
 //    public static int TargetMobBar_OwnerDataPeriod;
+
+    // отладочные регистры, чтобы спотреть всякую отладочную ерунду в рантайме
+    //public static float R0 = 0;
+    //public static int R1 = 0, R2 = 0, R3 = 0;
 
     public Informator() {
         // Register the setup method for modloading
