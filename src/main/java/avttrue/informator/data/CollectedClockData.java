@@ -40,7 +40,7 @@ public class CollectedClockData
         }
         // вычисляем время
         PlayerEntity player = mc.player;
-        if (player.dimension.getId() == 0) // 0 в обычном мире, -1 в аду, 1 в енде
+        if (player.dimension.getId() == 0) // 0 в обычном мире, -1 в аду, 1 в краю
         {
             data.worldTime = world.dimension.getWorldTime();
             if (player.isSleeping()) // поскольку в аду спать нельзя, то точка сохранения параметра только здесь
