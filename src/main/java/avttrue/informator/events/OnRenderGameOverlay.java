@@ -7,7 +7,6 @@ import java.util.List;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -23,6 +22,8 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedHeldItemsData;
+import avttrue.informator.data.CollectedHeldItemsData.HeldItem;
 import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.data.TimeOfDay;
@@ -92,105 +93,48 @@ public class OnRenderGameOverlay //extends Gui
         // Thesaurus
 //DrawThesaurusButton();
     }
-    
-    private class HeldItem
-    {
-        final ItemStack stack;
-        Item item;
-        String desc;
-        int desc_len;
-        float damage;
-        HeldItem(ItemStack stack)
-        {
-            this.stack = stack;
-            this.item = null;
-            this.desc = "";
-            this.desc_len = 0;
-            this.damage = -1.0F;
-            if (stack != null)
-            {
-                item = stack.getItem();
-                if (item.isDamageable())
-                {
-                    final int max = item.getMaxDamage(stack);
-                    final int curr = item.getDamage(stack);
-                    damage = (float)(max-curr) / (float)max; 
-                    if (item != Items.BOW) 
-                        desc = String.format("%d/%d", max - curr + 1, max + 1);
-                    else // ищем стрелы
-                        desc = String.format("%d/%d (%d)", max - curr + 1, max + 1, getArrowsCount());
-                    desc_len = mc.fontRenderer.getStringWidth(desc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
-                }
-            }
-        }
-        private int getArrowsCount()
-        {
-            int arrows = 0;
-            for (ItemStack its : Minecraft.getInstance().player.inventory.mainInventory) 
-            {
-                if (its == null) continue;
-                final Item item = its.getItem();
-                if (item == Items.ARROW || item == Items.SPECTRAL_ARROW || item == Items.TIPPED_ARROW)
-                    arrows += its.getCount();
-            }
-            return arrows;
-        }
-    }
-    
+
     private void CreateHeldItemBar()
     {
         try
         {
-            final PlayerEntity player = mc.player;
-
-            ItemStack heldMHIS = player.getHeldItemMainhand();
-            ItemStack heldOHIS = player.getHeldItemOffhand();
-            ItemStack headIS = player.inventory.armorItemInSlot(3);
-            ItemStack bodyIS = player.inventory.armorItemInSlot(2);
-            ItemStack legsIS = player.inventory.armorItemInSlot(1);
-            ItemStack footsIS = player.inventory.armorItemInSlot(0);
-            if (heldMHIS == null && heldOHIS == null && headIS == null && bodyIS == null && legsIS == null && footsIS == null) return;
-
-            ArrayList<HeldItem> items = new ArrayList<HeldItem>();
-            items.add(new HeldItem(heldMHIS)); // рука основная
-            items.add(new HeldItem(heldOHIS)); // рука вторая
-            items.add(new HeldItem(headIS)); // голова
-            items.add(new HeldItem(bodyIS)); // тело
-            items.add(new HeldItem(legsIS)); // ноги
-            items.add(new HeldItem(footsIS)); // ступни
+            final CollectedHeldItemsData.Data held_items = Informator.held_items.data;
+            if (!held_items.valid) return;
+            if (held_items.held_damageable.isEmpty()) return;
 
             // настройки позиционирования
             //int xPos = Informator.HeldItemDetails_xOffset;
             //int yPos = Informator.HeldItemDetails_yOffset;
             final int xPos = 0;
             int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/;
-                        
+
             // текст и иконки
-            for (HeldItem hitm : items)
+            for (HeldItem hitm : held_items.held_damageable)
             {
-                if (hitm.item == null || !hitm.item.isDamageable()) continue;
                 // отрисовка панели
                 if (Informator.Global_ShowPanel) 
                 {
-                    final boolean critical = hitm.damage < Informator.HeldItemDetails_DamageAlarm;
-                    final boolean warning = (hitm.damage < 0.5) ? (hitm.damage < (2*Informator.HeldItemDetails_DamageAlarm)) : false;
+                    final boolean critical = hitm.damageFactor < Informator.HeldItemDetails_DamageAlarm;
+                    final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < (1.5*Informator.HeldItemDetails_DamageAlarm)) : false;
                     final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
+                    final int desc_len = mc.fontRenderer.getStringWidth(hitm.damageDesc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
                     GuiUtils.drawGradientRect(0,
                             xPos,
                             yPos,
-                            xPos + hitm.desc_len,
+                            xPos + desc_len,
                             yPos + Skin.MC_ICON_SIZE,
                             color_panel,
                             PANEL_TRANSPARENT);
                 }
                 // отрисовка иконки
-                 Drawing.DrawItemStack(mc.getItemRenderer(), hitm.stack, xPos, yPos);                
+                final Item item = Item.getItemById(hitm.id);
+                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos, yPos);
                 // отрисовка текста
                 mc.fontRenderer.drawStringWithShadow(
-                        hitm.desc,
+                        hitm.damageDesc,
                         xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
                         yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
-                        FONT_WHITE);
+                        hitm.rarity.color.getColor());
                 // смещаемся к следующей панели
                 yPos += Skin.MC_ICON_SIZE;
             }

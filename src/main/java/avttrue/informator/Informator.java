@@ -33,11 +33,13 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import avttrue.informator.data.CollectedClockData;
+import avttrue.informator.data.CollectedHeldItemsData;
 import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.events.OnClientTick;
 import avttrue.informator.events.OnKeyInput;
 import avttrue.informator.events.OnRenderGameOverlay;
+import avttrue.informator.events.OnRenderTick;
 import avttrue.informator.tools.Functions;
 import avttrue.informator.tools.TextTranslation;
 
@@ -52,11 +54,15 @@ public class Informator
     // Статические функции модуля, в которых есть всяко-разно для упрощения кода функциональных шклассов-обработчиков
     public static final Functions TOOLS = Functions.getInstance();
 
+    // время, которое идёт со скоростью ClientTick (около 20 тиков в секунду) и не зависит от нахождения игрока в аду/краю
+    public static volatile long realTimeTick = 0;
     // используется для контроля игрового времени
     public static CollectedClockData clock = new CollectedClockData();
     public static CollectedWeatherData weather = new CollectedWeatherData();
     // используется для контроля скорости перемещения игрока
     public static CollectedVelocityData velocity = new CollectedVelocityData();
+    // используется для контроля удерживаемых и надетых предметов
+    public static CollectedHeldItemsData held_items = new CollectedHeldItemsData();
 
     //Global
     public static boolean Global_HideInDebugMode = true;
@@ -128,6 +134,7 @@ public class Informator
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new OnKeyInput());
         MinecraftForge.EVENT_BUS.register(new OnClientTick());
+        MinecraftForge.EVENT_BUS.register(new OnRenderTick());
         MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
     }
 

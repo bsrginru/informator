@@ -5,23 +5,24 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import avttrue.informator.Informator;
 
-public class OnClientTick
+public class OnRenderTick
 {
+    private long lastUpdateRlTime = 0;
+
     @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event)
+    public void onPlayerTick(TickEvent.RenderTickEvent event)
     {
-        Informator.realTimeTick++;
         if (!Informator.Global_ON) return; // если выключены
         try
         {
-            if (event.phase.equals(TickEvent.Phase.START))
+            // прореживаем обновления held_info (раз в где-то 250ms)
+            if ((Informator.realTimeTick - lastUpdateRlTime) >= 5)
             {
-                Informator.clock.collectDataDuringTick();
-                Informator.weather.collectDataDuringTick();
-            }
-            else if (event.phase.equals(TickEvent.Phase.END))
-            {
-                Informator.velocity.collectDataDuringTick();
+                lastUpdateRlTime = Informator.realTimeTick;
+                if (event.phase.equals(TickEvent.Phase.START))
+                {
+                    Informator.held_items.collectDataDuringTick();
+                }
             }
         }
         catch(Exception e)
