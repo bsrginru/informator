@@ -4,11 +4,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.versions.forge.ForgeVersion;
+import net.minecraftforge.versions.mcp.MCPVersion;
 
+import avttrue.informator.config.Config;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -31,6 +36,12 @@ public class Informator
     public static final TextTranslation TRANSLATOR = TextTranslation.getInstance();
     // Статические функции модуля, в которых есть всяко-разно для упрощения кода функциональных шклассов-обработчиков
     public static final Functions TOOLS = Functions.getInstance();
+    // Синглтон мода (устанавливается в конструкторе-инициализаторе)
+    private static Informator INSTANCE;
+    public static Informator getInstance()
+    {
+        return INSTANCE;
+    }
 
     // время, которое идёт со скоростью ClientTick (около 20 тиков в секунду) и не зависит от нахождения игрока в аду/краю
     public static volatile long realTimeTick = 0;
@@ -101,22 +112,26 @@ public class Informator
 //    public static boolean TargetMobBar_SeachOwnerInWeb;
 //    public static int TargetMobBar_OwnerDataPeriod;
 
-    // отладочные регистры, чтобы спотреть всякую отладочную ерунду в рантайме
+    // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
     //public static float R0 = 0;
-    //public static int R1 = 0, R2 = 0, R3 = 0;
+    public static Integer R1 = null, R2 = null, R3 = null;
 
+    // Хватит руться в Интернете!
+    // правильный (актуальный) пример (и последовательность) инициализации см. в net.minecraftforge.common.ForgeMod
+    // в ModExample инициализация неправильная!!!
     public Informator()
     {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the doClientStuff method for modloading
+        LOGGER.info("Informator mod loading, version {}, for Forge {} MC {} with MCP {}",
+                "???",
+                ForgeVersion.getVersion(),
+                MCPVersion.getMCVersion(),
+                MCPVersion.getMCPVersion());
+        INSTANCE = this;
+        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::preInit);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
-
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(new OnKeyInput());
-        MinecraftForge.EVENT_BUS.register(new OnClientTick());
-        MinecraftForge.EVENT_BUS.register(new OnRenderTick());
-        MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
+        ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, Config.spec);
+        modEventBus.register(Config.class);
     }
 
     // Преинициализация
@@ -127,9 +142,15 @@ public class Informator
     // interact with game state in this event.
     // See net.minecraftforge.fml.DeferredWorkQueue to enqueue work to run on the main game thread after this event has
     // completed dispatch.
-    private void setup(final FMLCommonSetupEvent event)
+    private void preInit(final FMLCommonSetupEvent event)
     {
         LOGGER.info("PreInit");
+
+        MinecraftForge.EVENT_BUS.register(new OnKeyInput());
+        MinecraftForge.EVENT_BUS.register(new OnClientTick());
+        MinecraftForge.EVENT_BUS.register(new OnRenderTick());
+        MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     // Нечто, что делается только на клиентской стороне: получение настроек игры, key bindings

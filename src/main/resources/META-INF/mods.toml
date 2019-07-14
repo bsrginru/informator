@@ -8,7 +8,7 @@
 modLoader="javafml" #mandatory
 
 # A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion="[26,)" #mandatory (26 is current forge version)
+loaderVersion="[27,)" #mandatory (26 is current forge version)
 
 # A URL to refer people to when problems occur with this mod
 issueTrackerURL="http://minecrafting.ru/topic/12250/" #optional
@@ -45,7 +45,7 @@ Show Buffs & Enchants, Held Item information, Time & Moon Phases, Blocks & Mobs 
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.examplemod]] #optional
+[[dependencies.avttrue_informator]] #optional
     # the modid of the dependency
     modId="forge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
@@ -55,11 +55,11 @@ Show Buffs & Enchants, Held Item information, Time & Moon Phases, Blocks & Mobs 
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
-    side="BOTH"
+    side="CLIENT"
 # Here's another dependency
 [[dependencies.avttrue_informator]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.14.3]"
     ordering="NONE"
-    side="BOTH"
+    side="CLIENT"

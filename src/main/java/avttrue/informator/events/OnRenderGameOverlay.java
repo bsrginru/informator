@@ -16,6 +16,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
+import avttrue.informator.config.Config;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -249,7 +250,14 @@ public class OnRenderGameOverlay //extends Gui
             final CollectedWeatherData.Data weather = Informator.weather.data;
             if (!clock.valid || !weather.valid) return;
 
-            //debug:clock.currentTime = Informator.R1 + " | " + Informator.R2 + " | " + Informator.R3 + " | " + String.format("%1$5.2f", Informator.R0);
+            // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
+            if (Informator.R1 != null || Informator.R2 != null || Informator.R3 != null)
+            {
+                clock.currentTime =
+                    Informator.R1 + " | " +
+                    Informator.R2 + " | " +
+                    Informator.R3; //+ " | " + String.format("%1$5.2f", Informator.R0);
+            }
 
             final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
             final boolean showBedIcon = Informator.TimeBarBed_Show ? clock.restTimeHourOverhead : false;
