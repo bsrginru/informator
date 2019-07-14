@@ -13,7 +13,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.minecraftforge.versions.mcp.MCPVersion;
 
-import avttrue.informator.config.Config;
+import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -27,21 +27,17 @@ import avttrue.informator.tools.Functions;
 import avttrue.informator.tools.TextTranslation;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod("avttrue_informator")
+@Mod(Informator.MODID)
 public class Informator
 {
+    // Идентификатор мода, фигурирует в зависимостях, в конфиг-файлах, ресурсах, путях и т.п.
+    public static final String MODID = "avttrue_informator";
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
     // Статический транслятор, который регистрирует "самопереводящиеся" текстовые ресурсы
     public static final TextTranslation TRANSLATOR = TextTranslation.getInstance();
     // Статические функции модуля, в которых есть всяко-разно для упрощения кода функциональных шклассов-обработчиков
     public static final Functions TOOLS = Functions.getInstance();
-    // Синглтон мода (устанавливается в конструкторе-инициализаторе)
-    private static Informator INSTANCE;
-    public static Informator getInstance()
-    {
-        return INSTANCE;
-    }
 
     // время, которое идёт со скоростью ClientTick (около 20 тиков в секунду) и не зависит от нахождения игрока в аду/краю
     public static volatile long realTimeTick = 0;
@@ -55,12 +51,6 @@ public class Informator
     // используется для контроля заколдованных предметов
     public static CollectedEnchantmentsData enchantments = new CollectedEnchantmentsData();
 
-    //Global
-    public static boolean Global_HideInDebugMode = true;
-    public static boolean Global_ShowPanel = true; // отображать градиентную панель под надписями (если false, то надписи прозрачные)
-    //public static int Global_DistanceView;
-    public static boolean Global_ON = true;
-    
     //HeldItemBar
     public static boolean HeldItemDetails_Show = true;
     //public static int HeldItemDetails_xOffset = 0;
@@ -126,12 +116,12 @@ public class Informator
                 ForgeVersion.getVersion(),
                 MCPVersion.getMCVersion(),
                 MCPVersion.getMCPVersion());
-        INSTANCE = this;
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::preInit);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
-        ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, Config.spec);
-        modEventBus.register(Config.class);
+        ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ModSettings.spec);
+        // если поставить здесь ForgeConfig.class (как во многих примерах), то НЕ будут вызываться event-ы Config.class
+        modEventBus.register(ModSettings.class);
     }
 
     // Преинициализация
@@ -150,6 +140,8 @@ public class Informator
         MinecraftForge.EVENT_BUS.register(new OnClientTick());
         MinecraftForge.EVENT_BUS.register(new OnRenderTick());
         MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
+
+        //нет событий у этого объекта, см. https://www.minecraftforge.net/forum/topic/68011-config-not-working/?tab=comments#comment-328444
         MinecraftForge.EVENT_BUS.register(this);
     }
 

@@ -4,13 +4,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import avttrue.informator.Informator;
+import avttrue.informator.config.ModSettings;
 
 public class OnRenderTick
 {
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event)
     {
-        if (!Informator.Global_ON) return; // если выключены
+        if (!ModSettings.GENERAL.Global_ON.get()) return; // если выключены
         try
         {
             if (event.phase == TickEvent.Phase.START)
@@ -26,7 +27,7 @@ public class OnRenderTick
         }
         catch(Exception e)
         {
-            Informator.Global_ON = false;
+            ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);

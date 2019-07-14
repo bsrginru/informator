@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import avttrue.informator.Informator;
 import avttrue.informator.KeyBindings;
+import avttrue.informator.config.ModSettings;
 
 public class OnKeyInput 
 {
@@ -16,8 +17,8 @@ public class OnKeyInput
     {
         if (KeyBindings.InformatorSwitch.isPressed())
         {
-            Informator.Global_ON = ! Informator.Global_ON;
-            if (Informator.Global_ON)
+            ModSettings.GENERAL.Global_ON.set(!ModSettings.GENERAL.Global_ON.get());
+            if (ModSettings.GENERAL.Global_ON.get())
                 Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_enabled, (new Style()).setColor(TextFormatting.DARK_GRAY));
             else
                 Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_disabled, (new Style()).setColor(TextFormatting.DARK_GRAY));

@@ -16,7 +16,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
-import avttrue.informator.config.Config;
+import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -60,11 +60,11 @@ public class OnRenderGameOverlay //extends Gui
     public void onRenderInformatorBars(RenderGameOverlayEvent event) 
     {
         // выключили по горячей клавише
-        if (!Informator.Global_ON) return;
+        if (!ModSettings.GENERAL.Global_ON.get()) return;
         // показывает в отрисовке хотбара
         if (event.getType() != ElementType.HOTBAR) return;
         // если в дебаг-режиме и показ выключен для этого режима
-        if (mc.gameSettings.showDebugInfo && Informator.Global_HideInDebugMode) return;
+        if (mc.gameSettings.showDebugInfo && ModSettings.GENERAL.Global_HideInDebugMode.get()) return;
 
         STRING_HEIGHT = mc.fontRenderer.FONT_HEIGHT;
         mainWndScaledWidth = mc.mainWindow.getScaledWidth();
@@ -109,7 +109,7 @@ public class OnRenderGameOverlay //extends Gui
             for (HeldItem hitm : held_items.held_damageable)
             {
                 // отрисовка панели
-                if (Informator.Global_ShowPanel) 
+                if (ModSettings.GENERAL.Global_ShowPanel.get()) 
                 {
                     final boolean critical = hitm.damageFactor < Informator.HeldItemDetails_DamageAlarm;
                     final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < (1.5*Informator.HeldItemDetails_DamageAlarm)) : false;
@@ -138,7 +138,7 @@ public class OnRenderGameOverlay //extends Gui
         }
         catch (Exception e) 
         {
-            Informator.Global_ON = false;
+            ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
@@ -158,7 +158,7 @@ public class OnRenderGameOverlay //extends Gui
             final int VelocityBar_yPos = Informator.VelocityBar_yOffset +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
 
             // отрисовка панели
-            if (Informator.Global_ShowPanel) 
+            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
                 final int iVelocityLen = mc.fontRenderer.getStringWidth(velocity.sVelocity) + STRING_GROW_px;
                 GuiUtils.drawGradientRect(0,
@@ -235,7 +235,7 @@ public class OnRenderGameOverlay //extends Gui
         }
         catch (Exception e) 
         {
-            Informator.Global_ON = false;
+            ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
@@ -251,9 +251,10 @@ public class OnRenderGameOverlay //extends Gui
             if (!clock.valid || !weather.valid) return;
 
             // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
-            if (Informator.R1 != null || Informator.R2 != null || Informator.R3 != null)
+            //if (Informator.R1 != null || Informator.R2 != null || Informator.R3 != null)
             {
                 clock.currentTime =
+                    ModSettings.GENERAL.Global_ShowPanel.get() + " | " +
                     Informator.R1 + " | " +
                     Informator.R2 + " | " +
                     Informator.R3; //+ " | " + String.format("%1$5.2f", Informator.R0);
@@ -372,7 +373,7 @@ public class OnRenderGameOverlay //extends Gui
             }
 
             // ВРЕМЯ: отрисовка панели
-            if (Informator.Global_ShowPanel) 
+            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
                 GuiUtils.drawGradientRect(0,
                         time_xPos,
@@ -392,7 +393,7 @@ public class OnRenderGameOverlay //extends Gui
             if (Informator.TimeBarMoon_Show)
             {
                 // ЛУНА: отрисовка панели
-                if (Informator.Global_ShowPanel) 
+                if (ModSettings.GENERAL.Global_ShowPanel.get()) 
                 {
                     GuiUtils.drawGradientRect(0,
                             moon_xPos,
@@ -418,7 +419,7 @@ public class OnRenderGameOverlay //extends Gui
                 if (Informator.TimeBarWeather_Show)
                 {
                     // ПОГОДА:отрисовка панели
-                    if (Informator.Global_ShowPanel) 
+                    if (ModSettings.GENERAL.Global_ShowPanel.get()) 
                     {
                         GuiUtils.drawGradientRect(0,
                                 weather_xPos,
@@ -492,7 +493,7 @@ public class OnRenderGameOverlay //extends Gui
         }
         catch (Exception e) 
         {
-            Informator.Global_ON = false;
+            ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
@@ -526,7 +527,7 @@ public class OnRenderGameOverlay //extends Gui
                 }
                 // отрисовка панели
                 final int panelHeight = (count == 1) ? Skin.MC_ICON_SIZE : (STRING_HEIGHT * count + 1);
-                if (Informator.Global_ShowPanel) 
+                if (ModSettings.GENERAL.Global_ShowPanel.get()) 
                 {
                     GuiUtils.drawGradientRect(0,
                             xPos - Skin.MC_ICON_SIZE - textMaxLen,
@@ -555,7 +556,7 @@ public class OnRenderGameOverlay //extends Gui
         }
         catch (Exception e) 
         {
-            Informator.Global_ON = false;
+            ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
@@ -659,7 +660,7 @@ public class OnRenderGameOverlay //extends Gui
                 BlockName_xPos = 0;
              }
             
-            if (Informator.Global_ShowPanel) 
+            if (ModSettings.GENERAL.GlobalShowPanel.get()) 
             {
                 drawGradientRect(InfoBlockBar_xPos, InfoBlockBar_yPos,
                         InfoBlockBar_xPos + InfoBlockBar_strLen, 
@@ -684,7 +685,7 @@ public class OnRenderGameOverlay //extends Gui
             // отрисовка панели имени блока
             if(Informator.InfoBlockBar_ShowName)
             {
-                if (Informator.Global_ShowPanel) 
+                if (ModSettings.GENERAL.GlobalShowPanel.get()) 
                 {
                     drawGradientRect(BlockName_xPos, BlockName_yPos,
                                     BlockName_xPos + BlockName_strLen, 
