@@ -91,7 +91,7 @@ public class Informator
         MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
 
         //нет событий у этого объекта, см. https://www.minecraftforge.net/forum/topic/68011-config-not-working/?tab=comments#comment-328444
-        MinecraftForge.EVENT_BUS.register(this);
+        //MinecraftForge.EVENT_BUS.register(this);
     }
 
     // Нечто, что делается только на клиентской стороне: получение настроек игры, key bindings
