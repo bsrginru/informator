@@ -136,16 +136,21 @@ public class ModSettings
                     .comment("Смещение на экране панели времени по оси y [-9999..9999:default:0]")
                     .defineInRange("time_offset_y", 0, -9999, 9999);
             TimeBarMoon_Show = builder
-                    .comment("Отображение фазы луны, влияющей на агрессивность мобов [false/true|default:true]")
+                    .comment("Отображение фазы луны, влияющей на агрессивность мобов [false/true|default:true]",
+                             "Параметр можно не использовать, если установлен time_weather_pretty=true, в этом случае",
+                             "фаза луны будет показана на панели времени")
                     .define("time_moon_show", true);
             TimeBarWeather_Show = builder
-                    .comment("Отображение погодных условий в верхнем мире [false/true|default:true]")
+                    .comment("Отображение погодных условий в верхнем мире [false/true|default:true]",
+                             "Параметр можно не использовать, если установлен time_weather_pretty=true, в этом случае",
+                             "погода будет показана на панели времени")
                     .define("time_weather_show", true);
             TimeBarWeatherPretty_Show = builder
                     .comment("Отображение погоды 'как на карте сервера' [false/true|default:true], учитывается при time_weather_show=true")
                     .define("time_weather_pretty", true);
             TimeBarWeather_WithMoonPhases = builder
-                    .comment("Иконка погоды в ночное время показывает фазу луны [false/true|default:true], учитывается при time_weather_pretty=true")
+                    .comment("Иконка погоды в ночное время показывает фазу луны [false/true|default:true],",
+                             "учитывается при time_weather_pretty=true")
                     .define("time_weather_moon_phases", true);
             TimeBarBed_Show = builder
                     .comment("Индикатор 'пора поваляться в кровати, иначе скоро прилетят Фантомы' [false/true|default:true]")
