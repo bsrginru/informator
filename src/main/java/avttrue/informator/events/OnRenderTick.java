@@ -18,7 +18,10 @@ public class OnRenderTick
             {
                 Informator.held_items.collectDataDuringTick(Informator.realTimeTick);
                 Informator.weather.collectDataDuringTick(Informator.realTimeTick);
-                Informator.enchantments.collectDataDuringTick(Informator.realTimeTick, Informator.EnchantBar_ShowHands, Informator.EnchantBar_ShowBody);
+                Informator.enchantments.collectDataDuringTick(
+                        Informator.realTimeTick,
+                        ModSettings.GENERAL.EnchantBar_ShowHands.get(),
+                        ModSettings.GENERAL.EnchantBar_ShowBody.get());
             }
             else //подразумевается: if (event.phase == TickEvent.Phase.END)
             {

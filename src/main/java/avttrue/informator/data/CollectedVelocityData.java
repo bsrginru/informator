@@ -8,6 +8,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 
 import avttrue.informator.Informator;
+import avttrue.informator.config.ModSettings;
 
 
 public class CollectedVelocityData
@@ -58,7 +59,7 @@ public class CollectedVelocityData
 
     public void collectDataDuringTick()
     {
-        if (!Informator.VelocityBar_Show)
+        if (!ModSettings.GENERAL.VelocityBar_Show.get())
         {
             data.valid = false;
             data.locCursor = 0;

@@ -17,30 +17,157 @@ public class ModSettings
 {
     public static class General
     {
-        public final ForgeConfigSpec.ConfigValue<Boolean> Global_ON;
-        public final ForgeConfigSpec.ConfigValue<Boolean> Global_HideInDebugMode;
-        public final ForgeConfigSpec.ConfigValue<Boolean> Global_ShowPanel;
-        public final ForgeConfigSpec.ConfigValue<Integer> Global_DistanceView;
+        //----------------------------------------------------------------------
+        // Настройки мода общего назначения
+        public final ForgeConfigSpec.BooleanValue Global_ON;
+        public final ForgeConfigSpec.BooleanValue Global_HideInDebugMode;
+        public final ForgeConfigSpec.BooleanValue Global_ShowPanel;
+        public final ForgeConfigSpec.IntValue Global_DistanceView;
+        //----------------------------------------------------------------------
+        // Панель износа оружия, инструментов и брони
+        public final ForgeConfigSpec.BooleanValue HeldItemDetails_Show;
+        //public static int HeldItemDetails_xOffset = 0;
+        //public static int HeldItemDetails_yOffset = 0;
+        public final ForgeConfigSpec.IntValue HeldItemDetails_DamageAlarm;
+        public final ForgeConfigSpec.IntValue HeldItemDetails_DamageWarning;
+        //public static float  = 0.1F;
+        //public static String HeldItemDetails_alignMode; // default
+        //----------------------------------------------------------------------
+        //InfoBlockBar
+//      public static boolean InfoBlockBar_Show;
+//      public static boolean InfoBlockBar_ShowIcons;
+//      public static int InfoBlockBar_xPos;
+//      public static int InfoBlockBar_yPos;
+//      public static String InfoBlockBar_alignMode;
+//      public static boolean InfoBlockBar_ShowName;
+        //----------------------------------------------------------------------
+        // Панель скорости перемещения персонажа
+        public final ForgeConfigSpec.BooleanValue VelocityBar_Show;
+        public final ForgeConfigSpec.IntValue VelocityBar_xOffset;
+        public final ForgeConfigSpec.IntValue VelocityBar_yOffset;
+        public final ForgeConfigSpec.BooleanValue VelocityBar_ShowMax;
+        //----------------------------------------------------------------------
+        // Панель времени
+        public final ForgeConfigSpec.BooleanValue TimeBar_Show;
+        public final ForgeConfigSpec.IntValue TimeBar_alignMode; // 0 top_left; 1 top_right; 2 bottom_left; 3 bottom_right
+        public final ForgeConfigSpec.IntValue TimeBar_xOffset;
+        public final ForgeConfigSpec.IntValue TimeBar_yOffset;
+        public final ForgeConfigSpec.BooleanValue TimeBarMoon_Show;
+        public final ForgeConfigSpec.BooleanValue TimeBarWeather_Show;
+        public final ForgeConfigSpec.BooleanValue TimeBarWeatherPretty_Show;
+        public final ForgeConfigSpec.BooleanValue TimeBarWeather_WithMoonPhases;
+        public final ForgeConfigSpec.BooleanValue TimeBarBed_Show;
+        //----------------------------------------------------------------------
+        // Панель зачарований на предметах персонажа
+        public final ForgeConfigSpec.BooleanValue EnchantBar_Show;
+        public final ForgeConfigSpec.IntValue EnchantBar_xOffset;
+        public final ForgeConfigSpec.IntValue EnchantBar_yOffset;
+        public final ForgeConfigSpec.BooleanValue EnchantBar_ShowHands;
+        public final ForgeConfigSpec.BooleanValue EnchantBar_ShowBody;
+        //----------------------------------------------------------------------
+        // TargetMob Bar
+//        public static int TargetMobBar_WidthScreenPercentage;
+//        public static int TargetMobBar_yPos;
+//        public static int TargetMobBar_xPos;
+//        public static boolean TargetMobBar_Show = true;
+//        public static boolean TargetMobBar_DrawMobPortrait;
+//        public static boolean TargetMobBar_DrawBuffIcon;
+//        public static String TargetMobBar_alignMode;
+//        public static int TargetMobBar_ViewDelay;
+//        public static boolean TargetMobBar_SeachOwnerInWeb;
+//        public static int TargetMobBar_OwnerDataPeriod;
+        //----------------------------------------------------------------------
 
         public General(ForgeConfigSpec.Builder builder)
         {
             builder.push("General");
+            //----------------------------------------------------------------------
+            // Настройки мода общего назначения
             Global_ON = builder
                     .comment("Включает/отключает работу мода [false/true|default:true]")
                     .translation("avttrue_informator.name")
                     .define("general_on", true);
             Global_HideInDebugMode = builder
-                    .comment("Включает/отключает отображение GUI мода в режиме отладки по F3 [false/true|default:true]")
-                    .translation("avttrue_informator.name")
+                    .comment("Включает/отключает Информатор в режиме отладки по F3 [false/true|default:true]")
                     .define("general_hide_on_debug", true);
             Global_ShowPanel = builder
-                    .comment("Включает/отключает отображение градиентных панелей под надписями [false/true|default:true]")
-                    .translation("avttrue_informator.name")
+                    .comment("Надписи Информатора выводятся на панелях [false/true|default:true]")
                     .define("general_show_panel", true);
             Global_DistanceView = builder
                     .comment("Дистанция видимости объектов [1..64|default:32]")
-                    .translation("avttrue_informator.name")
                     .defineInRange("general_view_distance", 32, 1, 64);
+            //----------------------------------------------------------------------
+            // Панель износа оружия, инструментов и брони
+            HeldItemDetails_Show = builder
+                    .comment("Включает/отключает индикаторы износа оружия, инструментов и брони [false/true|default:true]")
+                    .define("held_show", true);
+            HeldItemDetails_DamageAlarm = builder
+                    .comment("Процент износа оружия, инструментов и брони по достижении которого зажигается тревога [1..50|default:10]")
+                    .defineInRange("held_damage_alarm", 10, 1, 50);
+            HeldItemDetails_DamageWarning = builder
+                    .comment("Процент износа оружия, инструментов и брони по достижении которого зажигается предупреждение [2..50|default:15]")
+                    .defineInRange("held_damage_warning", 15, 2, 50);
+            //----------------------------------------------------------------------
+            // Панель скорости перемещения персонажа
+            VelocityBar_Show = builder
+                    .comment("Включает/отключает отображение скорости перемещения персонажа [false/true|default:true]")
+                    .define("velocity_show", true);
+            VelocityBar_ShowMax = builder
+                    .comment("Отображение максимальной зарегистрированной скорости на интервале движения персонажа [false/true|default:true]")
+                    .define("velocity_show_max", true);
+            VelocityBar_xOffset = builder
+                    .comment("Смещение на экране индикатора скорости по оси x [-9999..9999:default:0]")
+                    .defineInRange("velocity_offset_x", 0, -9999, 9999);
+            VelocityBar_yOffset = builder
+                    .comment("Смещение на экране индикатора скорости по оси y [-9999..9999:default:0]")
+                    .defineInRange("velocity_offset_y", 0, -9999, 9999);
+            //----------------------------------------------------------------------
+            // Панель скорости перемещения персонажа
+            TimeBar_Show = builder
+                    .comment("Включает/отключает отображение панели времени [false/true|default:true]")
+                    .define("time_show", true);
+            TimeBar_alignMode = builder
+                    .comment("Расположение панели времени на экране [0:top_left,1:top_right,2:bottom_left,3:bottom_right]")
+                    .defineInRange("time_align", 0, 0, 3);
+            TimeBar_xOffset = builder
+                    .comment("Смещение на экране панели времени по оси x [-9999..9999:default:0]")
+                    .defineInRange("time_offset_x", 0, -9999, 9999);
+            TimeBar_yOffset = builder
+                    .comment("Смещение на экране панели времени по оси y [-9999..9999:default:0]")
+                    .defineInRange("time_offset_y", 0, -9999, 9999);
+            TimeBarMoon_Show = builder
+                    .comment("Отображение фазы луны, влияющей на агрессивность мобов [false/true|default:true]")
+                    .define("time_moon_show", true);
+            TimeBarWeather_Show = builder
+                    .comment("Отображение погодных условий в верхнем мире [false/true|default:true]")
+                    .define("time_weather_show", true);
+            TimeBarWeatherPretty_Show = builder
+                    .comment("Отображение погоды 'как на карте сервера' [false/true|default:true], учитывается при time_weather_show=true")
+                    .define("time_weather_pretty", true);
+            TimeBarWeather_WithMoonPhases = builder
+                    .comment("Иконка погоды в ночное время показывает фазу луны [false/true|default:true], учитывается при time_weather_pretty=true")
+                    .define("time_weather_moon_phases", true);
+            TimeBarBed_Show = builder
+                    .comment("Индикатор 'пора поваляться в кровати, иначе скоро прилетят Фантомы' [false/true|default:true]")
+                    .define("time_to_bed", true);
+            //----------------------------------------------------------------------
+            // Панель зачарований на предметах персонажа
+            EnchantBar_Show = builder
+                    .comment("Включает/отключает отображение зачарований на предметах персонажа [false/true|default:true]")
+                    .define("enchants_show", true);
+            EnchantBar_xOffset = builder
+                    .comment("Смещение на экране панели зачарований по оси x [-9999..9999:default:0]")
+                    .defineInRange("enchants_offset_x", 0, -9999, 9999);
+            EnchantBar_yOffset = builder
+                    .comment("Смещение на экране панели зачарований по оси y [-9999..9999:default:0]")
+                    .defineInRange("enchants_offset_y", 0, -9999, 9999);
+            EnchantBar_ShowHands = builder
+                    .comment("Отображение списка зачарований оружия и инструментов [false/true|default:true]")
+                    .define("enchants_hands", true);
+            EnchantBar_ShowBody = builder
+                    .comment("Отображение списка зачарований одежды [false/true|default:true]")
+                    .define("enchants_body", true);
+            //----------------------------------------------------------------------
             builder.pop();
         }
     }

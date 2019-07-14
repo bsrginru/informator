@@ -51,57 +51,6 @@ public class Informator
     // используется для контроля заколдованных предметов
     public static CollectedEnchantmentsData enchantments = new CollectedEnchantmentsData();
 
-    //HeldItemBar
-    public static boolean HeldItemDetails_Show = true;
-    //public static int HeldItemDetails_xOffset = 0;
-    //public static int HeldItemDetails_yOffset = 0;
-    public static float HeldItemDetails_DamageAlarm = 0.1F;
-    //public static String HeldItemDetails_alignMode; // default
-
-    //InfoBlockBar
-//    public static boolean InfoBlockBar_Show;
-//    public static boolean InfoBlockBar_ShowIcons;
-//    public static int InfoBlockBar_xPos;
-//    public static int InfoBlockBar_yPos;
-//    public static String InfoBlockBar_alignMode;
-//    public static boolean InfoBlockBar_ShowName;
-
-    //SpeedBar
-    public static boolean VelocityBar_Show = true;
-    public static int VelocityBar_xOffset = 0;
-    public static int VelocityBar_yOffset = 0;
-    public static boolean VelocityBar_ShowMax = true;
-
-    //TimeBar
-    public static boolean TimeBar_Show = true;
-    public static int TimeBar_xOffset = 0;
-    public static int TimeBar_yOffset = 0;
-    public static boolean TimeBarMoon_Show = true;
-    public static boolean TimeBarWeather_Show = true;
-    public static boolean TimeBarWeatherPretty_Show = true;
-    public static int TimeBar_alignMode = 0; // 0 top_left; 1 top_right; 2 bottom_left; 3 bottom_right
-    public static boolean TimeBarWeather_WithMoonPhases = true;
-    public static boolean TimeBarBed_Show = true;
-    
-    // EnchantBar
-    public static int EnchantBar_xOffset = 0;
-    public static int EnchantBar_yOffset = 0;
-    public static boolean EnchantBar_Show = true;
-    public static boolean EnchantBar_ShowHands = true;
-    public static boolean EnchantBar_ShowBody = true;
-    
-    // TargetMob Bar
-//    public static int TargetMobBar_WidthScreenPercentage;
-//    public static int TargetMobBar_yPos;
-//    public static int TargetMobBar_xPos;
-    public static boolean TargetMobBar_Show = true;
-//    public static boolean TargetMobBar_DrawMobPortrait;
-//    public static boolean TargetMobBar_DrawBuffIcon;
-//    public static String TargetMobBar_alignMode;
-//    public static int TargetMobBar_ViewDelay;
-//    public static boolean TargetMobBar_SeachOwnerInWeb;
-//    public static int TargetMobBar_OwnerDataPeriod;
-
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
     //public static float R0 = 0;
     public static Integer R1 = null, R2 = null, R3 = null;
