@@ -4,7 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -24,11 +24,13 @@ public class ViewDetails
         public BlockRayTraceResult target; // бывший targetBlock
         public BlockPos pos; // бывший tBlockPosition
         public boolean isAir;
-        // следующие переменные валидны только при isAir==false
+        // следующие переменные не null только при isAir==false
         public BlockState state; // бывший tBlockState
         public Block block; // бывший tBlock
-        // следующие переменный вылидны только при block!=null
+        // следующие переменные не null только при block!=null
         public ItemStack stack;
+        // следующие переменные не null только при stack!=null
+        public Item item;
     }
     public BlockDetails block = new BlockDetails();
 
@@ -81,31 +83,26 @@ Informator.R4.clear();
                 block.pos = block.target.getPos();
 Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));
                 block.isAir = world.isAirBlock(block.pos);
-                if (block.isAir)
-                {
-                    block.state = null;
-                    block.block = null;
-                    block.stack = null; // ItemStack.EMPTY;
-                }
-                else
+                block.state = null;
+                block.block = null;
+                block.stack = null; // ItemStack.EMPTY;
+                block.item = null;
+                if (!block.isAir)
                 {
                     block.state = world.getBlockState(block.pos);
-                    if (block.state == null)
-                    {
-                        block.block = null;
-                        block.stack = null; // ItemStack.EMPTY;
-                    }
-                    else
+                    if (block.state != null)
                     {
                         block.block = block.state.getBlock();
-                        if (block.block == null)
-                            block.stack = null; // ItemStack.EMPTY;
-                        else
+                        if (block.block != null)
+                        {
                             block.stack = block.state.getBlock().getPickBlock(block.state, block.target, world, block.pos, mc.player);
+                            if ((block.stack != null) && !block.stack.isEmpty())
+                            {
+                                block.item = block.stack.getItem();
+                            }
+                        }
                     }
                 }
-if (block.block != null) Informator.R4.add(block.block.getNameTextComponent().getFormattedText());
-if (block.stack != null) Informator.R4.add(block.stack.getDisplayName().getFormattedText());
             }
             else
             {

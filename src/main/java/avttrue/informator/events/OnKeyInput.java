@@ -44,14 +44,18 @@ public class OnKeyInput
         else if (KeyBindings.InformatorDebug.isPressed())
         {
             //!!!debug only
-            //kuk++; 
+            kuk++; 
             //Informator.TimeBar_alignMode = kuk % 4;
             //Informator.TimeBarWeatherPretty_Show = ((kuk / 4) % 2) == 0;
             //Informator.TimeBarMoon_Show = ((kuk / 8) % 2) == 0;
             //Informator.TimeBarWeather_Show = ((kuk / 16) % 2) == 0;
             //Informator.TimeBar_Show = ((kuk / 32) % 2) == 0;
+            ModSettings.GENERAL.BlockBar_alignMode.set((ModSettings.GENERAL.BlockBar_alignMode.get() + 1) % 4);
+            ModSettings.GENERAL.BlockBar_ShowName.set(((kuk / 4) % 2) == 0);
+            ModSettings.GENERAL.BlockBar_ShowIcons.set(((kuk / 8) % 2) == 0);
+            ModSettings.GENERAL.BlockBar_ShowPlayerOffset.set(((kuk / 16) % 2) == 0);
         }
     }
 
-    //static int kuk = 0;
+    static int kuk = 0;
 }

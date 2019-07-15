@@ -33,12 +33,13 @@ public class ModSettings
         //public static String HeldItemDetails_alignMode; // default
         //----------------------------------------------------------------------
         // Панель информации о блоке
-        public final ForgeConfigSpec.BooleanValue InfoBlockBar_Show;
-//      public static boolean InfoBlockBar_ShowIcons;
-//      public static int InfoBlockBar_xPos;
-//      public static int InfoBlockBar_yPos;
-//      public static String InfoBlockBar_alignMode;
-//      public static boolean InfoBlockBar_ShowName;
+        public final ForgeConfigSpec.BooleanValue BlockBar_Show;
+        public final ForgeConfigSpec.IntValue BlockBar_alignMode; // 0 top_left; 1 top_right; 2 bottom_left; 3 bottom_right
+        public final ForgeConfigSpec.IntValue BlockBar_xOffset;
+        public final ForgeConfigSpec.IntValue BlockBar_yOffset;
+        public final ForgeConfigSpec.BooleanValue BlockBar_ShowName;
+        public final ForgeConfigSpec.BooleanValue BlockBar_ShowIcons;
+        public final ForgeConfigSpec.BooleanValue BlockBar_ShowPlayerOffset;
         //----------------------------------------------------------------------
         // Панель скорости перемещения персонажа
         public final ForgeConfigSpec.BooleanValue VelocityBar_Show;
@@ -106,9 +107,27 @@ public class ModSettings
                     .defineInRange("held_damage_warning", 15, 2, 50);
             //----------------------------------------------------------------------
             // Панель информации о блоке
-            InfoBlockBar_Show = builder
+            BlockBar_Show = builder
                     .comment("Включает/отключает отображение информации о блоке на который смотрит персонаж [false/true|default:true]")
                     .define("block_show", true);
+            BlockBar_alignMode = builder
+                    .comment("Расположение панели информации о блоке на экране [0:top_left,1:top_right,2:bottom_left,3:bottom_right]")
+                    .defineInRange("block_align", 3, 0, 3);
+            BlockBar_xOffset = builder
+                    .comment("Смещение на экране панели информации о блоке по оси x [-9999..9999:default:0]")
+                    .defineInRange("block_offset_x", 0, -9999, 9999);
+            BlockBar_yOffset = builder
+                    .comment("Смещение на экране панели информации о блоке по оси y [-9999..9999:default:0]")
+                    .defineInRange("block_offset_y", 0, -9999, 9999);
+            BlockBar_ShowName = builder
+                    .comment("Отображение наименования блока на который смотрит персонаж [false/true|default:true]")
+                    .define("block_name", true);
+            BlockBar_ShowIcons = builder
+                    .comment("Отображение иконки блока на который смотрит персонаж [false/true|default:true]")
+                    .define("block_icon", true);
+            BlockBar_ShowPlayerOffset = builder
+                    .comment("Отображение смещения персонажаотносительно блока на который он смотрит [false/true|default:true]")
+                    .define("block_player_offset", true);
             //----------------------------------------------------------------------
             // Панель скорости перемещения персонажа
             VelocityBar_Show = builder

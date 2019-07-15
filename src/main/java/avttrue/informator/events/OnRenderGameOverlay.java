@@ -12,7 +12,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.LightType;
+import net.minecraft.world.chunk.Chunk;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -29,6 +31,7 @@ import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.data.TimeOfDay;
 import avttrue.informator.tools.Drawing;
+import avttrue.informator.tools.TextTranslation;
 
 public class OnRenderGameOverlay //extends Gui
 {
@@ -47,8 +50,8 @@ public class OnRenderGameOverlay //extends Gui
     private static final int FONT_RED = 0xFF0000;
     
     private static int STRING_HEIGHT = 9;
-    private static final int STRING_PREFIX_px = 4; // префикс (в пикселях) перед любой надписью на пенели
-    private static final int STRING_POSTFIX_px = 4; // постфикс (в пикселях) после любой надписи на панелях
+    private static final int STRING_PREFIX_px = 2; // префикс (в пикселях) перед любой надписью на пенели
+    private static final int STRING_POSTFIX_px = 2; // постфикс (в пикселях) после любой надписи на панелях
     private static final int STRING_GROW_px = STRING_PREFIX_px + STRING_POSTFIX_px;
     
     private static final int BUFF_ICON_SPACING = 19; //??? 20;
@@ -92,7 +95,7 @@ public class OnRenderGameOverlay //extends Gui
             {
                 view.refresh();
                 // Block bar
-                if (view.block.valid && ModSettings.GENERAL.InfoBlockBar_Show.get()) drawBlockBar();
+                if (view.block.valid && ModSettings.GENERAL.BlockBar_Show.get()) drawBlockBar();
                 // Target Mob
 //if (Informator.TargetMobBar_Show) CreateTargetMobBar();
             }
@@ -174,7 +177,7 @@ public class OnRenderGameOverlay //extends Gui
             GuiUtils.drawGradientRect(0,
                     VelocityBar_xPos,
                     VelocityBar_yPos,
-                    VelocityBar_xPos + 16 + iVelocityLen,
+                    VelocityBar_xPos + Skin.MC_ICON_SIZE + iVelocityLen,
                     VelocityBar_yPos + Skin.MC_ICON_SIZE,
                     PANEL_STEEL,
                     PANEL_TRANSPARENT);
@@ -241,7 +244,7 @@ public class OnRenderGameOverlay //extends Gui
                     FONT_WHITE);
         }
         // отрисовка иконки
-         Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
+        Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
     }
 
     private void drawClockBar()
@@ -544,9 +547,15 @@ public class OnRenderGameOverlay //extends Gui
         // кэшируем значения перменных в этом методе
         final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
+        
+        // кешируем и индексируем надписи И др. переменные, которые будут использоваться для вывода инфомации
+        final int LINE_MAX_COUNT = 8;
+        String blockNameStr = "";
+        String [] strLines = new String[LINE_MAX_COUNT];
+        int strLinesUsed = 0; // по умолчанию всегда выводятся координаты блока
+        boolean playerOffsetShown = false;
 
-        // координаты
-        //---
+        // ===== КООРДИНАТЫ БЛОКА =====
         // раньше к Y тут прибавлялась единица, что неправильно, т.к. если поставить перед собой куб и смотреть на него, то
         // поскольку он будет на уровне наших ног, то и dY тоже должно быть = 0, а не стать +1 !!!
         //---
@@ -557,151 +566,221 @@ public class OnRenderGameOverlay //extends Gui
         final int x = details.pos.getX();
         final int y = details.pos.getY();
         final int z = details.pos.getZ();
-        final String BlockXYZ = String.format("%d %d %d [±] %d %d %d",
-                x,
-                y,
-                z,
-                x - playerPos.getX(),
-                y - playerPos.getY(),
-                z - playerPos.getZ());
-        // расстояние
+        strLines[strLinesUsed++] = String.format("%d %d %d", x, y, z);
 //посчитать ещё и расстояние?!
 
+        // ===== НАИМЕНОВАНИЕ БЛОКА =====
         // если мы смотрим не в воздух
-        if (details.isAir) return;
-        if (details.block == null) return;
+        if (!details.isAir)
+        {
+            // проверяем исключительные ситуации и контрируируем валидность данных на ветках условий
+            if (details.block != null)
+            {
+                // название блока (если у блока есть stack, то м.б. известно кол-во item-ов; иначе выводим название блока)
+                if (details.stack != null)
+                {
+                    final int count = details.stack.getCount();
+                    if (count != 1)
+                        blockNameStr = String.format("%s (%d)", details.stack.getDisplayName().getFormattedText(), count);
+                    else
+                        blockNameStr = details.stack.getDisplayName().getFormattedText();
+                }
+                if (blockNameStr.isEmpty())
+                {
+                    blockNameStr = details.block.getNameTextComponent().getFormattedText();
+                }
+            }
+        }
 
-        // название блока
-        final String BlockName = details.block.getNameTextComponent().getFormattedText();
-
-        if (view.block.stack == null) return; // или можно получить ItemStack.EMPTY
+        // ===== СМЕЩЕНИЕ БЛОКА (от персонажа, либо координаты в аду) =====
+        final ItemStack held_stack = player.getHeldItemMainhand();
+        final Item held_item = (held_stack == null) ? Items.AIR : held_stack.getItem();
+        if ((held_item == Items.OBSIDIAN) /*&& !world.isRemote*/)
+        {
+            // если удерживаемый элемент является обсидианом, то считаем координаты нижнего/верхнего мира
+            /** хрень какая-то получается... надо разбираться
+            final BlockPos portalPos = details.pos;
+            BlockPattern.PatternHelper blockpattern$patternhelper = ((NetherPortalBlock)Blocks.NETHER_PORTAL).createPatternHelper(world, portalPos);
+            double d0 = blockpattern$patternhelper.getForwards().getAxis() == Direction.Axis.X ? (double)blockpattern$patternhelper.getFrontTopLeft().getZ() : (double)blockpattern$patternhelper.getFrontTopLeft().getX();
+            double d1 = Math.abs(MathHelper.pct((blockpattern$patternhelper.getForwards().getAxis() == Direction.Axis.X ? details.pos.getZ() : details.pos.getX()) - (double)(blockpattern$patternhelper.getForwards().rotateY().getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1 : 0), d0, d0 - (double)blockpattern$patternhelper.getWidth()));
+            double d2 = MathHelper.pct(details.pos.getY() - 1.0D, (double)blockpattern$patternhelper.getFrontTopLeft().getY(), (double)(blockpattern$patternhelper.getFrontTopLeft().getY() - blockpattern$patternhelper.getHeight()));
+            final Vec3d portalVec = new Vec3d(d1, d2, 0.0D);
+            final Direction teleportDirection = blockpattern$patternhelper.getForwards();
+Informator.R4.add(String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, teleportDirection.getName()));
+            */
+        }
+        /**if (details.block != null)
+            if (details.block == Blocks.OBSIDIAN || details.block == Blocks.NETHER_PORTAL)
+            {
+                // если блок является обсидианом (или порталом в ад), то считаем координаты нижнего/верхнего мира
+                switch (world.getDimension().getType().getId())
+                {
+                case 0: // верхний мир
+                    strLines[strLinesUsed++] = String.format("[/8] %d %d %d", (int)(x/8), (int)(y/8), (int)(z/8));
+                    playerOffsetShown = true;
+                    break;
+                case -1: // нижний мир (ад)
+                    strLines[strLinesUsed++] = String.format("[*8] %d ?? %d", x*8, z*8);
+                    playerOffsetShown = true;
+                    break;
+                }
+            }*/
+        // смещение относительно координат персонажа (если это место ещё не занято)
+        if (!playerOffsetShown && ModSettings.GENERAL.BlockBar_ShowPlayerOffset.get())
+        {
+            strLines[strLinesUsed++] = String.format("[±] %d %d %d", x - playerPos.getX(), y - playerPos.getY(), z - playerPos.getZ());
+        }
 
 
 /*
-        int InfoBlockBar_xPos = Informator.InfoBlockBar_xPos;
-        int InfoBlockBar_yPos = Informator.InfoBlockBar_yPos;
-        int InfoBlockBar_PanelH = 4;
-        
+       
         // блок сверху того, на который смотрим
-        BlockPos upBlockPos = new BlockPos(view.block.pos.getX(), 
-                                            view.block.pos.getY() + 1, 
-                                            view.block.pos.getZ());
+        BlockPos upBlockPos = new BlockPos(details.pos.getX(), 
+                                            details.pos.getY() + 1, 
+                                            details.pos.getZ());
         Block upBlock = mc.theWorld.getBlockState(upBlockPos).getBlock();
 */
 
-        final int BlockName_xPos = 0;
-        final int BlockName_yPos = 0;
-        final int BlockName_strLen = mc.fontRenderer.getStringWidth(BlockName);
 
-        Informator.R4.add(BlockXYZ + String.format(" | player at %d %d %d", playerPos.getX(), playerPos.getY(), playerPos.getZ()));
+Informator.R4.add(String.format("player at %d %d %d", playerPos.getX(), playerPos.getY(), playerPos.getZ()));
+
+        // ===== СВЕТИМОСТЬ (ОСВЕЩЁННОСТЬ) БЛОКА =====
+        // код светимости, взят из call у DebugOverlayGui
+        //BlockPos blockpos = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getBoundingBox().minY, this.mc.getRenderViewEntity().posZ);
+        //Informator.R4.add("pos: " + this.mc.getRenderViewEntity().posX + " " + this.mc.getRenderViewEntity().getBoundingBox().minY + " " + this.mc.getRenderViewEntity().posZ);
+        //BlockPos blockpos = new BlockPos(x, y, z);
+        final BlockPos blockpos = details.pos.up(); // поскольку система тут оперирует с дробными значениями, получаем именно __поверхность__ блока
+        final Chunk chunk = world.getChunkAt(blockpos);
+        Informator.R4.add("Light: " + chunk.getLightSubtracted(blockpos, 0) + " (" + this.mc.world.getLightFor(LightType.SKY, blockpos) + " sky, " + this.mc.world.getLightFor(LightType.BLOCK, blockpos) + " block)");
+        // код светимости неба взят из метода updatePower у DaylightDetectorBlock
+        if (world.dimension.hasSkyLight())
+        {
+            int i = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
+            float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
+            if (i > 0)
+            {
+                final float f1 = f < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
+                f = f + (f1 - f) * 0.2F;
+                i = Math.round((float)i * MathHelper.cos(f));
+            }
+            i = MathHelper.clamp(i, 0, 15);
+            strLines[strLinesUsed++] = String.format("L %d %.2f", i, f);
+
+        }
+        else
+        {
+            strLines[strLinesUsed++] = String.format(
+                    "%s %d", // Светимость N
+                    TextTranslation.getInstance().field_illumination.getFormattedText(),
+                    details.state.getLightValue());
+        }
 
 /*
-        // освещённость
-        String BlockLight = "";
-        if (upBlockPos.getY() > 254)  // выше 255 строить нельзя
-        {
-            BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
-                    "=" + EnumSkyBlock.BLOCK.defaultLightValue + " / " + 
-                    EnumSkyBlock.SKY.defaultLightValue + " (" + 
-                    TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";
-        }
-        else
-        {
-            Chunk c = mc.theWorld.getChunkFromBlockCoords(upBlockPos);
-            BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
-                    "=" + c.getLightFor(EnumSkyBlock.BLOCK, upBlockPos) + " / " + 
-                    c.getLightFor(EnumSkyBlock.SKY, upBlockPos) + " (" + 
-                    TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";    
-        }
-
         // заряд блока
         String BlockPower = " " + TextTranslation.GetLocalText("avttrue.informator.3", "Power") +
-                "=" + Functions.GetTextPower(mc, view.block.block, view.block.pos) + " ";
-        
-        int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRendererObj.getStringWidth(BlockXYZ),
-                                            (Math.max(mc.fontRendererObj.getStringWidth(BlockXYZDelta),
-                                            (Math.max(mc.fontRendererObj.getStringWidth(BlockLight),
-                                            (mc.fontRendererObj.getStringWidth(BlockPower)))))));
-        
-        // отрисовка панели
-        if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomright"))
-         {
-            InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
-            InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
-            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
-            BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
-         }
-        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topright"))
-         {
-            InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
-            InfoBlockBar_yPos = 0;
-            BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
-            BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
-         }
-        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topleft"))
-         {
-            InfoBlockBar_xPos = 0;
-            InfoBlockBar_yPos = 0;
-            BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
-            BlockName_xPos = 0;
-         }
-        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomleft"))
-         {
-            InfoBlockBar_xPos = 0;
-            InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
-            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
-            BlockName_xPos = 0;
-         }
-        
-        if (ModSettings.GENERAL.GlobalShowPanel.get()) 
-        {
-            drawGradientRect(InfoBlockBar_xPos, InfoBlockBar_yPos,
-                    InfoBlockBar_xPos + InfoBlockBar_strLen, 
-                    InfoBlockBar_yPos + STRING_HEIGHT * InfoBlockBar_PanelH,
-                    PANEL_STEEL, PANEL_TRANSPARENT);
-        }
-
-        // отрисовка текста
-        // координаты
-        mc.fontRendererObj.drawStringWithShadow(BlockXYZ, InfoBlockBar_xPos + ICON_SIZE, 
-                InfoBlockBar_yPos, FONT_WHITE);
-        // дистанция
-        mc.fontRendererObj.drawStringWithShadow(BlockXYZDelta, InfoBlockBar_xPos  + ICON_SIZE, 
-                InfoBlockBar_yPos + STRING_HEIGHT, FONT_WHITE);
-        // освещённость
-        mc.fontRendererObj.drawStringWithShadow(BlockLight, InfoBlockBar_xPos + ICON_SIZE, 
-                InfoBlockBar_yPos + STRING_HEIGHT * 2, FONT_WHITE);
-        // заряд
-        mc.fontRendererObj.drawStringWithShadow(BlockPower, InfoBlockBar_xPos + ICON_SIZE, 
-                InfoBlockBar_yPos + STRING_HEIGHT * 3, FONT_WHITE);
-        
-        // отрисовка панели имени блока
-        if(Informator.InfoBlockBar_ShowName)
-        {
-            if (ModSettings.GENERAL.GlobalShowPanel.get()) 
-            {
-                drawGradientRect(BlockName_xPos, BlockName_yPos,
-                                BlockName_xPos + BlockName_strLen, 
-                                BlockName_yPos + STRING_HEIGHT,
-                                PANEL_STEEL, PANEL_TRANSPARENT);
-            }
-            // имя блока
-            if(!BlockName.isEmpty())
-                mc.fontRendererObj.drawStringWithShadow(BlockName, BlockName_xPos, 
-                                        BlockName_yPos, FONT_WHITE);
-        }
-        // отрисовка иконки
-        if(Informator.InfoBlockBar_ShowIcons)
-        {
-            Drawing.DrawItemStack(mc.getRenderItem(), itst, InfoBlockBar_xPos, InfoBlockBar_yPos);
-            
-        }
-        else
-        {
-            mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-            drawTexturedModalRect(InfoBlockBar_xPos, InfoBlockBar_yPos, 0, 16, 10, 10);
-        }
+                "=" + Functions.GetTextPower(mc, details.block, view.block.pos) + " ";
 */
+
+        // вычисление длинн надписей
+        final int blockNameStrLen = blockNameStr.isEmpty() ? 0 : (mc.fontRenderer.getStringWidth(blockNameStr) + STRING_GROW_px);
+        int [] strLens = new int[LINE_MAX_COUNT];
+        int strLensMax = 0;
+        for (int i = 0; i < strLinesUsed; ++i)
+        {
+            strLens[i] = 0;
+            if (strLines[i].isEmpty()) continue;
+            strLens[i] = mc.fontRenderer.getStringWidth(strLines[i]);
+            if (strLensMax < strLens[i]) strLensMax = strLens[i];
+        }
+        // расчёт размещения панели
+        int InfoBlockBar_xPos;
+        int InfoBlockBar_yPos;
+        final int InfoBlockBar_PanelWidth = Skin.MC_ICON_SIZE + strLensMax + STRING_GROW_px;
+        final int InfoBlockBar_PanelHeight = (strLinesUsed == 1) ? Skin.MC_ICON_SIZE : (strLinesUsed * STRING_HEIGHT);
+        // расположение надписи с названием
+        final int BlockName_xPos;
+        final int BlockName_yPos;
+        // позиционирование панели
+        switch (ModSettings.GENERAL.BlockBar_alignMode.get())
+        {
+        default:
+        case 0: // topleft
+            InfoBlockBar_xPos = 0;
+            InfoBlockBar_yPos = 0;
+            BlockName_xPos = 0;
+            BlockName_yPos = InfoBlockBar_PanelHeight;
+            break;
+        case 1: // topright
+            InfoBlockBar_xPos = mainWndScaledWidth - InfoBlockBar_PanelWidth;
+            InfoBlockBar_yPos = 0;
+            BlockName_xPos = mainWndScaledWidth - blockNameStrLen;
+            BlockName_yPos = InfoBlockBar_PanelHeight;
+            break;
+        case 2: // bottomleft
+            InfoBlockBar_xPos = 0;
+            InfoBlockBar_yPos = mainWndScaledHeight - InfoBlockBar_PanelHeight;
+            BlockName_xPos = 0;
+            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
+            break;
+        case 3: // bottomright
+            InfoBlockBar_xPos = mainWndScaledWidth - InfoBlockBar_PanelWidth;
+            InfoBlockBar_yPos = mainWndScaledHeight - InfoBlockBar_PanelHeight;
+            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
+            BlockName_xPos = mainWndScaledWidth - blockNameStrLen;
+            break;
+        }
+        InfoBlockBar_xPos += ModSettings.GENERAL.BlockBar_xOffset.get();
+        InfoBlockBar_yPos += ModSettings.GENERAL.BlockBar_yOffset.get();
+        // отрисовка панели
+        final boolean hasBlockName = ModSettings.GENERAL.BlockBar_ShowName.get() && (blockNameStrLen != 0);
+        if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        {
+            GuiUtils.drawGradientRect(0,
+                    InfoBlockBar_xPos,
+                    InfoBlockBar_yPos,
+                    InfoBlockBar_xPos + InfoBlockBar_PanelWidth,
+                    InfoBlockBar_yPos + InfoBlockBar_PanelHeight,
+                    PANEL_STEEL,
+                    PANEL_TRANSPARENT);
+            if (hasBlockName)
+            {
+                GuiUtils.drawGradientRect(0,
+                        BlockName_xPos,
+                        BlockName_yPos,
+                        BlockName_xPos + blockNameStrLen,
+                        BlockName_yPos + STRING_HEIGHT,
+                        PANEL_STEEL,
+                        PANEL_TRANSPARENT);
+            }
+        }
+        // отрисовка текста : координаты, дистанция, освещённость, заряд
+        final int strLinesYOffset = ((strLinesUsed == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1) : 1);
+        for (int i = 0; i < strLinesUsed; ++i)
+        {
+            if (strLens[i] == 0) continue;
+            mc.fontRenderer.drawStringWithShadow(
+                    strLines[i],
+                    InfoBlockBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                    InfoBlockBar_yPos + STRING_HEIGHT * i + strLinesYOffset,
+                    FONT_WHITE);
+        }
+        // отрисовка наименования блока
+        if (hasBlockName)
+        {
+            int color = net.minecraft.item.Rarity.COMMON.color.getColor();
+            if (details.item != null)
+                color = details.item.getRarity(details.stack).color.getColor();
+            mc.fontRenderer.drawStringWithShadow(
+                    blockNameStr,
+                    BlockName_xPos + STRING_PREFIX_px, 
+                    BlockName_yPos + 1,
+                    color);
+        }
+        // отрисовка иконки (если stack==null, то смысла рисовать иконку ItemStack.EMPTY нет, т.к. она полностью прозначная)
+        if (ModSettings.GENERAL.BlockBar_ShowIcons.get() && details.stack != null)
+        {
+            Drawing.DrawItemStack(mc.getItemRenderer(), details.stack, InfoBlockBar_xPos, InfoBlockBar_yPos);
+        }
     }
 
     /*public void CreateTargetMobBar()
@@ -709,7 +788,7 @@ public class OnRenderGameOverlay //extends Gui
             if (!view.ISee) return;
          
             // позиция и размеры
-            int TargetMobBar_Len = Informator.TargetMobBar_WidthScreenPercentage * scaledResolution.getScaledWidth() / 100;
+            int TargetMobBar_Len = Informator.TargetMobBar_WidthScreenPercentage * mainWndScaledWidth / 100;
             
             // custom
             int TargetMobBar_x = Informator.TargetMobBar_xPos;
@@ -718,7 +797,7 @@ public class OnRenderGameOverlay //extends Gui
             // по центру
             if (Informator.TargetMobBar_alignMode.toLowerCase().contains("center"))
             {
-                TargetMobBar_x = (scaledResolution.getScaledWidth() - TargetMobBar_Len) / 2;
+                TargetMobBar_x = (mainWndScaledWidth - TargetMobBar_Len) / 2;
                 TargetMobBar_y = 0;
             }
             // слева
@@ -730,7 +809,7 @@ public class OnRenderGameOverlay //extends Gui
             // справа
             else if (Informator.TargetMobBar_alignMode.toLowerCase().contains("topright"))
             {
-                TargetMobBar_x = scaledResolution.getScaledWidth() - TargetMobBar_Len;
+                TargetMobBar_x = mainWndScaledWidth - TargetMobBar_Len;
                 TargetMobBar_y = 0;
             }
                         
@@ -830,7 +909,7 @@ public class OnRenderGameOverlay //extends Gui
             {
                 mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
                 drawTexturedModalRect(TargetMobBar_x + 1, TargetMobBar_y + 3 + mc.fontRendererObj.FONT_HEIGHT, 
-                                        16, 0, ICON_SIZE, ICON_SIZE);
+                                        16, 0, Skin.MC_ICON_SIZE, Skin.MC_ICON_SIZE);
             }
             
             // дистанция панель
@@ -1001,9 +1080,9 @@ public class OnRenderGameOverlay //extends Gui
             }
         }
         panel_width += STRING_GROW_px;
-        final int x = (mainWndScaledWidth - panel_width)/2;
         int y = mainWndScaledHeight - 24 - panel_height * STRING_HEIGHT;
-        GuiUtils.drawGradientRect(0, x, y, x + panel_width, y + panel_height * STRING_HEIGHT, PANEL_STEEL, PANEL_TRANSPARENT);
+        //мешается:final int x = (mainWndScaledWidth - panel_width)/2;
+        //мешается:GuiUtils.drawGradientRect(0, x, y, x + panel_width, y + panel_height * STRING_HEIGHT, PANEL_STEEL, PANEL_TRANSPARENT);
 
         panel_widths_idx = 0;
         if (nums)

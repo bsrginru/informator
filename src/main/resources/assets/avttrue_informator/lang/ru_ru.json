@@ -16,5 +16,8 @@
   "avttrue.informator.moon_phase.7": "растущая луна",
   "avttrue.informator.fatal_error": "Мод Информатор был выключен из-за невосстановимой ошибки. Попробуйте изменить настройки и обратиться к разработчикам.",
   "avttrue.informator.disabled": "Мод Информатор выключен.",
-  "avttrue.informator.enabled": "Мод Информатор включен."
+  "avttrue.informator.enabled": "Мод Информатор включен.",
+  "avttrue.informator.luminosity": "Свет", # Светимость
+  "avttrue.informator.illumination": "Освещ",
+  "avttrue.informator.heaven": "небо"
 }
