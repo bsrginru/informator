@@ -22,7 +22,6 @@ public class ModSettings
         public final ForgeConfigSpec.BooleanValue Global_ON;
         public final ForgeConfigSpec.BooleanValue Global_HideInDebugMode;
         public final ForgeConfigSpec.BooleanValue Global_ShowPanel;
-        public final ForgeConfigSpec.IntValue Global_DistanceView;
         //----------------------------------------------------------------------
         // Панель износа оружия, инструментов и брони
         public final ForgeConfigSpec.BooleanValue HeldItemDetails_Show;
@@ -33,8 +32,8 @@ public class ModSettings
         //public static float  = 0.1F;
         //public static String HeldItemDetails_alignMode; // default
         //----------------------------------------------------------------------
-        //InfoBlockBar
-//      public static boolean InfoBlockBar_Show;
+        // Панель информации о блоке
+        public final ForgeConfigSpec.BooleanValue InfoBlockBar_Show;
 //      public static boolean InfoBlockBar_ShowIcons;
 //      public static int InfoBlockBar_xPos;
 //      public static int InfoBlockBar_yPos;
@@ -65,11 +64,12 @@ public class ModSettings
         public final ForgeConfigSpec.BooleanValue EnchantBar_ShowHands;
         public final ForgeConfigSpec.BooleanValue EnchantBar_ShowBody;
         //----------------------------------------------------------------------
-        // TargetMob Bar
+        // Панели сущностей, на которые смотрим
+        public final ForgeConfigSpec.BooleanValue TargetMobBar_Show;
+        public final ForgeConfigSpec.IntValue TargetMobBar_DistanceView;
 //        public static int TargetMobBar_WidthScreenPercentage;
 //        public static int TargetMobBar_yPos;
 //        public static int TargetMobBar_xPos;
-//        public static boolean TargetMobBar_Show = true;
 //        public static boolean TargetMobBar_DrawMobPortrait;
 //        public static boolean TargetMobBar_DrawBuffIcon;
 //        public static String TargetMobBar_alignMode;
@@ -93,9 +93,6 @@ public class ModSettings
             Global_ShowPanel = builder
                     .comment("Надписи Информатора выводятся на панелях [false/true|default:true]")
                     .define("general_show_panel", true);
-            Global_DistanceView = builder
-                    .comment("Дистанция видимости объектов [1..64|default:32]")
-                    .defineInRange("general_view_distance", 32, 1, 64);
             //----------------------------------------------------------------------
             // Панель износа оружия, инструментов и брони
             HeldItemDetails_Show = builder
@@ -107,6 +104,11 @@ public class ModSettings
             HeldItemDetails_DamageWarning = builder
                     .comment("Процент износа оружия, инструментов и брони по достижении которого зажигается предупреждение [2..50|default:15]")
                     .defineInRange("held_damage_warning", 15, 2, 50);
+            //----------------------------------------------------------------------
+            // Панель информации о блоке
+            InfoBlockBar_Show = builder
+                    .comment("Включает/отключает отображение информации о блоке на который смотрит персонаж [false/true|default:true]")
+                    .define("block_show", true);
             //----------------------------------------------------------------------
             // Панель скорости перемещения персонажа
             VelocityBar_Show = builder
@@ -172,6 +174,14 @@ public class ModSettings
             EnchantBar_ShowBody = builder
                     .comment("Отображение списка зачарований одежды [false/true|default:true]")
                     .define("enchants_body", true);
+            //----------------------------------------------------------------------
+            // Панели сущностей, на которые смотрим
+            TargetMobBar_Show = builder
+                    .comment("Включает/отключает информацию о сущностях (блоки и NPC), на которые смотрим [false/true|default:true]")
+                    .define("target_show", true);
+            TargetMobBar_DistanceView = builder
+                    .comment("Дистанция видимости объектов [1..64|default:32]")
+                    .defineInRange("target_view_distance", 32, 1, 64);
             //----------------------------------------------------------------------
             builder.pop();
         }

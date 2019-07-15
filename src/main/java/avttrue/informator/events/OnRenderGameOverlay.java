@@ -5,10 +5,14 @@ import java.awt.Color;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -55,6 +59,7 @@ public class OnRenderGameOverlay //extends Gui
     
     private int mainWndScaledWidth;
     private int mainWndScaledHeight;
+    private ViewDetails view = new ViewDetails();
 
     @SubscribeEvent
     public void onRenderInformatorBars(RenderGameOverlayEvent event) 
@@ -66,77 +71,36 @@ public class OnRenderGameOverlay //extends Gui
         // если в дебаг-режиме и показ выключен для этого режима
         if (mc.gameSettings.showDebugInfo && ModSettings.GENERAL.Global_HideInDebugMode.get()) return;
 
-        STRING_HEIGHT = mc.fontRenderer.FONT_HEIGHT;
-        mainWndScaledWidth = mc.mainWindow.getScaledWidth();
-        mainWndScaledHeight = mc.mainWindow.getScaledHeight();
-
-        // === ИНФОРМАЦИОННЫЕ ПАНЕЛИ НА ЭКРАНЕ ===
-        // Clock bar
-        if (ModSettings.GENERAL.TimeBar_Show.get()) drawClockBar();
-        // Velocity Bar
-        if (ModSettings.GENERAL.VelocityBar_Show.get()) drawVelocityBar();
-        // Held item bar
-        if (ModSettings.GENERAL.HeldItemDetails_Show.get()) drawHeldItemBar();
-        // Current Enchantments
-        if (ModSettings.GENERAL.EnchantBar_Show.get()) drawEnchantBar();
-
-        // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
-//view = new View();
-        // Block bar
-//if(Informator.InfoBlockBar_Show) CreateBlockBar();
-        // Target Mob
-//if (Informator.TargetMobBar_Show) CreateTargetMobBar();
-        
-        // Thesaurus
-//DrawThesaurusButton();
-    }
-
-    private void drawHeldItemBar()
-    {
         try
         {
-            final CollectedHeldItemsData.Data held_items = Informator.held_items.data;
-            if (!held_items.valid) return;
-            if (held_items.held_damageable.isEmpty()) return;
+            STRING_HEIGHT = mc.fontRenderer.FONT_HEIGHT;
+            mainWndScaledWidth = mc.mainWindow.getScaledWidth();
+            mainWndScaledHeight = mc.mainWindow.getScaledHeight();
 
-            // настройки позиционирования
-            //int xPos = Informator.HeldItemDetails_xOffset;
-            //int yPos = Informator.HeldItemDetails_yOffset;
-            final int xPos = 0;
-            int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/;
+            // === ИНФОРМАЦИОННЫЕ ПАНЕЛИ НА ЭКРАНЕ ===
+            // Clock bar
+            if (ModSettings.GENERAL.TimeBar_Show.get()) drawClockBar();
+            // Velocity Bar
+            if (ModSettings.GENERAL.VelocityBar_Show.get()) drawVelocityBar();
+            // Held item bar
+            if (ModSettings.GENERAL.HeldItemDetails_Show.get()) drawHeldItemBar();
+            // Current Enchantments
+            if (ModSettings.GENERAL.EnchantBar_Show.get()) drawEnchantBar();
 
-            // текст и иконки
-            for (HeldItem hitm : held_items.held_damageable)
+            // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
+            if (ModSettings.GENERAL.TargetMobBar_Show.get())
             {
-                // отрисовка панели
-                if (ModSettings.GENERAL.Global_ShowPanel.get()) 
-                {
-                    final float alarm_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageAlarm.get() / 100.0F;
-                    final float warning_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageWarning.get() / 100.0F;
-                    final boolean critical = hitm.damageFactor < alarm_level;
-                    final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
-                    final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
-                    final int desc_len = mc.fontRenderer.getStringWidth(hitm.damageDesc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
-                    GuiUtils.drawGradientRect(0,
-                            xPos,
-                            yPos,
-                            xPos + desc_len,
-                            yPos + Skin.MC_ICON_SIZE,
-                            color_panel,
-                            PANEL_TRANSPARENT);
-                }
-                // отрисовка иконки
-                final Item item = Item.getItemById(hitm.id);
-                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos, yPos);
-                // отрисовка текста
-                mc.fontRenderer.drawStringWithShadow(
-                        hitm.damageDesc,
-                        xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
-                        yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
-                        hitm.rarity.color.getColor());
-                // смещаемся к следующей панели
-                yPos += Skin.MC_ICON_SIZE;
+                view.refresh();
+                // Block bar
+                if (view.block.valid && ModSettings.GENERAL.InfoBlockBar_Show.get()) drawBlockBar();
+                // Target Mob
+//if (Informator.TargetMobBar_Show) CreateTargetMobBar();
             }
+
+            // Thesaurus
+//DrawThesaurusButton();
+
+            drawDebugBar();
         }
         catch (Exception e) 
         {
@@ -144,6 +108,52 @@ public class OnRenderGameOverlay //extends Gui
             System.out.println(e.getMessage());
             e.printStackTrace();
             Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+        }
+    }
+
+    private void drawHeldItemBar()
+    {
+        final CollectedHeldItemsData.Data held_items = Informator.held_items.data;
+        if (!held_items.valid) return;
+        if (held_items.held_damageable.isEmpty()) return;
+
+        // настройки позиционирования
+        //int xPos = Informator.HeldItemDetails_xOffset;
+        //int yPos = Informator.HeldItemDetails_yOffset;
+        final int xPos = 0;
+        int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/;
+
+        // текст и иконки
+        for (HeldItem hitm : held_items.held_damageable)
+        {
+            // отрисовка панели
+            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+            {
+                final float alarm_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageAlarm.get() / 100.0F;
+                final float warning_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageWarning.get() / 100.0F;
+                final boolean critical = hitm.damageFactor < alarm_level;
+                final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
+                final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
+                final int desc_len = mc.fontRenderer.getStringWidth(hitm.damageDesc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
+                GuiUtils.drawGradientRect(0,
+                        xPos,
+                        yPos,
+                        xPos + desc_len,
+                        yPos + Skin.MC_ICON_SIZE,
+                        color_panel,
+                        PANEL_TRANSPARENT);
+            }
+            // отрисовка иконки
+            final Item item = Item.getItemById(hitm.id);
+            Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos, yPos);
+            // отрисовка текста
+            mc.fontRenderer.drawStringWithShadow(
+                    hitm.damageDesc,
+                    xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                    yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                    hitm.rarity.color.getColor());
+            // смещаемся к следующей панели
+            yPos += Skin.MC_ICON_SIZE;
         }
     }
 
@@ -151,580 +161,551 @@ public class OnRenderGameOverlay //extends Gui
 
     private void drawVelocityBar()
     {
-        try
+        final CollectedVelocityData.Data velocity = Informator.velocity.data;
+        if (!velocity.valid) return;
+
+        final int VelocityBar_xPos = ModSettings.GENERAL.VelocityBar_xOffset.get();
+        final int VelocityBar_yPos = ModSettings.GENERAL.VelocityBar_yOffset.get() +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
+
+        // отрисовка панели
+        if (ModSettings.GENERAL.Global_ShowPanel.get()) 
         {
-            final CollectedVelocityData.Data velocity = Informator.velocity.data;
-            if (!velocity.valid) return;
-
-            final int VelocityBar_xPos = ModSettings.GENERAL.VelocityBar_xOffset.get();
-            final int VelocityBar_yPos = ModSettings.GENERAL.VelocityBar_yOffset.get() +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
-
-            // отрисовка панели
-            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+            final int iVelocityLen = mc.fontRenderer.getStringWidth(velocity.sVelocity) + STRING_GROW_px;
+            GuiUtils.drawGradientRect(0,
+                    VelocityBar_xPos,
+                    VelocityBar_yPos,
+                    VelocityBar_xPos + 16 + iVelocityLen,
+                    VelocityBar_yPos + Skin.MC_ICON_SIZE,
+                    PANEL_STEEL,
+                    PANEL_TRANSPARENT);
+        }
+        // отрисовка текста: максимальная скорость
+        boolean showMaxVelocity = false;
+        int color = FONT_RED;
+        if (ModSettings.GENERAL.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
+        {
+            if (startDrawMaxVelocity == 0)
+                startDrawMaxVelocity = Informator.realTimeTick;
+            final long diff = Informator.realTimeTick - startDrawMaxVelocity;
+            // дольше 5х секунд информацию о максимальной скорости не выводим
+            final int GLOW_DURATION = 250; // 5сек
+            final int FLICK_DURATION = 150; // 3сек
+            showMaxVelocity = diff <= GLOW_DURATION;
+            // добавляем эффект мерцания
+            int glow;
+            if (diff <= FLICK_DURATION)
             {
-                final int iVelocityLen = mc.fontRenderer.getStringWidth(velocity.sVelocity) + STRING_GROW_px;
-                GuiUtils.drawGradientRect(0,
-                        VelocityBar_xPos,
-                        VelocityBar_yPos,
-                        VelocityBar_xPos + 16 + iVelocityLen,
-                        VelocityBar_yPos + Skin.MC_ICON_SIZE,
-                        PANEL_STEEL,
-                        PANEL_TRANSPARENT);
+                // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
+                glow = (int)((float)diff * 5.1) % 0x100;
+                if (glow >= 0x80) glow = 0x100 - glow;
             }
-            // отрисовка текста: максимальная скорость
-            boolean showMaxVelocity = false;
-            int color = FONT_RED;
-            if (ModSettings.GENERAL.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
-            {
-                if (startDrawMaxVelocity == 0)
-                    startDrawMaxVelocity = Informator.realTimeTick;
-                final long diff = Informator.realTimeTick - startDrawMaxVelocity;
-                // дольше 5х секунд информацию о максимальной скорости не выводим
-                final int GLOW_DURATION = 250; // 5сек
-                final int FLICK_DURATION = 150; // 3сек
-                showMaxVelocity = diff <= GLOW_DURATION;
-                // добавляем эффект мерцания
-                int glow;
-                if (diff <= FLICK_DURATION)
-                {
-                    // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
-                    glow = (int)((float)diff * 5.1) % 0x100;
-                    if (glow >= 0x80) glow = 0x100 - glow;
-                }
-                
-                else
-                {
-                    // оставшиеся 2сек цвет спадает с 0xff0000 до 0xffffff
-                    glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
-                }
-                color = 0xff0000 | glow << 8 | glow;
-            }
-            if (velocity.knownVelocityPrevMax == false)
-                startDrawMaxVelocity = 0;
-            if (showMaxVelocity)
-            {
-                final int xPos = VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px;
-                final int yPos = VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2;
-                final int lenPrefix = mc.fontRenderer.getStringWidth(velocity.sVelocityPrefix);
-                final int lenVelocityMax = mc.fontRenderer.getStringWidth(velocity.sVelocityPrevMax);
-                mc.fontRenderer.drawStringWithShadow(
-                        velocity.sVelocityPrefix,
-                        xPos,
-                        yPos,
-                        FONT_WHITE);
-                mc.fontRenderer.drawStringWithShadow(
-                        velocity.sVelocityPrevMax,
-                        xPos + lenPrefix,
-                        yPos,
-                        color);
-                mc.fontRenderer.drawStringWithShadow(
-                        velocity.sVelocityPostfix,
-                        xPos + lenPrefix + lenVelocityMax,
-                        yPos,
-                        color);
-            }
-            // отрисовка текста: текущая скорость
+            
             else
             {
-                mc.fontRenderer.drawStringWithShadow(
-                        velocity.sVelocity,
-                        VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
-                        VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
-                        FONT_WHITE);
+                // оставшиеся 2сек цвет спадает с 0xff0000 до 0xffffff
+                glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
             }
-            // отрисовка иконки
-             Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
+            color = 0xff0000 | glow << 8 | glow;
         }
-        catch (Exception e) 
+        if (velocity.knownVelocityPrevMax == false)
+            startDrawMaxVelocity = 0;
+        if (showMaxVelocity)
         {
-            ModSettings.GENERAL.Global_ON.set(false);
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+            final int xPos = VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px;
+            final int yPos = VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2;
+            final int lenPrefix = mc.fontRenderer.getStringWidth(velocity.sVelocityPrefix);
+            final int lenVelocityMax = mc.fontRenderer.getStringWidth(velocity.sVelocityPrevMax);
+            mc.fontRenderer.drawStringWithShadow(
+                    velocity.sVelocityPrefix,
+                    xPos,
+                    yPos,
+                    FONT_WHITE);
+            mc.fontRenderer.drawStringWithShadow(
+                    velocity.sVelocityPrevMax,
+                    xPos + lenPrefix,
+                    yPos,
+                    color);
+            mc.fontRenderer.drawStringWithShadow(
+                    velocity.sVelocityPostfix,
+                    xPos + lenPrefix + lenVelocityMax,
+                    yPos,
+                    color);
         }
+        // отрисовка текста: текущая скорость
+        else
+        {
+            mc.fontRenderer.drawStringWithShadow(
+                    velocity.sVelocity,
+                    VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                    VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
+                    FONT_WHITE);
+        }
+        // отрисовка иконки
+         Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
     }
 
     private void drawClockBar()
     {
-        try
+        final CollectedClockData.Data clock = Informator.clock.data;
+        final CollectedWeatherData.Data weather = Informator.weather.data;
+        if (!clock.valid || !weather.valid) return;
+
+        final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
+        final boolean showBedIcon = ModSettings.GENERAL.TimeBarBed_Show.get() ? clock.restTimeHourOverhead : false;
+
+        // учёт сдвига на размер иконки луны при прижатии книзу
+        final boolean isWeatherBarPresent = ModSettings.GENERAL.TimeBarMoon_Show.get() || ModSettings.GENERAL.TimeBarWeather_Show.get();
+        final int weatherBarHeight = isWeatherBarPresent ? Skin.ICON_WEATHER_PRETTY.size : 0;
+
+        // расчёт размещения панели
+        int time_xPos = 0;
+        int time_yPos = 0;
+        switch (ModSettings.GENERAL.TimeBar_alignMode.get())
         {
-            final CollectedClockData.Data clock = Informator.clock.data;
-            final CollectedWeatherData.Data weather = Informator.weather.data;
-            if (!clock.valid || !weather.valid) return;
+        default:
+        case 0: // topleft
+            //подразумевается:time_xPos = 0;
+            //подразумевается:time_yPos = 0;
+            break;
+        case 1: // topright
+            time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
+            //подразумевается:time_yPos = 0;
+            break;
+        case 2: // bottomleft
+            //подразумевается:time_xPos = 0;
+            time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
+            break;
+        case 3: // bottomright
+            time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
+            time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
+            break;
+        }
+        time_xPos += ModSettings.GENERAL.TimeBar_xOffset.get();
+        time_yPos += ModSettings.GENERAL.TimeBar_yOffset.get();
 
-            // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
-            if (Informator.R1 != null || Informator.R2 != null || Informator.R3 != null)
+        int moon_xPos = time_xPos;
+        int moon_yPos = time_yPos;
+        int weather_xPos = moon_xPos;
+        int weather_yPos = moon_yPos;
+        int moonPhaseLen = 0; // длина текста фазы луны
+
+        // 0 дождь, 1 солнечно, 2 дождь с грозой
+        final int weatherPhase = weather.isThundering ? 2 : (weather.isRaining ? 0 : 1);
+        int weatherPhasePretty = weatherPhase * 2; // день: 0 дождь, 2 солнечно, 4 дождь с грозой
+        if (clock.timeOfDay == TimeOfDay.NIGHT) weatherPhasePretty++; // ночь: 1 дождь, 3 солнечно, 5 дождь с грозой
+
+        if (isWeatherBarPresent)
+        {
+            //
+            // фазы луны
+            //
+            //14000 — Полнолуние.
+            //38000 — Убывающая луна.
+            //62000 — Последняя четверть.
+            //86000 — Старая луна.
+            //110000 — Новолуние.
+            //134000 — Молодая луна.
+            //158000 — Первая четверть.
+            //182000 — Прибывающая луна.
+            if (ModSettings.GENERAL.TimeBarMoon_Show.get())
             {
-                clock.currentTime =
-                    Informator.R1 + " | " +
-                    Informator.R2 + " | " +
-                    Informator.R3; //+ " | " + String.format("%1$5.2f", Informator.R0);
-            }
-
-            final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
-            final boolean showBedIcon = ModSettings.GENERAL.TimeBarBed_Show.get() ? clock.restTimeHourOverhead : false;
-
-            // учёт сдвига на размер иконки луны при прижатии книзу
-            final boolean isWeatherBarPresent = ModSettings.GENERAL.TimeBarMoon_Show.get() || ModSettings.GENERAL.TimeBarWeather_Show.get();
-            final int weatherBarHeight = isWeatherBarPresent ? Skin.ICON_WEATHER_PRETTY.size : 0;
-
-            // расчёт размещения панели
-            int time_xPos = 0;
-            int time_yPos = 0;
-            switch (ModSettings.GENERAL.TimeBar_alignMode.get())
-            {
-            default:
-            case 0: // topleft
-                //подразумевается:time_xPos = 0;
-                //подразумевается:time_yPos = 0;
-                break;
-            case 1: // topright
-                time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
-                //подразумевается:time_yPos = 0;
-                break;
-            case 2: // bottomleft
-                //подразумевается:time_xPos = 0;
-                time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
-                break;
-            case 3: // bottomright
-                time_xPos = mainWndScaledWidth - currentTimeStrLen + STRING_PREFIX_px - Skin.ICON_WEATHER_TIME.size;
-                time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
-                break;
-            }
-            time_xPos += ModSettings.GENERAL.TimeBar_xOffset.get();
-            time_yPos += ModSettings.GENERAL.TimeBar_yOffset.get();
-
-            int moon_xPos = time_xPos;
-            int moon_yPos = time_yPos;
-            int weather_xPos = moon_xPos;
-            int weather_yPos = moon_yPos;
-            int moonPhaseLen = 0; // длина текста фазы луны
-
-            // 0 дождь, 1 солнечно, 2 дождь с грозой
-            final int weatherPhase = weather.isThundering ? 2 : (weather.isRaining ? 0 : 1);
-            int weatherPhasePretty = weatherPhase * 2; // день: 0 дождь, 2 солнечно, 4 дождь с грозой
-            if (clock.timeOfDay == TimeOfDay.NIGHT) weatherPhasePretty++; // ночь: 1 дождь, 3 солнечно, 5 дождь с грозой
-
-            if (isWeatherBarPresent)
-            {
-                //
-                // фазы луны
-                //
-                //14000 — Полнолуние.
-                //38000 — Убывающая луна.
-                //62000 — Последняя четверть.
-                //86000 — Старая луна.
-                //110000 — Новолуние.
-                //134000 — Молодая луна.
-                //158000 — Первая четверть.
-                //182000 — Прибывающая луна.
-                if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+                moonPhaseLen = STRING_GROW_px + Math.max(
+                        mc.fontRenderer.getStringWidth(weather.sMoonPhase),
+                        mc.fontRenderer.getStringWidth(weather.sMoonPhaseFactor));
+                // позиция и размеры
+                switch (ModSettings.GENERAL.TimeBar_alignMode.get())
                 {
-                    moonPhaseLen = STRING_GROW_px + Math.max(
-                            mc.fontRenderer.getStringWidth(weather.sMoonPhase),
-                            mc.fontRenderer.getStringWidth(weather.sMoonPhaseFactor));
-                    // позиция и размеры
-                    switch (ModSettings.GENERAL.TimeBar_alignMode.get())
-                    {
-                    default:
-                    case 0: // topleft
-                        moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
-                        moon_yPos = 0;
-                        break;
-                    case 1: // topright
-                        moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
-                        moon_yPos = 0;
-                        break;
-                    case 2: // bottomleft
-                        moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
-                        break;
-                    case 3: // bottomright
-                        moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
-                        break;
-                    }
-                }
-
-                //
-                // погода
-                //
-                weather_xPos = moon_xPos;
-                weather_yPos = moon_yPos;
-                if (ModSettings.GENERAL.TimeBarWeather_Show.get())
-                {
-                    // позиция и размеры
-                    switch (ModSettings.GENERAL.TimeBar_alignMode.get())
-                    {
-                    default:
-                    case 0: // topleft
-                        weather_xPos = 0;
-                        weather_yPos = 0;
-                        break;
-                    case 1: // topright
-                        weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
-                        weather_yPos = 0;
-                        break;
-                    case 2: // bottomleft
-                        weather_xPos = 0;
-                        break;
-                    case 3: // bottomright
-                        weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
-                        break;
-                    }
+                default:
+                case 0: // topleft
+                    moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                    moon_yPos = 0;
+                    break;
+                case 1: // topright
+                    moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
+                    moon_yPos = 0;
+                    break;
+                case 2: // bottomleft
+                    moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                    break;
+                case 3: // bottomright
+                    moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
+                    break;
                 }
             }
 
-            // ВРЕМЯ: отрисовка панели
+            //
+            // погода
+            //
+            weather_xPos = moon_xPos;
+            weather_yPos = moon_yPos;
+            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
+            {
+                // позиция и размеры
+                switch (ModSettings.GENERAL.TimeBar_alignMode.get())
+                {
+                default:
+                case 0: // topleft
+                    weather_xPos = 0;
+                    weather_yPos = 0;
+                    break;
+                case 1: // topright
+                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                    weather_yPos = 0;
+                    break;
+                case 2: // bottomleft
+                    weather_xPos = 0;
+                    break;
+                case 3: // bottomright
+                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                    break;
+                }
+            }
+        }
+
+        // ВРЕМЯ: отрисовка панели
+        if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        {
+            GuiUtils.drawGradientRect(0,
+                    time_xPos,
+                    time_yPos, 
+                    time_xPos + Skin.MC_ICON_SIZE + currentTimeStrLen + (showBedIcon ? Skin.MC_ICON_SIZE : 0),
+                    time_yPos + Skin.MC_ICON_SIZE,
+                    PANEL_STEEL,
+                    PANEL_TRANSPARENT);
+        }
+        // ВРЕМЯ: отрисовка текста
+        mc.fontRenderer.drawStringWithShadow(
+                clock.currentTime,
+                time_xPos + Skin.MC_ICON_SIZE + (showBedIcon ? Skin.MC_ICON_SIZE : 0) + STRING_PREFIX_px,
+                time_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                FONT_WHITE);
+        // ЛУНА и ПОГОДА: (погода отдельно не отображается, либо ВМЕСТЕ с луной, либо ВМЕСТО иконки времени) 
+        if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+        {
+            // ЛУНА: отрисовка панели
             if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
                 GuiUtils.drawGradientRect(0,
-                        time_xPos,
-                        time_yPos, 
-                        time_xPos + Skin.MC_ICON_SIZE + currentTimeStrLen + (showBedIcon ? Skin.MC_ICON_SIZE : 0),
-                        time_yPos + Skin.MC_ICON_SIZE,
+                        moon_xPos,
+                        moon_yPos + Skin.MC_ICON_SIZE,
+                        moon_xPos + moonPhaseLen + 1+Skin.ICON_MOON.size+1,
+                        moon_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
                         PANEL_STEEL,
                         PANEL_TRANSPARENT);
             }
-            // ВРЕМЯ: отрисовка текста
+            // ЛУНА: отрисовка текста
             mc.fontRenderer.drawStringWithShadow(
-                    clock.currentTime,
-                    time_xPos + Skin.MC_ICON_SIZE + (showBedIcon ? Skin.MC_ICON_SIZE : 0) + STRING_PREFIX_px,
-                    time_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                    weather.sMoonPhase,
+                    moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
+                    moon_yPos + Skin.MC_ICON_SIZE,
                     FONT_WHITE);
-            // ЛУНА и ПОГОДА: (погода отдельно не отображается, либо ВМЕСТЕ с луной, либо ВМЕСТО иконки времени) 
-            if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+            mc.fontRenderer.drawStringWithShadow(
+                    weather.sMoonPhaseFactor,
+                    moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
+                    moon_yPos + Skin.MC_ICON_SIZE + STRING_HEIGHT,
+                    FONT_WHITE);
+
+            // ПОГОДА:
+            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
             {
-                // ЛУНА: отрисовка панели
+                // ПОГОДА:отрисовка панели
                 if (ModSettings.GENERAL.Global_ShowPanel.get()) 
                 {
                     GuiUtils.drawGradientRect(0,
-                            moon_xPos,
-                            moon_yPos + Skin.MC_ICON_SIZE,
-                            moon_xPos + moonPhaseLen + 1+Skin.ICON_MOON.size+1,
-                            moon_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
+                            weather_xPos,
+                            weather_yPos + Skin.MC_ICON_SIZE,
+                            weather_xPos + Skin.ICON_WEATHER_PRETTY.size,
+                            weather_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
                             PANEL_STEEL,
                             PANEL_TRANSPARENT);
                 }
-                // ЛУНА: отрисовка текста
-                mc.fontRenderer.drawStringWithShadow(
-                        weather.sMoonPhase,
-                        moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
-                        moon_yPos + Skin.MC_ICON_SIZE,
-                        FONT_WHITE);
-                mc.fontRenderer.drawStringWithShadow(
-                        weather.sMoonPhaseFactor,
-                        moon_xPos + 1+Skin.ICON_MOON.size+1 + STRING_PREFIX_px,
-                        moon_yPos + Skin.MC_ICON_SIZE + STRING_HEIGHT,
-                        FONT_WHITE);
-
-                // ПОГОДА:
-                if (ModSettings.GENERAL.TimeBarWeather_Show.get())
-                {
-                    // ПОГОДА:отрисовка панели
-                    if (ModSettings.GENERAL.Global_ShowPanel.get()) 
-                    {
-                        GuiUtils.drawGradientRect(0,
-                                weather_xPos,
-                                weather_yPos + Skin.MC_ICON_SIZE,
-                                weather_xPos + Skin.ICON_WEATHER_PRETTY.size,
-                                weather_yPos + Skin.MC_ICON_SIZE + 2*STRING_HEIGHT,
-                                PANEL_STEEL,
-                                PANEL_TRANSPARENT);
-                    }
-                }
-            }
-
-            // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
-            mc.getTextureManager().bindTexture(new ResourceLocation("avttrue_informator:textures/wthr.png"));
-            if (ModSettings.GENERAL.TimeBarMoon_Show.get())
-            {
-                // ЛУНА: отрисовка иконки луны
-                DrawSkinIcon(
-                        moon_xPos+1,
-                        moon_yPos + Skin.MC_ICON_SIZE + (2*STRING_HEIGHT-Skin.ICON_MOON.size)/2,
-                        Skin.ICON_MOON,
-                        weather.moonPhase);
-                // ПОГОДА: (отображается на отдельной панели только СОВМЕСТНО с луной)
-                if (ModSettings.GENERAL.TimeBarWeather_Show.get())
-                {
-                    // отрисовка иконки
-                    if (!ModSettings.GENERAL.TimeBarWeatherPretty_Show.get())
-                    {
-                        DrawSkinIcon(
-                                weather_xPos,
-                                weather_yPos + Skin.MC_ICON_SIZE,
-                                Skin.ICON_WEATHER_AVTTRUE,
-                                weatherPhase);
-                    }
-                    else
-                    {
-                        DrawWeatherAndMoon(
-                                weather_xPos,
-                                weather_yPos + Skin.MC_ICON_SIZE,
-                                false,
-                                weatherPhasePretty,
-                                weather.moonPhase);
-                    }
-                }
-            }
-            // ВРЕМЯ: отрисовка иконки часов
-            if (ModSettings.GENERAL.TimeBarMoon_Show.get() && ModSettings.GENERAL.TimeBarWeather_Show.get())
-            {
-                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.CLOCK), time_xPos, time_yPos);
-            }
-            // ВРЕМЯ (иконка погоды на месте иконки часов):
-            else
-            {
-                //не пользуемся этим методом??? иконка слишком маленькая, и новолуние неотличимо от дождя днём
-                DrawWeatherAndMoon(
-                        time_xPos,
-                        time_yPos,
-                        true,
-                        weatherPhasePretty,
-                        weather.moonPhase);
-                //DrawSkinIcon(
-                //        time_xPos,
-                //        time_yPos,
-                //        Skin.ICON_WEATHER_TIME,
-                //        weatherPhasePretty);
-            }
-            // КРОВАТЬ: отрисовка иконки кровати
-            if (showBedIcon)
-            {
-                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.BLUE_BED), time_xPos + Skin.MC_ICON_SIZE, time_yPos);
             }
         }
-        catch (Exception e) 
+
+        // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
+        mc.getTextureManager().bindTexture(new ResourceLocation("avttrue_informator:textures/wthr.png"));
+        if (ModSettings.GENERAL.TimeBarMoon_Show.get())
         {
-            ModSettings.GENERAL.Global_ON.set(false);
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+            // ЛУНА: отрисовка иконки луны
+            DrawSkinIcon(
+                    moon_xPos+1,
+                    moon_yPos + Skin.MC_ICON_SIZE + (2*STRING_HEIGHT-Skin.ICON_MOON.size)/2,
+                    Skin.ICON_MOON,
+                    weather.moonPhase);
+            // ПОГОДА: (отображается на отдельной панели только СОВМЕСТНО с луной)
+            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
+            {
+                // отрисовка иконки
+                if (!ModSettings.GENERAL.TimeBarWeatherPretty_Show.get())
+                {
+                    DrawSkinIcon(
+                            weather_xPos,
+                            weather_yPos + Skin.MC_ICON_SIZE,
+                            Skin.ICON_WEATHER_AVTTRUE,
+                            weatherPhase);
+                }
+                else
+                {
+                    drawWeatherAndMoon(
+                            weather_xPos,
+                            weather_yPos + Skin.MC_ICON_SIZE,
+                            false,
+                            weatherPhasePretty,
+                            weather.moonPhase);
+                }
+            }
+        }
+        // ВРЕМЯ: отрисовка иконки часов
+        if (ModSettings.GENERAL.TimeBarMoon_Show.get() && ModSettings.GENERAL.TimeBarWeather_Show.get())
+        {
+            Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.CLOCK), time_xPos, time_yPos);
+        }
+        // ВРЕМЯ (иконка погоды на месте иконки часов):
+        else
+        {
+            //не пользуемся этим методом??? иконка слишком маленькая, и новолуние неотличимо от дождя днём
+            drawWeatherAndMoon(
+                    time_xPos,
+                    time_yPos,
+                    true,
+                    weatherPhasePretty,
+                    weather.moonPhase);
+            //DrawSkinIcon(
+            //        time_xPos,
+            //        time_yPos,
+            //        Skin.ICON_WEATHER_TIME,
+            //        weatherPhasePretty);
+        }
+        // КРОВАТЬ: отрисовка иконки кровати
+        if (showBedIcon)
+        {
+            Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.BLUE_BED), time_xPos + Skin.MC_ICON_SIZE, time_yPos);
         }
     }
 
     public void drawEnchantBar()
     {
-        try
+        final CollectedEnchantmentsData.Data enchantments = Informator.enchantments.data;
+        if (!enchantments.valid) return;
+        if (enchantments.held_enchanted.isEmpty()) return;
+
+        int deltaY = ModSettings.GENERAL.EnchantBar_yOffset.get(); // смещение по высоте
+        final int xPos = ModSettings.GENERAL.EnchantBar_xOffset.get() + mainWndScaledWidth; // правая граница панелей
+
+        // перебираем список зачарованных предметов
+        // (список отфильтрован флагами Informator.EnchantBar_ShowHands, Informator.EnchantBar_ShowBody)
+        for (CollectedEnchantmentsData.HeldItem hitm : enchantments.held_enchanted)
         {
-            final CollectedEnchantmentsData.Data enchantments = Informator.enchantments.data;
-            if (!enchantments.valid) return;
-            if (enchantments.held_enchanted.isEmpty()) return;
-
-            int deltaY = ModSettings.GENERAL.EnchantBar_yOffset.get(); // смещение по высоте
-            final int xPos = ModSettings.GENERAL.EnchantBar_xOffset.get() + mainWndScaledWidth; // правая граница панелей
-
-            // перебираем список зачарованных предметов
-            // (список отфильтрован флагами Informator.EnchantBar_ShowHands, Informator.EnchantBar_ShowBody)
-            for (CollectedEnchantmentsData.HeldItem hitm : enchantments.held_enchanted)
+            // список наложенных чар всегда не пуст, т.ч. кол-во чарок != 0
+            final int count = hitm.enchants.size();
+            // ДВУХПРОХОДОВЫЙ АЛГОРИТМ: сначала считаем длину строк, потом отрисовываем
+            // расчёт размера панели
+            int textMaxLen = 0;
+            for (final String text : hitm.enchants)
             {
-                // список наложенных чар всегда не пуст, т.ч. кол-во чарок != 0
-                final int count = hitm.enchants.size();
-                // ДВУХПРОХОДОВЫЙ АЛГОРИТМ: сначала считаем длину строк, потом отрисовываем
-                // расчёт размера панели
-                int textMaxLen = 0;
-                for (final String text : hitm.enchants)
-                {
-                    final int textLen = mc.fontRenderer.getStringWidth(text) + STRING_GROW_px;
-                    if (textLen > textMaxLen) textMaxLen = textLen;
-                }
-                // отрисовка панели
-                final int panelHeight = (count == 1) ? Skin.MC_ICON_SIZE : (STRING_HEIGHT * count + 1);
-                if (ModSettings.GENERAL.Global_ShowPanel.get()) 
-                {
-                    GuiUtils.drawGradientRect(0,
-                            xPos - Skin.MC_ICON_SIZE - textMaxLen,
-                            deltaY,
-                            xPos,
-                            deltaY + panelHeight,
-                            PANEL_STEEL,
-                            PANEL_TRANSPARENT);
-                }   
-                // отрисовка иконки
-                final Item item = Item.getItemById(hitm.id);
-                Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos - Skin.MC_ICON_SIZE - textMaxLen, deltaY);
-                // отрисовка текста
-                final int prevDeltaY = deltaY;
-                for (final String text : hitm.enchants)
-                {
-                    mc.fontRenderer.drawStringWithShadow(
-                            text,
-                            xPos - textMaxLen + STRING_PREFIX_px,
-                            deltaY + ((count == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1) : 0),
-                            FONT_WHITE);
-                    deltaY += STRING_HEIGHT;
-                }
-                deltaY = prevDeltaY + panelHeight;
+                final int textLen = mc.fontRenderer.getStringWidth(text) + STRING_GROW_px;
+                if (textLen > textMaxLen) textMaxLen = textLen;
             }
-        }
-        catch (Exception e) 
-        {
-            ModSettings.GENERAL.Global_ON.set(false);
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+            // отрисовка панели
+            final int panelHeight = (count == 1) ? Skin.MC_ICON_SIZE : (STRING_HEIGHT * count + 1);
+            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+            {
+                GuiUtils.drawGradientRect(0,
+                        xPos - Skin.MC_ICON_SIZE - textMaxLen,
+                        deltaY,
+                        xPos,
+                        deltaY + panelHeight,
+                        PANEL_STEEL,
+                        PANEL_TRANSPARENT);
+            }   
+            // отрисовка иконки
+            final Item item = Item.getItemById(hitm.id);
+            Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos - Skin.MC_ICON_SIZE - textMaxLen, deltaY);
+            // отрисовка текста
+            final int prevDeltaY = deltaY;
+            for (final String text : hitm.enchants)
+            {
+                mc.fontRenderer.drawStringWithShadow(
+                        text,
+                        xPos - textMaxLen + STRING_PREFIX_px,
+                        deltaY + ((count == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1) : 0),
+                        FONT_WHITE);
+                deltaY += STRING_HEIGHT;
+            }
+            deltaY = prevDeltaY + panelHeight;
         }
     }
 
-    /*private void CreateBlockBar()
+    private void drawBlockBar()
     {
-        try
+        // ранее уже была выполнена проверка : удалось определить блок, на который смотрим
+        ViewDetails.BlockDetails details = view.block;
+
+        // кэшируем значения перменных в этом методе
+        final ClientWorld world = mc.world;
+        final ClientPlayerEntity player = mc.player;
+
+        // координаты
+        //---
+        // раньше к Y тут прибавлялась единица, что неправильно, т.к. если поставить перед собой куб и смотреть на него, то
+        // поскольку он будет на уровне наших ног, то и dY тоже должно быть = 0, а не стать +1 !!!
+        //---
+        // раньше смещение игрока относительно координат, нак оторые смотрим были абсолютные, что было неправильно, т.к.
+        // если смотреть вправо, то X будет +1, если смотреть влево, то X тоже станет +1 (хотя правильнее показывать направление
+        // уменьшения координат !!!)
+        final BlockPos playerPos = new BlockPos(player.posX, player.posY, player.posZ);
+        final int x = details.pos.getX();
+        final int y = details.pos.getY();
+        final int z = details.pos.getZ();
+        final String BlockXYZ = String.format("%d %d %d [±] %d %d %d",
+                x,
+                y,
+                z,
+                x - playerPos.getX(),
+                y - playerPos.getY(),
+                z - playerPos.getZ());
+        // расстояние
+//посчитать ещё и расстояние?!
+
+        // если мы смотрим не в воздух
+        if (details.isAir) return;
+        if (details.block == null) return;
+
+        // название блока
+        final String BlockName = details.block.getNameTextComponent().getFormattedText();
+
+        if (view.block.stack == null) return; // или можно получить ItemStack.EMPTY
+
+
+/*
+        int InfoBlockBar_xPos = Informator.InfoBlockBar_xPos;
+        int InfoBlockBar_yPos = Informator.InfoBlockBar_yPos;
+        int InfoBlockBar_PanelH = 4;
+        
+        // блок сверху того, на который смотрим
+        BlockPos upBlockPos = new BlockPos(view.block.pos.getX(), 
+                                            view.block.pos.getY() + 1, 
+                                            view.block.pos.getZ());
+        Block upBlock = mc.theWorld.getBlockState(upBlockPos).getBlock();
+*/
+
+        final int BlockName_xPos = 0;
+        final int BlockName_yPos = 0;
+        final int BlockName_strLen = mc.fontRenderer.getStringWidth(BlockName);
+
+        Informator.R4.add(BlockXYZ + String.format(" | player at %d %d %d", playerPos.getX(), playerPos.getY(), playerPos.getZ()));
+
+/*
+        // освещённость
+        String BlockLight = "";
+        if (upBlockPos.getY() > 254)  // выше 255 строить нельзя
         {
-            // удалось определить блок, на который смотрим
-            if (view.targetBlock == null) return;
-            
-            // если мы смотрим не в воздух
-            if (view.tBlock.isAir(view.tBlockState, mc.theWorld, view.tBlockPosition)) return;
-            
-            ItemStack itst = Functions.GetItemStack(mc.theWorld, view.targetBlock);
-            if (itst == null) return; // не можем нарисовать иконку (значит, вообщё чёрти что)
-            
-            int InfoBlockBar_xPos = Informator.InfoBlockBar_xPos;
-            int InfoBlockBar_yPos = Informator.InfoBlockBar_yPos;
-            int InfoBlockBar_PanelH = 4;
-            
-            // блок сверху того, на который смотрим
-            BlockPos upBlockPos = new BlockPos(view.tBlockPosition.getX(), 
-                                                view.tBlockPosition.getY() + 1, 
-                                                view.tBlockPosition.getZ());
-            Block upBlock = mc.theWorld.getBlockState(upBlockPos).getBlock();
+            BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
+                    "=" + EnumSkyBlock.BLOCK.defaultLightValue + " / " + 
+                    EnumSkyBlock.SKY.defaultLightValue + " (" + 
+                    TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";
+        }
+        else
+        {
+            Chunk c = mc.theWorld.getChunkFromBlockCoords(upBlockPos);
+            BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
+                    "=" + c.getLightFor(EnumSkyBlock.BLOCK, upBlockPos) + " / " + 
+                    c.getLightFor(EnumSkyBlock.SKY, upBlockPos) + " (" + 
+                    TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";    
+        }
 
-            // имя блока
-            String BlockName = " " + itst.getDisplayName();
-            
-            int BlockName_xPos = 0;
-            int BlockName_yPos = 0;            
-            int BlockName_strLen = mc.fontRendererObj.getStringWidth(BlockName);
-            
-            // координаты
-            String BlockXYZ = " X=" + view.tBlockPosition.getX() + " Y=" + 
-                                view.tBlockPosition.getY() + " Z=" + 
-                                view.tBlockPosition.getZ() + " ";
+        // заряд блока
+        String BlockPower = " " + TextTranslation.GetLocalText("avttrue.informator.3", "Power") +
+                "=" + Functions.GetTextPower(mc, view.block.block, view.block.pos) + " ";
+        
+        int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRendererObj.getStringWidth(BlockXYZ),
+                                            (Math.max(mc.fontRendererObj.getStringWidth(BlockXYZDelta),
+                                            (Math.max(mc.fontRendererObj.getStringWidth(BlockLight),
+                                            (mc.fontRendererObj.getStringWidth(BlockPower)))))));
+        
+        // отрисовка панели
+        if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomright"))
+         {
+            InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
+            InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
+            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
+            BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
+         }
+        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topright"))
+         {
+            InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
+            InfoBlockBar_yPos = 0;
+            BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
+            BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
+         }
+        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topleft"))
+         {
+            InfoBlockBar_xPos = 0;
+            InfoBlockBar_yPos = 0;
+            BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
+            BlockName_xPos = 0;
+         }
+        else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomleft"))
+         {
+            InfoBlockBar_xPos = 0;
+            InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
+            BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
+            BlockName_xPos = 0;
+         }
+        
+        if (ModSettings.GENERAL.GlobalShowPanel.get()) 
+        {
+            drawGradientRect(InfoBlockBar_xPos, InfoBlockBar_yPos,
+                    InfoBlockBar_xPos + InfoBlockBar_strLen, 
+                    InfoBlockBar_yPos + STRING_HEIGHT * InfoBlockBar_PanelH,
+                    PANEL_STEEL, PANEL_TRANSPARENT);
+        }
 
-            // расстояние
-            String BlockXYZDelta = " dX=" + Math.abs((int) Math.floor(mc.thePlayer.posX) - view.tBlockPosition.getX()) +
-                    " dY=" + Math.abs((int) Math.floor(mc.thePlayer.posY) - view.tBlockPosition.getY() - 1) + // ибо Y игрока отображается относительно куба ног 
-                    " dZ=" + Math.abs((int) Math.floor(mc.thePlayer.posZ) - view.tBlockPosition.getZ()) + " ";
-
-            // освещённость
-            String BlockLight = "";
-            if (upBlockPos.getY() > 254)  // выше 255 строить нельзя
-            {
-                BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
-                        "=" + EnumSkyBlock.BLOCK.defaultLightValue + " / " + 
-                        EnumSkyBlock.SKY.defaultLightValue + " (" + 
-                        TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";
-            }
-            else
-            {
-                Chunk c = mc.theWorld.getChunkFromBlockCoords(upBlockPos);
-                BlockLight = " " + TextTranslation.GetLocalText("avttrue.informator.2", "Light") +
-                        "=" + c.getLightFor(EnumSkyBlock.BLOCK, upBlockPos) + " / " + 
-                        c.getLightFor(EnumSkyBlock.SKY, upBlockPos) + " (" + 
-                        TextTranslation.GetLocalText("avttrue.informator.14", "sky") + ") ";    
-            }
-
-            // заряд блока
-            String BlockPower = " " + TextTranslation.GetLocalText("avttrue.informator.3", "Power") +
-                    "=" + Functions.GetTextPower(mc, view.tBlock, view.tBlockPosition) + " ";
-            
-            int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRendererObj.getStringWidth(BlockXYZ),
-                                                (Math.max(mc.fontRendererObj.getStringWidth(BlockXYZDelta),
-                                                (Math.max(mc.fontRendererObj.getStringWidth(BlockLight),
-                                                (mc.fontRendererObj.getStringWidth(BlockPower)))))));
-            
-            // отрисовка панели
-            if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomright"))
-             {
-                InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
-                InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
-                BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
-                BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
-             }
-            else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topright"))
-             {
-                InfoBlockBar_xPos = scaledResolution.getScaledWidth() - InfoBlockBar_strLen;
-                InfoBlockBar_yPos = 0;
-                BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
-                BlockName_xPos = scaledResolution.getScaledWidth() - BlockName_strLen;
-             }
-            else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("topleft"))
-             {
-                InfoBlockBar_xPos = 0;
-                InfoBlockBar_yPos = 0;
-                BlockName_yPos = STRING_HEIGHT * InfoBlockBar_PanelH;
-                BlockName_xPos = 0;
-             }
-            else if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomleft"))
-             {
-                InfoBlockBar_xPos = 0;
-                InfoBlockBar_yPos = scaledResolution.getScaledHeight() - STRING_HEIGHT * InfoBlockBar_PanelH;
-                BlockName_yPos = InfoBlockBar_yPos - STRING_HEIGHT;
-                BlockName_xPos = 0;
-             }
-            
+        // отрисовка текста
+        // координаты
+        mc.fontRendererObj.drawStringWithShadow(BlockXYZ, InfoBlockBar_xPos + ICON_SIZE, 
+                InfoBlockBar_yPos, FONT_WHITE);
+        // дистанция
+        mc.fontRendererObj.drawStringWithShadow(BlockXYZDelta, InfoBlockBar_xPos  + ICON_SIZE, 
+                InfoBlockBar_yPos + STRING_HEIGHT, FONT_WHITE);
+        // освещённость
+        mc.fontRendererObj.drawStringWithShadow(BlockLight, InfoBlockBar_xPos + ICON_SIZE, 
+                InfoBlockBar_yPos + STRING_HEIGHT * 2, FONT_WHITE);
+        // заряд
+        mc.fontRendererObj.drawStringWithShadow(BlockPower, InfoBlockBar_xPos + ICON_SIZE, 
+                InfoBlockBar_yPos + STRING_HEIGHT * 3, FONT_WHITE);
+        
+        // отрисовка панели имени блока
+        if(Informator.InfoBlockBar_ShowName)
+        {
             if (ModSettings.GENERAL.GlobalShowPanel.get()) 
             {
-                drawGradientRect(InfoBlockBar_xPos, InfoBlockBar_yPos,
-                        InfoBlockBar_xPos + InfoBlockBar_strLen, 
-                        InfoBlockBar_yPos + STRING_HEIGHT * InfoBlockBar_PanelH,
-                        PANEL_STEEL, PANEL_TRANSPARENT);
+                drawGradientRect(BlockName_xPos, BlockName_yPos,
+                                BlockName_xPos + BlockName_strLen, 
+                                BlockName_yPos + STRING_HEIGHT,
+                                PANEL_STEEL, PANEL_TRANSPARENT);
             }
-
-            // отрисовка текста
-            // координаты
-            mc.fontRendererObj.drawStringWithShadow(BlockXYZ, InfoBlockBar_xPos + ICON_SIZE, 
-                    InfoBlockBar_yPos, FONT_WHITE);
-            // дистанция
-            mc.fontRendererObj.drawStringWithShadow(BlockXYZDelta, InfoBlockBar_xPos  + ICON_SIZE, 
-                    InfoBlockBar_yPos + STRING_HEIGHT, FONT_WHITE);
-            // освещённость
-            mc.fontRendererObj.drawStringWithShadow(BlockLight, InfoBlockBar_xPos + ICON_SIZE, 
-                    InfoBlockBar_yPos + STRING_HEIGHT * 2, FONT_WHITE);
-            // заряд
-            mc.fontRendererObj.drawStringWithShadow(BlockPower, InfoBlockBar_xPos + ICON_SIZE, 
-                    InfoBlockBar_yPos + STRING_HEIGHT * 3, FONT_WHITE);
-            
-            // отрисовка панели имени блока
-            if(Informator.InfoBlockBar_ShowName)
-            {
-                if (ModSettings.GENERAL.GlobalShowPanel.get()) 
-                {
-                    drawGradientRect(BlockName_xPos, BlockName_yPos,
-                                    BlockName_xPos + BlockName_strLen, 
-                                    BlockName_yPos + STRING_HEIGHT,
-                                    PANEL_STEEL, PANEL_TRANSPARENT);
-                }
-                // имя блока
-                if(!BlockName.isEmpty())
-                    mc.fontRendererObj.drawStringWithShadow(BlockName, BlockName_xPos, 
-                                            BlockName_yPos, FONT_WHITE);
-            }
-            // отрисовка иконки
-            if(Informator.InfoBlockBar_ShowIcons)
-            {
-                Drawing.DrawItemStack(mc.getRenderItem(), itst, InfoBlockBar_xPos, InfoBlockBar_yPos);
-                
-            }
-            else
-            {
-                mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-                drawTexturedModalRect(InfoBlockBar_xPos, InfoBlockBar_yPos, 0, 16, 10, 10);
-            }
-            
+            // имя блока
+            if(!BlockName.isEmpty())
+                mc.fontRendererObj.drawStringWithShadow(BlockName, BlockName_xPos, 
+                                        BlockName_yPos, FONT_WHITE);
         }
-        catch (Exception e) 
+        // отрисовка иконки
+        if(Informator.InfoBlockBar_ShowIcons)
         {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.Gobal_ON = false;
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+            Drawing.DrawItemStack(mc.getRenderItem(), itst, InfoBlockBar_xPos, InfoBlockBar_yPos);
+            
         }
-    }*/
+        else
+        {
+            mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
+            drawTexturedModalRect(InfoBlockBar_xPos, InfoBlockBar_yPos, 0, 16, 10, 10);
+        }
+*/
+    }
 
     /*public void CreateTargetMobBar()
     {
-        try
-        {    
             if (!view.ISee) return;
          
             // позиция и размеры
@@ -891,17 +872,7 @@ public class OnRenderGameOverlay //extends Gui
                 else
                     mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
             }    
-                        
-        }
-        catch (Exception e) 
-        {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.Gobal_ON = false;
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
-        }
     }*/
-
 
     private void DrawSkinIcon(int x, int y, Skin skin, int idx)
     {
@@ -927,7 +898,7 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    private void DrawWeatherAndMoon(int x, int y, boolean for_time, int weather, int moon)
+    private void drawWeatherAndMoon(int x, int y, boolean for_time, int weather, int moon)
     {
         // используем стандартные иконки, так быстрее, нежели смешивать два слоя
         if (!ModSettings.GENERAL.TimeBarWeather_WithMoonPhases.get() || // ИЛИ режим выключен
@@ -973,7 +944,6 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-
     private static class Skin
     {
         public static final int WEATHER_ICON_SIZE = 19;
@@ -999,6 +969,56 @@ public class OnRenderGameOverlay //extends Gui
             this.size = size;
             this.horizontal = horizontal;
             this.blend = blend;
+        }
+    }
+
+    private void drawDebugBar()
+    {
+        // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
+        final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;
+        final boolean strs = !Informator.R4.isEmpty();
+        if (!nums && !strs) return;
+
+        int panel_height = (nums ? 1 : 0) + (strs ? Informator.R4.size() : 0);
+        if (panel_height > 16) panel_height = 16;
+        int [] panel_widths = new int[panel_height];
+        int panel_widths_idx = 0, panel_width = 0;
+
+        String line0 = null;
+        if (nums)
+        {
+            line0 = Informator.R1 + " | " + Informator.R2 + " | " + Informator.R3;
+            //+ " | " + String.format("%1$5.2f", Informator.R0);
+            panel_width = panel_widths[panel_widths_idx++] = mc.fontRenderer.getStringWidth(line0);
+        }
+        if (strs)
+        {
+            for (final String lineN : Informator.R4)
+            {
+                panel_widths[panel_widths_idx] = mc.fontRenderer.getStringWidth(lineN);
+                panel_width = Math.max(panel_width, panel_widths[panel_widths_idx++]);
+                if (panel_widths_idx == 16) break;
+            }
+        }
+        panel_width += STRING_GROW_px;
+        final int x = (mainWndScaledWidth - panel_width)/2;
+        int y = mainWndScaledHeight - 24 - panel_height * STRING_HEIGHT;
+        GuiUtils.drawGradientRect(0, x, y, x + panel_width, y + panel_height * STRING_HEIGHT, PANEL_STEEL, PANEL_TRANSPARENT);
+
+        panel_widths_idx = 0;
+        if (nums)
+        {
+            mc.fontRenderer.drawStringWithShadow(line0, (mainWndScaledWidth - panel_widths[panel_widths_idx++])/2 + STRING_PREFIX_px, y + 1, FONT_AQUA);
+            y += STRING_HEIGHT;
+        }
+        if (strs)
+        {
+            for (final String lineN : Informator.R4)
+            {
+                mc.fontRenderer.drawStringWithShadow(lineN, (mainWndScaledWidth - panel_widths[panel_widths_idx++])/2 + STRING_PREFIX_px, y + 1, FONT_AQUA);
+                y += STRING_HEIGHT;
+                if (panel_widths_idx == 16) break;
+            }
         }
     }
 }
