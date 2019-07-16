@@ -71,7 +71,7 @@ public class ViewDetails
             // определяем блок на который смотрим
             else if (rtr.getType() == RayTraceResult.Type.BLOCK)
             {
-Informator.R4.clear();
+/**Informator.R4.clear();*/
                 // на всякий случай (повторно) проверяем, что блок действительно является блоком
                 // (ещё он может быть "внутри головы", см. isInside(), но пока это здесь не контролируем... это связано со строительными лесами)
                 block.target = ((BlockRayTraceResult)rtr);
@@ -81,7 +81,7 @@ Informator.R4.clear();
                 final ClientWorld world = mc.world;
 
                 block.pos = block.target.getPos();
-Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));
+/**Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));*/
                 block.isAir = world.isAirBlock(block.pos);
                 block.state = null;
                 block.block = null;
@@ -106,7 +106,7 @@ Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x
             }
             else
             {
-                Informator.R4.clear();
+/**Informator.R4.clear();*/
             }
 
 /*

@@ -230,7 +230,7 @@ public class ModSettings
     public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
     {
         System.out.printf("Config Changed 2 %s %s", event.getModID(), event.getConfigID());
-        if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;
+        /**if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;*/
     }
 
     @SubscribeEvent

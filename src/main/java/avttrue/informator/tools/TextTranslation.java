@@ -24,9 +24,9 @@ public class TextTranslation
     public ITextComponent field_fatal_error = new TranslationTextComponent("avttrue.informator.fatal_error");
     public ITextComponent field_enabled = new TranslationTextComponent("avttrue.informator.enabled");
     public ITextComponent field_disabled = new TranslationTextComponent("avttrue.informator.disabled");
-    public ITextComponent field_luminosity = new TranslationTextComponent("avttrue.informator.luminosity");
-    public ITextComponent field_illumination = new TranslationTextComponent("avttrue.informator.illumination");
-    public ITextComponent field_heaven = new TranslationTextComponent("avttrue.informator.heaven");
+    public ITextComponent field_illumination_of_block = new TranslationTextComponent("avttrue.informator.illumination_of_block");
+    public ITextComponent field_luminosity_of_block = new TranslationTextComponent("avttrue.informator.luminosity_of_block");
+    public ITextComponent field_of_block = new TranslationTextComponent("avttrue.informator.of_block");
 
     //
     // возвращает название профессии селянина по ID

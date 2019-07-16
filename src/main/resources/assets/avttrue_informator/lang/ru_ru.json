@@ -17,7 +17,7 @@
   "avttrue.informator.fatal_error": "Мод Информатор был выключен из-за невосстановимой ошибки. Попробуйте изменить настройки и обратиться к разработчикам.",
   "avttrue.informator.disabled": "Мод Информатор выключен.",
   "avttrue.informator.enabled": "Мод Информатор включен.",
-  "avttrue.informator.luminosity": "Свет", # Светимость
-  "avttrue.informator.illumination": "Освещ",
-  "avttrue.informator.heaven": "небо"
+  "avttrue.informator.illumination_of_block": "Свет",
+  "avttrue.informator.luminosity_of_block": "Светимость",
+  "avttrue.informator.of_block": "блок"
 }

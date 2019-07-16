@@ -1,7 +1,5 @@
 package avttrue.informator;
 
-import java.util.ArrayList;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,8 +53,8 @@ public class Informator
 
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
     //public static float R0 = 0;
-    public static Integer R1 = null, R2 = null, R3 = null;
-    public static ArrayList<String> R4 = new ArrayList<String>();
+//    public static Integer R1 = null, R2 = null, R3 = null;
+//    public static ArrayList<String> R4 = new ArrayList<String>();
 
     // Хватит руться в Интернете!
     // правильный (актуальный) пример (и последовательность) инициализации см. в net.minecraftforge.common.ForgeMod

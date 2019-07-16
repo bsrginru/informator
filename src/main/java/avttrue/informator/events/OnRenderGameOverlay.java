@@ -14,7 +14,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.LightType;
-import net.minecraft.world.chunk.Chunk;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -103,7 +102,7 @@ public class OnRenderGameOverlay //extends Gui
             // Thesaurus
 //DrawThesaurusButton();
 
-            drawDebugBar();
+            /**drawDebugBar();*/
         }
         catch (Exception e) 
         {
@@ -631,48 +630,49 @@ Informator.R4.add(String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, tele
             strLines[strLinesUsed++] = String.format("[±] %d %d %d", x - playerPos.getX(), y - playerPos.getY(), z - playerPos.getZ());
         }
 
-
-/*
-       
-        // блок сверху того, на который смотрим
-        BlockPos upBlockPos = new BlockPos(details.pos.getX(), 
-                                            details.pos.getY() + 1, 
-                                            details.pos.getZ());
-        Block upBlock = mc.theWorld.getBlockState(upBlockPos).getBlock();
-*/
-
-
-Informator.R4.add(String.format("player at %d %d %d", playerPos.getX(), playerPos.getY(), playerPos.getZ()));
+//Informator.R4.add(String.format("player at %d %d %d", playerPos.getX(), playerPos.getY(), playerPos.getZ()));
 
         // ===== СВЕТИМОСТЬ (ОСВЕЩЁННОСТЬ) БЛОКА =====
         // код светимости, взят из call у DebugOverlayGui
-        //BlockPos blockpos = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getBoundingBox().minY, this.mc.getRenderViewEntity().posZ);
-        //Informator.R4.add("pos: " + this.mc.getRenderViewEntity().posX + " " + this.mc.getRenderViewEntity().getBoundingBox().minY + " " + this.mc.getRenderViewEntity().posZ);
-        //BlockPos blockpos = new BlockPos(x, y, z);
-        final BlockPos blockpos = details.pos.up(); // поскольку система тут оперирует с дробными значениями, получаем именно __поверхность__ блока
-        final Chunk chunk = world.getChunkAt(blockpos);
-        Informator.R4.add("Light: " + chunk.getLightSubtracted(blockpos, 0) + " (" + this.mc.world.getLightFor(LightType.SKY, blockpos) + " sky, " + this.mc.world.getLightFor(LightType.BLOCK, blockpos) + " block)");
-        // код светимости неба взят из метода updatePower у DaylightDetectorBlock
-        if (world.dimension.hasSkyLight())
+        // поскольку система тут оперирует с дробными значениями, получаем именно координаты __поверхности__ блока
+        final BlockPos blockpos = details.pos.up();
+        // либо над поверхностью блока стоит прозрачный блок (факел, сундук, вода); либо там ничего нет, т.е. там воздух
+        if (world.isAirBlock(blockpos) || world.canBlockSeeSky(blockpos))
         {
-            int i = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
-            float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
-            if (i > 0)
+            // освещение (светимость) светом блоков, т.е. это свет поверности блока в полночь
+            final int blockIllumination = this.mc.world.getLightFor(LightType.BLOCK, blockpos);
+            // освещение блока небом, т.е. это свет поверхности блока в полдень
+            final int skyLuminosity = this.mc.world.getLightFor(LightType.SKY, blockpos);
+            //---
+            // код светимости неба взят из метода updatePower у DaylightDetectorBlock
+            // мощность света на блоке от неба в текущий момент (утро, день, вечер, ночь... погода не влияет)
+            int daylightPower = 0;
+            if (world.dimension.hasSkyLight())
             {
-                final float f1 = f < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
-                f = f + (f1 - f) * 0.2F;
-                i = Math.round((float)i * MathHelper.cos(f));
+                daylightPower = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
+                float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
+                if (daylightPower > 0)
+                {
+                    final float f1 = f < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
+                    f = f + (f1 - f) * 0.2F;
+                    daylightPower = Math.round((float)daylightPower * MathHelper.cos(f));
+                }
+                daylightPower = MathHelper.clamp(daylightPower, 0, 15);
+                strLines[strLinesUsed++] = String.format(
+                        "%s %d/%d, %s %d", // Свет %d/%d, блок %d
+                        TextTranslation.getInstance().field_illumination_of_block.getFormattedText(),
+                        daylightPower,
+                        skyLuminosity,
+                        TextTranslation.getInstance().field_of_block.getFormattedText(),
+                        blockIllumination);
             }
-            i = MathHelper.clamp(i, 0, 15);
-            strLines[strLinesUsed++] = String.format("L %d %.2f", i, f);
-
-        }
-        else
-        {
-            strLines[strLinesUsed++] = String.format(
-                    "%s %d", // Светимость N
-                    TextTranslation.getInstance().field_illumination.getFormattedText(),
-                    details.state.getLightValue());
+            else
+            {
+                strLines[strLinesUsed++] = String.format(
+                        "%s %d", // Светимость %d
+                        TextTranslation.getInstance().field_luminosity_of_block.getUnformattedComponentText(),
+                        blockIllumination);
+            }
         }
 
 /*
@@ -1051,7 +1051,7 @@ Informator.R4.add(String.format("player at %d %d %d", playerPos.getX(), playerPo
         }
     }
 
-    private void drawDebugBar()
+    /**private void drawDebugBar()
     {
         // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
         final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;
@@ -1099,6 +1099,6 @@ Informator.R4.add(String.format("player at %d %d %d", playerPos.getX(), playerPo
                 if (panel_widths_idx == 16) break;
             }
         }
-    }
+    }*/
 }
 
