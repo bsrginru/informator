@@ -18,6 +18,7 @@
   "avttrue.informator.disabled": "Мод Информатор выключен.",
   "avttrue.informator.enabled": "Мод Информатор включен.",
   "avttrue.informator.illumination_of_block": "Свет",
+  "avttrue.informator.block_lighting": "Освещение",
   "avttrue.informator.luminosity_of_block": "Светимость",
   "avttrue.informator.of_block": "блок"
 }

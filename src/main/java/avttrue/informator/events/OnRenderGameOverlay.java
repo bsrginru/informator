@@ -4,15 +4,20 @@ import java.awt.Color;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import net.minecraft.block.Blocks;
+import net.minecraft.block.NetherPortalBlock;
+import net.minecraft.block.pattern.BlockPattern;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -594,10 +599,10 @@ public class OnRenderGameOverlay //extends Gui
         // ===== СМЕЩЕНИЕ БЛОКА (от персонажа, либо координаты в аду) =====
         final ItemStack held_stack = player.getHeldItemMainhand();
         final Item held_item = (held_stack == null) ? Items.AIR : held_stack.getItem();
-        if ((held_item == Items.OBSIDIAN) /*&& !world.isRemote*/)
+        if ((held_item == Items.OBSIDIAN) && (world.getDimension().getType().getId() == 0 || world.getDimension().getType().getId() == -1))
         {
             // если удерживаемый элемент является обсидианом, то считаем координаты нижнего/верхнего мира
-            /** хрень какая-то получается... надо разбираться
+            /** хрень какая-то получается... надо разбираться (взято из setPortal в Entity)
             final BlockPos portalPos = details.pos;
             BlockPattern.PatternHelper blockpattern$patternhelper = ((NetherPortalBlock)Blocks.NETHER_PORTAL).createPatternHelper(world, portalPos);
             double d0 = blockpattern$patternhelper.getForwards().getAxis() == Direction.Axis.X ? (double)blockpattern$patternhelper.getFrontTopLeft().getZ() : (double)blockpattern$patternhelper.getFrontTopLeft().getX();
@@ -605,7 +610,7 @@ public class OnRenderGameOverlay //extends Gui
             double d2 = MathHelper.pct(details.pos.getY() - 1.0D, (double)blockpattern$patternhelper.getFrontTopLeft().getY(), (double)(blockpattern$patternhelper.getFrontTopLeft().getY() - blockpattern$patternhelper.getHeight()));
             final Vec3d portalVec = new Vec3d(d1, d2, 0.0D);
             final Direction teleportDirection = blockpattern$patternhelper.getForwards();
-Informator.R4.add(String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, teleportDirection.getName()));
+strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, teleportDirection.getName());
             */
         }
         /**if (details.block != null)
@@ -636,34 +641,41 @@ Informator.R4.add(String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, tele
         // код светимости, взят из call у DebugOverlayGui
         // поскольку система тут оперирует с дробными значениями, получаем именно координаты __поверхности__ блока
         final BlockPos blockpos = details.pos.up();
+        // освещение (светимость) светом блоков, т.е. это свет поверности блока в полночь
+        final int blockIllumination = this.mc.world.getLightFor(LightType.BLOCK, blockpos);
         // либо над поверхностью блока стоит прозрачный блок (факел, сундук, вода); либо там ничего нет, т.е. там воздух
-        if (world.isAirBlock(blockpos) || world.canBlockSeeSky(blockpos))
+        final boolean hasSkyLight = world.dimension.hasSkyLight();
+        if (hasSkyLight && (world.isAirBlock(blockpos) || world.canBlockSeeSky(blockpos)))
         {
-            // освещение (светимость) светом блоков, т.е. это свет поверности блока в полночь
-            final int blockIllumination = this.mc.world.getLightFor(LightType.BLOCK, blockpos);
             // освещение блока небом, т.е. это свет поверхности блока в полдень
             final int skyLuminosity = this.mc.world.getLightFor(LightType.SKY, blockpos);
             //---
             // код светимости неба взят из метода updatePower у DaylightDetectorBlock
             // мощность света на блоке от неба в текущий момент (утро, день, вечер, ночь... погода не влияет)
-            int daylightPower = 0;
-            if (world.dimension.hasSkyLight())
+            int daylightPower = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
+            float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
+            if (daylightPower > 0)
             {
-                daylightPower = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
-                float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
-                if (daylightPower > 0)
-                {
-                    final float f1 = f < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
-                    f = f + (f1 - f) * 0.2F;
-                    daylightPower = Math.round((float)daylightPower * MathHelper.cos(f));
-                }
-                daylightPower = MathHelper.clamp(daylightPower, 0, 15);
+                final float f1 = f < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
+                f = f + (f1 - f) * 0.2F;
+                daylightPower = Math.round((float)daylightPower * MathHelper.cos(f));
+            }
+            daylightPower = MathHelper.clamp(daylightPower, 0, 15);
+            strLines[strLinesUsed++] = String.format(
+                    "%s %d/%d, %s %d", // Свет %d/%d, блок %d
+                    TextTranslation.getInstance().field_illumination_of_block.getFormattedText(),
+                    daylightPower,
+                    skyLuminosity,
+                    TextTranslation.getInstance().field_of_block.getFormattedText(),
+                    blockIllumination);
+        }
+        else
+        {
+            if (hasSkyLight)
+            {
                 strLines[strLinesUsed++] = String.format(
-                        "%s %d/%d, %s %d", // Свет %d/%d, блок %d
-                        TextTranslation.getInstance().field_illumination_of_block.getFormattedText(),
-                        daylightPower,
-                        skyLuminosity,
-                        TextTranslation.getInstance().field_of_block.getFormattedText(),
+                        "%s %d", // Освещение %d
+                        TextTranslation.getInstance().field_block_lighting.getUnformattedComponentText(),
                         blockIllumination);
             }
             else

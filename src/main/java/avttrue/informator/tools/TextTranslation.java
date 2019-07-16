@@ -26,6 +26,7 @@ public class TextTranslation
     public ITextComponent field_disabled = new TranslationTextComponent("avttrue.informator.disabled");
     public ITextComponent field_illumination_of_block = new TranslationTextComponent("avttrue.informator.illumination_of_block");
     public ITextComponent field_luminosity_of_block = new TranslationTextComponent("avttrue.informator.luminosity_of_block");
+    public ITextComponent field_block_lighting = new TranslationTextComponent("avttrue.informator.block_lighting");
     public ITextComponent field_of_block = new TranslationTextComponent("avttrue.informator.of_block");
 
     //
