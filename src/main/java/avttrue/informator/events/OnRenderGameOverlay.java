@@ -551,7 +551,8 @@ public class OnRenderGameOverlay //extends Gui
         // кэшируем значения перменных в этом методе
         final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
-        
+        final int dimentionTypeId = world.getDimension().getType().getId();
+
         // кешируем и индексируем надписи И др. переменные, которые будут использоваться для вывода инфомации
         final int LINE_MAX_COUNT = 8;
         String blockNameStr = "";
@@ -599,7 +600,7 @@ public class OnRenderGameOverlay //extends Gui
         // ===== СМЕЩЕНИЕ БЛОКА (от персонажа, либо координаты в аду) =====
         final ItemStack held_stack = player.getHeldItemMainhand();
         final Item held_item = (held_stack == null) ? Items.AIR : held_stack.getItem();
-        if ((held_item == Items.OBSIDIAN) && (world.getDimension().getType().getId() == 0 || world.getDimension().getType().getId() == -1))
+        if ((held_item == Items.OBSIDIAN) && (dimentionTypeId == 0 || dimentionTypeId == -1))
         {
             // если удерживаемый элемент является обсидианом, то считаем координаты нижнего/верхнего мира
             /** хрень какая-то получается... надо разбираться (взято из setPortal в Entity)
@@ -612,12 +613,23 @@ public class OnRenderGameOverlay //extends Gui
             final Direction teleportDirection = blockpattern$patternhelper.getForwards();
 strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1, d2, teleportDirection.getName());
             */
+            switch (dimentionTypeId)
+            {
+            case 0: // верхний мир
+                strLines[strLinesUsed++] = String.format("[/8] %d %d %d", (int)(x/8), (int)(y/8), (int)(z/8));
+                playerOffsetShown = true;
+                break;
+            case -1: // нижний мир (ад)
+                strLines[strLinesUsed++] = String.format("[*8] %d ?? %d", x*8, z*8);
+                playerOffsetShown = true;
+                break;
+            }
         }
         /**if (details.block != null)
             if (details.block == Blocks.OBSIDIAN || details.block == Blocks.NETHER_PORTAL)
             {
                 // если блок является обсидианом (или порталом в ад), то считаем координаты нижнего/верхнего мира
-                switch (world.getDimension().getType().getId())
+                switch (dimentionTypeId)
                 {
                 case 0: // верхний мир
                     strLines[strLinesUsed++] = String.format("[/8] %d %d %d", (int)(x/8), (int)(y/8), (int)(z/8));
@@ -644,7 +656,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         // освещение (светимость) светом блоков, т.е. это свет поверности блока в полночь
         final int blockIllumination = this.mc.world.getLightFor(LightType.BLOCK, blockpos);
         // либо над поверхностью блока стоит прозрачный блок (факел, сундук, вода); либо там ничего нет, т.е. там воздух
-        final boolean hasSkyLight = world.dimension.hasSkyLight();
+        final boolean hasSkyLight = world.getDimension().hasSkyLight();
         if (hasSkyLight && (world.isAirBlock(blockpos) || world.canBlockSeeSky(blockpos)))
         {
             // освещение блока небом, т.е. это свет поверхности блока в полдень
