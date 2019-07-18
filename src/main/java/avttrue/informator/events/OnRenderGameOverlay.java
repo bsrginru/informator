@@ -2,11 +2,11 @@ package avttrue.informator.events;
 
 import java.awt.Color;
 
+import javax.annotation.Nullable;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.block.NetherPortalBlock;
-import net.minecraft.block.pattern.BlockPattern;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -17,7 +17,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -107,7 +106,7 @@ public class OnRenderGameOverlay //extends Gui
             // Thesaurus
 //DrawThesaurusButton();
 
-            /**drawDebugBar();*/
+            /**/drawDebugBar();/**/
         }
         catch (Exception e) 
         {
@@ -543,6 +542,197 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
+    class PowerDetails
+    {
+        public boolean wire = false; // аналог canProvidePower
+        public boolean powered = false;
+        public boolean strong = false; // сильно-заряженный блок может активировать провод; слабо-заряженный не может
+        public int level = 0;
+        public Direction direction;
+    }
+    
+    void debug(BlockPos pos)
+    {
+        if (mc.world.getRedstonePower(pos.down(), Direction.DOWN) > 0) {
+            Informator.R4.add("ПИТАНИЕ ЕСТЬ down");
+            return;
+         } else if (mc.world.getRedstonePower(pos.up(), Direction.UP) > 0) {
+             Informator.R4.add("ПИТАНИЕ ЕСТЬ UP");
+             return;
+         } else if (mc.world.getRedstonePower(pos.north(), Direction.NORTH) > 0) {
+             Informator.R4.add("ПИТАНИЕ ЕСТЬ NORTH");
+             return;
+         } else if (mc.world.getRedstonePower(pos.south(), Direction.SOUTH) > 0) {
+             Informator.R4.add("ПИТАНИЕ ЕСТЬ SOUTH");
+             return;
+         } else if (mc.world.getRedstonePower(pos.west(), Direction.WEST) > 0) {
+             Informator.R4.add("ПИТАНИЕ ЕСТЬ WEST");
+             return;
+         } else if (mc.world.getRedstonePower(pos.east(), Direction.EAST) > 0) {
+             Informator.R4.add("ПИТАНИЕ ЕСТЬ EAST");
+             return;
+         }
+        Informator.R4.add("ПИТАНИЯ нет");
+    }
+
+    @Nullable
+    private Integer getPower(ClientWorld world, ViewDetails.BlockDetails details)
+    {
+Informator.R4.clear();
+        if (details.pos == null || details.block == null || details.state == null) return null;
+Informator.R4.add((details.state.canProvidePower()?"can provide power":"") + ",strong power=" + world.getStrongPower(details.pos) + ",powered=" + world.isBlockPowered(details.pos) + ",neighb=" + world.getRedstonePowerFromNeighbors(details.pos));
+Informator.R4.add((details.state.canProvidePower()?"Проводник":"") + ",уровень=" + world.getStrongPower(details.pos) + ",питание=" + (world.isBlockPowered(details.pos)?"есть":"нет") + ",подключено=" + world.getRedstonePowerFromNeighbors(details.pos));
+//        if (!details.state.canProvidePower()) return null;
+String debug_power = "Источник ";
+final Direction[] FACING_VALUES = Direction.values();
+final Direction facing = mc.player.getHorizontalFacing();
+final String [][] FACING_NAMES = {
+        {"снизу","сверху","сзади","спереди","справа","слева"}, // SOUTH(0)
+        {"снизу","сверху","справа","слева","спереди","сзади"}, // WEST(1)
+        {"снизу","сверху","спереди","сзади","слева","справа"}, // NORTH(2)
+        {"снизу","сверху","слева","справа","сзади","спереди"}  // EAST(3)
+};
+
+PowerDetails power_details = new PowerDetails();
+power_details.wire = details.state.canProvidePower(); // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
+power_details.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
+power_details.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
+power_details.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
+power_details.direction = null; // направление : с которого пришёл максимальный уровень заряда
+
+for(Direction direction : FACING_VALUES)
+{
+    int level;
+    final BlockPos pos = details.pos.offset(direction);
+    final BlockState state = world.getBlockState(pos);
+//Informator.R4.add(pos.getX() + " " + pos.getY() + " " + pos.getZ());
+    if (state.shouldCheckWeakPower(world, pos, direction))
+    {
+        level = world.getStrongPower(pos);
+        if (level > 0)
+        {
+            final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
+            debug_power += ((debug_power.isEmpty()?"":",") + nm.toUpperCase() + level);
+            power_details.powered = true;
+            if (level > 15) level = 15;
+            if (level > power_details.level)
+            {
+                power_details.strong = true;
+                power_details.level = level;
+                power_details.direction = direction;
+            }
+        }
+    }
+    else
+    {
+        level = state.getWeakPower(world, pos, direction);
+        if (level > 0)
+        {
+            final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
+            debug_power += ((debug_power.isEmpty()?"":",") + nm.toLowerCase() + level);
+            power_details.powered = true;
+            if (level > 15) level = 15;
+            if (level > power_details.level)
+            {
+                power_details.strong = false;
+                power_details.level = level;
+                power_details.direction = direction;
+            }
+        }
+    }
+}
+debug_power = debug_power + "=" + power_details.level;
+Informator.R4.add(debug_power);
+
+String power_report = "";
+if (power_details.wire)
+    power_report = "Проводник";
+if (power_details.powered)
+{
+    final String nm = FACING_NAMES[facing.getHorizontalIndex()][power_details.direction.getIndex()];
+    power_report += String.format(
+        "%s %s %d",
+        power_report.isEmpty()?"Питание":", питание",
+        power_details.strong?nm.toUpperCase():nm.toLowerCase(),
+        power_details.level
+    );
+}
+debug(details.pos);
+Informator.R4.add(power_report);
+
+        // список блоков со свойством canProvidePower:
+        //  +AbstractButtonBlock
+        //   AbstractPressurePlateBlock
+        //  +  WeightedPressurePlateBlock
+        //  +  PressurePlateBlock
+        //  +DaylightDetectorBlock
+        //  +DetectorRailBlock
+        //   LadderBlock
+        //   LecternBlock
+        //  +LeverBlock
+        //   ObserverBlock
+        //   RailBlock
+        //   RedstoneBlock
+        //   RedstoneDiodeBlock
+        //  +  ComparatorBlock
+        //  +  RepeaterBlock
+        //  +RedstoneTorchBlock
+        //  +RedstoneWireBlock
+        //   TrappedChestBlock
+        //  +TripWireHookBlock
+        //   WorldEntitySpawner
+        /**if (details.block instanceof AbstractButtonBlock) // StoneButtonBlock, WoodButtonBlock
+        {
+            return "" + details.state.getWeakPower();
+        }
+        else if (details.block == Blocks.REDSTONE_WIRE)
+        {
+            return "" + details.state.getValue(RedstoneWireBlock.POWER);
+        }
+        else if (details.block == Blocks.DETECTOR_RAIL)
+        {
+            return "" + details.state.getValue(DetectorRailBlock.POWERED).compareTo(false) * 15;
+        }
+        else if (details.block == Blocks.LEVER)
+        {
+            return "" + details.state.getValue(LeverBlock.POWERED).compareTo(false) * 15;
+        }
+        else if (details.block == Blocks.TRIPWIRE_HOOK)
+        {
+            return "" + details.state.getValue(TripWireHookBlock.POWERED).compareTo(false) * 15;
+        }
+        else if (details.block == Blocks.DAYLIGHT_DETECTOR)
+        {
+            return "" + details.state.getValue(DaylightDetectorBlock.POWER);
+        }
+        else if (details.block == Blocks.COMPARATOR)
+        {
+            return "Mode:" + details.state.getValue(ComparatorBlock.MODE).toString();
+        }
+        else if (details.block == Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE || 
+                 details.block == Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE)
+        {
+            return "" + details.state.getValue(WeightedPressurePlateBlock.POWER);
+        }
+        else if (details.block instanceof PressurePlateBlock)
+        {
+            return "" + details.state.getValue(PressurePlateBlock.POWERED).compareTo(false) * 15;
+        }
+        else if (details.block == Blocks.REPEATER)
+        {
+            return "Delay:" + details.state.getValue(RepeaterBlock.DELAY) + " (15)"; // (0)
+        }
+        else if (details.block == Blocks.REDSTONE_TORCH)
+        {
+            return "" + 15;
+        }
+        else
+        {
+            return "" + world.isBlockIndirectlyGettingPowered(details.pos);
+        }*/
+        return null;
+    }
+
     private void drawBlockBar()
     {
         // ранее уже была выполнена проверка : удалось определить блок, на который смотрим
@@ -704,6 +894,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         String BlockPower = " " + TextTranslation.GetLocalText("avttrue.informator.3", "Power") +
                 "=" + Functions.GetTextPower(mc, details.block, view.block.pos) + " ";
 */
+        getPower(world, details);
 
         // вычисление длинн надписей
         final int blockNameStrLen = blockNameStr.isEmpty() ? 0 : (mc.fontRenderer.getStringWidth(blockNameStr) + STRING_GROW_px);
@@ -1075,7 +1266,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
     }
 
-    /**private void drawDebugBar()
+    /**/private void drawDebugBar()
     {
         // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
         final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;
@@ -1123,6 +1314,6 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                 if (panel_widths_idx == 16) break;
             }
         }
-    }*/
+    }/**/
 }
 
