@@ -3,9 +3,11 @@ package avttrue.informator.events;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
@@ -17,12 +19,27 @@ public class ViewDetails
 {
     private Minecraft mc = Minecraft.getInstance();
 
-    class BlockDetails
+    final static Direction[] FACING_VALUES = Direction.values();
+
+    public class PowerDetails
+    {
+        public boolean wire; // аналог canProvidePower
+        public int strong_level;
+        public boolean powered;
+        // следующие переменные валидны только при powered==true
+        public boolean strong; // сильно-заряженный блок может активировать провод; слабо-заряженный не может
+        public int level;
+        public Direction facing; // направление взгляда персонажа
+        public Direction direction; // направление, откуда пришёл сигнал
+    };
+
+    public class BlockDetails
     {
         public boolean valid;
         // следующие переменные валидны только при valid==true
         public BlockRayTraceResult target; // бывший targetBlock
         public BlockPos pos; // бывший tBlockPosition
+        PowerDetails power = new PowerDetails(); // питание блока (частично известно, когда есть данные по pos)
         public boolean isAir;
         // следующие переменные не null только при isAir==false
         public BlockState state; // бывший tBlockState
@@ -50,7 +67,7 @@ public class ViewDetails
 //    public LivingEntity elb = null;
 //    private Entity vEntity = null;
 
-    public void refresh()
+    public void refresh(boolean with_electricity)
     {
         try
         {
@@ -79,10 +96,21 @@ public class ViewDetails
                 if (!block.valid) return;
 
                 final ClientWorld world = mc.world;
+                final ClientPlayerEntity player = mc.player;
 
                 block.pos = block.target.getPos();
 /**Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));*/
                 block.isAir = world.isAirBlock(block.pos);
+                if (with_electricity)
+                {
+                    block.power.wire = false; // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
+                    block.power.strong_level = world.getStrongPower(block.pos);
+                    block.power.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
+                    block.power.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
+                    block.power.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
+                    block.power.direction = null; // направление : с которого пришёл максимальный уровень заряда
+                    block.power.facing = player.getHorizontalFacing(); // направление взгляда персонажа
+                }
                 block.state = null;
                 block.block = null;
                 block.stack = null; // ItemStack.EMPTY;
@@ -92,16 +120,88 @@ public class ViewDetails
                     block.state = world.getBlockState(block.pos);
                     if (block.state != null)
                     {
+                        if (with_electricity)
+                        {
+                            block.power.wire = block.state.canProvidePower();
+                        }
                         block.block = block.state.getBlock();
                         if (block.block != null)
                         {
-                            block.stack = block.state.getBlock().getPickBlock(block.state, block.target, world, block.pos, mc.player);
+                            block.stack = block.state.getBlock().getPickBlock(block.state, block.target, world, block.pos, player);
                             if ((block.stack != null) && !block.stack.isEmpty())
                             {
                                 block.item = block.stack.getItem();
                             }
                         }
                     }
+                }
+
+                // получение данных по электрификации блока (механизмы и схемы)
+                // список блоков со свойством canProvidePower:
+                //  +AbstractButtonBlock
+                //   AbstractPressurePlateBlock
+                //  +  WeightedPressurePlateBlock
+                //  +  PressurePlateBlock
+                //  +DaylightDetectorBlock
+                //  +DetectorRailBlock
+                //   LadderBlock
+                //   LecternBlock
+                //  +LeverBlock
+                //   ObserverBlock
+                //   RailBlock
+                //   RedstoneBlock
+                //   RedstoneDiodeBlock
+                //  +  ComparatorBlock
+                //  +  RepeaterBlock
+                //  +RedstoneTorchBlock
+                //  +RedstoneWireBlock
+                //   TrappedChestBlock
+                //  +TripWireHookBlock
+                //   WorldEntitySpawner
+/**String debug_rotation = "Источник ";*/
+                if (with_electricity)
+                {
+                    for(Direction direction : FACING_VALUES)
+                    {
+                        int level;
+                        final BlockPos pos = block.pos.offset(direction);
+                        final BlockState state = world.getBlockState(pos);
+                        if (state.shouldCheckWeakPower(world, pos, direction))
+                        {
+                            level = world.getStrongPower(pos);
+                            if (level > 0)
+                            {
+/**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
+debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toUpperCase() + level);*/
+                                block.power.powered = true;
+                                if (level > 15) level = 15;
+                                if (level > block.power.level)
+                                {
+                                    block.power.strong = true;
+                                    block.power.level = level;
+                                    block.power.direction = direction;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            level = state.getWeakPower(world, pos, direction);
+                            if (level > 0)
+                            {
+/**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
+debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toLowerCase() + level);*/
+                                block.power.powered = true;
+                                if (level > 15) level = 15;
+                                if (level > block.power.level)
+                                {
+                                    block.power.strong = false;
+                                    block.power.level = level;
+                                    block.power.direction = direction;
+                                }
+                            }
+                        }
+                    }
+/**Informator.R4.add(debug_rotation + " = MAX" + block.power.level);*/
                 }
             }
             else

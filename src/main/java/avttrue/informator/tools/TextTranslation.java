@@ -28,6 +28,10 @@ public class TextTranslation
     public ITextComponent field_luminosity_of_block = new TranslationTextComponent("avttrue.informator.luminosity_of_block");
     public ITextComponent field_block_lighting = new TranslationTextComponent("avttrue.informator.block_lighting");
     public ITextComponent field_of_block = new TranslationTextComponent("avttrue.informator.of_block");
+    public ITextComponent field_provide_power_level = new TranslationTextComponent("avttrue.informator.provide_power_level");
+    public ITextComponent field_wire_level = new TranslationTextComponent("avttrue.informator.wire_level");
+    public ITextComponent field_power_level = new TranslationTextComponent("avttrue.informator.power_level");
+    public ITextComponent field_powered = new TranslationTextComponent("avttrue.informator.powered");
 
     //
     // возвращает название профессии селянина по ID

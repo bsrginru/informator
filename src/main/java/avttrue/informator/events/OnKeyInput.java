@@ -51,9 +51,10 @@ public class OnKeyInput
             //Informator.TimeBarWeather_Show = ((kuk / 16) % 2) == 0;
             //Informator.TimeBar_Show = ((kuk / 32) % 2) == 0;
             ModSettings.GENERAL.BlockBar_alignMode.set((ModSettings.GENERAL.BlockBar_alignMode.get() + 1) % 4);
-            ModSettings.GENERAL.BlockBar_ShowName.set(((kuk / 4) % 2) == 0);
+            ModSettings.GENERAL.BlockBar_ShowElectricity.set(((kuk / 4) % 2) == 0);
             ModSettings.GENERAL.BlockBar_ShowIcons.set(((kuk / 8) % 2) == 0);
             ModSettings.GENERAL.BlockBar_ShowPlayerOffset.set(((kuk / 16) % 2) == 0);
+            ModSettings.GENERAL.BlockBar_ShowName.set(((kuk / 32) % 2) == 0);
         }
     }
 

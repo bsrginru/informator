@@ -40,7 +40,8 @@ public class ModSettings
         public final ForgeConfigSpec.BooleanValue BlockBar_ShowName;
         public final ForgeConfigSpec.BooleanValue BlockBar_ShowIcons;
         public final ForgeConfigSpec.BooleanValue BlockBar_ShowPlayerOffset;
-        //----------------------------------------------------------------------
+        public final ForgeConfigSpec.BooleanValue BlockBar_ShowElectricity;
+           //----------------------------------------------------------------------
         // Панель скорости перемещения персонажа
         public final ForgeConfigSpec.BooleanValue VelocityBar_Show;
         public final ForgeConfigSpec.IntValue VelocityBar_xOffset;
@@ -120,14 +121,17 @@ public class ModSettings
                     .comment("Смещение на экране панели информации о блоке по оси y [-9999..9999:default:0]")
                     .defineInRange("block_offset_y", 0, -9999, 9999);
             BlockBar_ShowName = builder
-                    .comment("Отображение наименования блока на который смотрит персонаж [false/true|default:true]")
+                    .comment("Наименование блока на который смотрит персонаж [false/true|default:true]")
                     .define("block_name", true);
             BlockBar_ShowIcons = builder
-                    .comment("Отображение иконки блока на который смотрит персонаж [false/true|default:true]")
+                    .comment("Иконка блока на который смотрит персонаж [false/true|default:true]")
                     .define("block_icon", true);
             BlockBar_ShowPlayerOffset = builder
-                    .comment("Отображение смещения персонажаотносительно блока на который он смотрит [false/true|default:true]")
+                    .comment("Смещение персонажа относительно блока на который он смотрит [false/true|default:true]")
                     .define("block_player_offset", true);
+            BlockBar_ShowElectricity = builder
+                    .comment("Заряженность блока на который смотрит персонаж [false/true|default:true]")
+                    .define("block_electricity", true);
             //----------------------------------------------------------------------
             // Панель скорости перемещения персонажа
             VelocityBar_Show = builder
