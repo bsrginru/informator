@@ -12,9 +12,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 
-import avttrue.informator.Informator;
-import avttrue.informator.config.ModSettings;
-
 public class CollectedBlockData
 {
     public Data data = new Data();
@@ -70,271 +67,251 @@ public class CollectedBlockData
 
     public void refresh(boolean with_electricity)
     {
-        try
+        // определяем сущность, на которую смотрим
+        data.valid = false;
+
+        //было:vEntity = mc.getRenderViewEntity();
+        //было:block.rayTrace = vEntity.rayTrace(Informator.Global_DistanceView, 1);
+        RayTraceResult rtr = mc.objectMouseOver;
+        if (rtr == null) return;
+
+        if (rtr.getType() == RayTraceResult.Type.ENTITY)
         {
-            // определяем сущность, на которую смотрим
-            data.valid = false;
-
-            //было:vEntity = mc.getRenderViewEntity();
-            //было:block.rayTrace = vEntity.rayTrace(Informator.Global_DistanceView, 1);
-            RayTraceResult rtr = mc.objectMouseOver;
-            if (rtr == null) return;
-
-            if (rtr.getType() == RayTraceResult.Type.ENTITY)
-            {
 //                vEntity = ((EntityRayTraceResult)rtr).getEntity();
 //Informator.R4.clear();
 //if (vEntity != null) Informator.R4.add(vEntity.getDisplayName().getFormattedText());
-            }
-            // определяем блок на который смотрим
-            else if (rtr.getType() == RayTraceResult.Type.BLOCK)
+        }
+        // определяем блок на который смотрим
+        else if (rtr.getType() == RayTraceResult.Type.BLOCK)
+        {
+            // на всякий случай (повторно) проверяем, что блок действительно является блоком
+            // (ещё он может быть "внутри головы", см. isInside(), но пока это здесь не контролируем... это связано со строительными лесами)
+            data.target = ((BlockRayTraceResult)rtr);
+            data.valid = data.target.getType() != RayTraceResult.Type.MISS;
+            if (!data.valid) return;
+
+            final ClientWorld world = mc.world;
+            final ClientPlayerEntity player = mc.player;
+
+            data.pos = data.target.getPos();
+            data.isAir = world.isAirBlock(data.pos);
+            if (with_electricity)
             {
-/**Informator.R4.clear();*/
-                // на всякий случай (повторно) проверяем, что блок действительно является блоком
-                // (ещё он может быть "внутри головы", см. isInside(), но пока это здесь не контролируем... это связано со строительными лесами)
-                data.target = ((BlockRayTraceResult)rtr);
-                data.valid = data.target.getType() != RayTraceResult.Type.MISS;
-                if (!data.valid) return;
-
-                final ClientWorld world = mc.world;
-                final ClientPlayerEntity player = mc.player;
-
-                data.pos = data.target.getPos();
-/**Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));*/
-                data.isAir = world.isAirBlock(data.pos);
-                if (with_electricity)
+                data.power.wire = false; // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
+                data.power.strong_level = world.getStrongPower(data.pos);
+                data.power.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
+                data.power.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
+                data.power.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
+                data.power.direction = null; // направление : с которого пришёл максимальный уровень заряда
+                data.power.facing = player.getHorizontalFacing(); // направление взгляда персонажа
+            }
+            data.state = null;
+            data.block = null;
+            data.stack = null; // ItemStack.EMPTY;
+            data.item = null;
+            if (!data.isAir)
+            {
+                data.state = world.getBlockState(data.pos);
+                if (data.state != null)
                 {
-                    data.power.wire = false; // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
-                    data.power.strong_level = world.getStrongPower(data.pos);
-                    data.power.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
-                    data.power.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
-                    data.power.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
-                    data.power.direction = null; // направление : с которого пришёл максимальный уровень заряда
-                    data.power.facing = player.getHorizontalFacing(); // направление взгляда персонажа
-                }
-                data.state = null;
-                data.block = null;
-                data.stack = null; // ItemStack.EMPTY;
-                data.item = null;
-                if (!data.isAir)
-                {
-                    data.state = world.getBlockState(data.pos);
-                    if (data.state != null)
+                    if (with_electricity)
                     {
-                        if (with_electricity)
+                        data.power.wire = data.state.canProvidePower();
+                    }
+                    data.block = data.state.getBlock();
+                    if (data.block != null)
+                    {
+                        data.stack = data.state.getBlock().getPickBlock(data.state, data.target, world, data.pos, player);
+                        if ((data.stack != null) && !data.stack.isEmpty())
                         {
-                            data.power.wire = data.state.canProvidePower();
+                            data.item = data.stack.getItem();
                         }
-                        data.block = data.state.getBlock();
-                        if (data.block != null)
+                    }
+                }
+            }
+
+            // получение данных по электрификации блока (механизмы и схемы)
+            // список блоков со свойством canProvidePower:
+            //  +AbstractButtonBlock
+            //   AbstractPressurePlateBlock
+            //  +  WeightedPressurePlateBlock
+            //  +  PressurePlateBlock
+            //  +DaylightDetectorBlock
+            //  +DetectorRailBlock
+            //   LadderBlock
+            //   LecternBlock
+            //  +LeverBlock
+            //   ObserverBlock
+            //   RailBlock
+            //   RedstoneBlock
+            //   RedstoneDiodeBlock
+            //  +  ComparatorBlock
+            //  +  RepeaterBlock
+            //  +RedstoneTorchBlock
+            //  +RedstoneWireBlock
+            //   TrappedChestBlock
+            //  +TripWireHookBlock
+            //   WorldEntitySpawner
+            if (with_electricity)
+            {
+                for(Direction direction : FACING_VALUES)
+                {
+                    int level;
+                    final BlockPos pos = data.pos.offset(direction);
+                    final BlockState state = world.getBlockState(pos);
+                    if (state.shouldCheckWeakPower(world, pos, direction))
+                    {
+                        level = world.getStrongPower(pos);
+                        if (level > 0)
                         {
-                            data.stack = data.state.getBlock().getPickBlock(data.state, data.target, world, data.pos, player);
-                            if ((data.stack != null) && !data.stack.isEmpty())
+                            data.power.powered = true;
+                            if (level > 15) level = 15;
+                            if (level > data.power.level)
                             {
-                                data.item = data.stack.getItem();
+                                data.power.strong = true;
+                                data.power.level = level;
+                                data.power.direction = direction;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        level = state.getWeakPower(world, pos, direction);
+                        if (level > 0)
+                        {
+                            data.power.powered = true;
+                            if (level > 15) level = 15;
+                            if (level > data.power.level)
+                            {
+                                data.power.strong = false;
+                                data.power.level = level;
+                                data.power.direction = direction;
                             }
                         }
                     }
                 }
-
-                // получение данных по электрификации блока (механизмы и схемы)
-                // список блоков со свойством canProvidePower:
-                //  +AbstractButtonBlock
-                //   AbstractPressurePlateBlock
-                //  +  WeightedPressurePlateBlock
-                //  +  PressurePlateBlock
-                //  +DaylightDetectorBlock
-                //  +DetectorRailBlock
-                //   LadderBlock
-                //   LecternBlock
-                //  +LeverBlock
-                //   ObserverBlock
-                //   RailBlock
-                //   RedstoneBlock
-                //   RedstoneDiodeBlock
-                //  +  ComparatorBlock
-                //  +  RepeaterBlock
-                //  +RedstoneTorchBlock
-                //  +RedstoneWireBlock
-                //   TrappedChestBlock
-                //  +TripWireHookBlock
-                //   WorldEntitySpawner
-/**String debug_rotation = "Источник ";*/
-                if (with_electricity)
-                {
-                    for(Direction direction : FACING_VALUES)
-                    {
-                        int level;
-                        final BlockPos pos = data.pos.offset(direction);
-                        final BlockState state = world.getBlockState(pos);
-                        if (state.shouldCheckWeakPower(world, pos, direction))
-                        {
-                            level = world.getStrongPower(pos);
-                            if (level > 0)
-                            {
-/**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
-debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toUpperCase() + level);*/
-                                data.power.powered = true;
-                                if (level > 15) level = 15;
-                                if (level > data.power.level)
-                                {
-                                    data.power.strong = true;
-                                    data.power.level = level;
-                                    data.power.direction = direction;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            level = state.getWeakPower(world, pos, direction);
-                            if (level > 0)
-                            {
-/**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
-debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toLowerCase() + level);*/
-                                data.power.powered = true;
-                                if (level > 15) level = 15;
-                                if (level > data.power.level)
-                                {
-                                    data.power.strong = false;
-                                    data.power.level = level;
-                                    data.power.direction = direction;
-                                }
-                            }
-                        }
-                    }
-/**Informator.R4.add(debug_rotation + " = MAX" + block.power.level);*/
-                }
             }
-            else
-            {
+        }
+        else
+        {
 /**Informator.R4.clear();*/
-            }
+        }
 
 /*
-            // на кого смотрим
-            elb = getTarget(ModSettings.GENERAL.TargetMobBar_DistanceView.get(), 1, block.rayTrace);
+        // на кого смотрим
+        elb = getTarget(ModSettings.GENERAL.TargetMobBar_DistanceView.get(), 1, block.rayTrace);
 
-            if (elb != null) // сохраняем время и моба для показа с задержкой
-            {
-                Informator.lastmobtime = new Date();
-                Informator.lastmob = elb;
-                ISeeNow = true;
-            }
-                
-            // реализуем задержку при показе
-            if (elb == null &&                     // если в текущий момент моба не наблюдаем
-                Informator.lastmob != null &&     // последний виденный моб есть?
-                mc.player.isAlive() &&            // игрок жив ли?
-                Informator.lastmob.isAlive() &&    // моб жив ли?
-                Informator.lastmob.getDistance(mc.player) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
-            {
-                ISeeNow = false;
-                Date currtime = new Date(); // текущее время
-                long deltatime = (currtime.getTime()  - Informator.lastmobtime.getTime()) / 1000; // в секундах
-                if(deltatime < Informator.TargetMobBar_ViewDelay) // в рамках настроек
-                    elb = Informator.lastmob;
-                else
-                    Informator.lastmob = null; // не обязательно, но чтобы лишний раз не заходить в эту ветку
-            }
+        if (elb != null) // сохраняем время и моба для показа с задержкой
+        {
+            Informator.lastmobtime = new Date();
+            Informator.lastmob = elb;
+            ISeeNow = true;
+        }
+            
+        // реализуем задержку при показе
+        if (elb == null &&                     // если в текущий момент моба не наблюдаем
+            Informator.lastmob != null &&     // последний виденный моб есть?
+            mc.player.isAlive() &&            // игрок жив ли?
+            Informator.lastmob.isAlive() &&    // моб жив ли?
+            Informator.lastmob.getDistance(mc.player) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
+        {
+            ISeeNow = false;
+            Date currtime = new Date(); // текущее время
+            long deltatime = (currtime.getTime()  - Informator.lastmobtime.getTime()) / 1000; // в секундах
+            if(deltatime < Informator.TargetMobBar_ViewDelay) // в рамках настроек
+                elb = Informator.lastmob;
+            else
+                Informator.lastmob = null; // не обязательно, но чтобы лишний раз не заходить в эту ветку
+        }
+    
+        if (elb == null)        // моба не увидели, закончили
+        {
+            ISee = false;
+            return;
+        }
         
-            if (elb == null)        // моба не увидели, закончили
+        ISee = true;
+        MobHealth = (int)(elb.getHealth());
+        MobMaxHealth = (int)(elb.getMaxHealth());
+        DistToPlayer = new BigDecimal(elb.getDistance(mc.player)).setScale(1,RoundingMode.UP).doubleValue();
+        MobTotalArmor = elb.getTotalArmorValue();
+        
+        // конь
+        if(elb instanceof AbstractHorseEntity)
+        {
+            double jstrength = ((AbstractHorseEntity)elb).getHorseJumpStrength();
+            
+            // TODO проверять в новых версиях
+            // метод вычисления скорости из изысканий Румикона
+            // (проверено по исходникам Spigot-а в феврале 2019)
+            double jheight= 0;
+            while (jstrength > 0)
             {
-                ISee = false;
-                return;
+                 jheight += jstrength;
+                 jstrength = (jstrength - 0.08D) * 0.9800000190734863D;
             }
             
-            ISee = true;
-            MobHealth = (int)(elb.getHealth());
-            MobMaxHealth = (int)(elb.getMaxHealth());
-            DistToPlayer = new BigDecimal(elb.getDistance(mc.player)).setScale(1,RoundingMode.UP).doubleValue();
-            MobTotalArmor = elb.getTotalArmorValue();
+            // 43 - волшебная константа из изысканий Румикона
+            double speed = 43.0D * ((AbstractHorseEntity)elb).getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue();
             
-            // конь
-            if(elb instanceof AbstractHorseEntity)
+            MobOwner = Functions.getUsernameByUUID(((AbstractHorseEntity)elb).getOwnerUniqueId());
+            MobMovementSpeed = new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
+            MobJumpHeight = new BigDecimal(jheight).setScale(3, RoundingMode.UP).doubleValue();
+            
+            if (elb instanceof SkeletonHorseEntity)
             {
-                double jstrength = ((AbstractHorseEntity)elb).getHorseJumpStrength();
-                
-                // TODO проверять в новых версиях
-                // метод вычисления скорости из изысканий Румикона
-                // (проверено по исходникам Spigot-а в феврале 2019)
-                double jheight= 0;
-                while (jstrength > 0)
-                {
-                     jheight += jstrength;
-                     jstrength = (jstrength - 0.08D) * 0.9800000190734863D;
-                }
-                
-                // 43 - волшебная константа из изысканий Румикона
-                double speed = 43.0D * ((AbstractHorseEntity)elb).getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue();
-                
-                MobOwner = Functions.getUsernameByUUID(((AbstractHorseEntity)elb).getOwnerUniqueId());
-                MobMovementSpeed = new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
-                MobJumpHeight = new BigDecimal(jheight).setScale(3, RoundingMode.UP).doubleValue();
-                
-                if (elb instanceof SkeletonHorseEntity)
-                {
-                    IsHorseSkeletonTrap = true;
-                }
-                else
-                {
-                    IsHorseSkeletonTrap = false;
-                }
-            }
-            // волк
-            else if (elb instanceof WolfEntity)
-            {
-                MobOwner = Functions.getUsernameByUUID(((WolfEntity)elb).getOwnerId());
-            }
-            // котик
-            else if(elb instanceof CatEntity)
-            {
-                MobOwner = Functions.getUsernameByUUID(((CatEntity)elb).getOwnerId());
-            }
-            // криппер
-            else if(elb instanceof CreeperEntity)
-            {
-                IsCreeperPowered = ((CreeperEntity)elb).getPowered();
-            }
-        
-            // имя
-            if(elb.hasCustomName())
-            {
-                MobName =  "\'" + elb.getCustomName() + "\'";
-            }
-            // крестьянин
-            else if(elb instanceof VillagerEntity)
-            {
-                VillagerEntity villager = (VillagerEntity)elb;
-                VillagerProfession profession = villager.getVillagerData().getProfession();
-                MobName = TxtRes.GetVillagerProfession(profession.getPointOfInterest().toString()); // "unemployed", "cleric", "farmer",...        
+                IsHorseSkeletonTrap = true;
             }
             else
             {
-                MobName = elb.getEntityString();
+                IsHorseSkeletonTrap = false;
             }
-        
-            // добавки к имени
-            if(elb.isChild())
-                MobName += ", " + TxtRes.GetLocalText("avttrue.informator.18", "baby");
-            
-            if(IsCreeperPowered)
-                MobName += ", " + TxtRes.GetLocalText("avttrue.informator.52", "Powered");
-            
-            if(IsHorseSkeletonTrap)
-                MobName += ", " + TxtRes.GetLocalText("avttrue.informator.53", "Trap");
-*/
         }
-        catch(Exception e)
+        // волк
+        else if (elb instanceof WolfEntity)
         {
-//            Informator.lastmob = null;
-//            ISee = false;
-            ModSettings.GENERAL.TargetMobBar_Show.set(false);
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            Informator.TOOLS.SendFatalErrorToUser(Informator.TRANSLATOR.field_fatal_error);
+            MobOwner = Functions.getUsernameByUUID(((WolfEntity)elb).getOwnerId());
         }
-    }
+        // котик
+        else if(elb instanceof CatEntity)
+        {
+            MobOwner = Functions.getUsernameByUUID(((CatEntity)elb).getOwnerId());
+        }
+        // криппер
+        else if(elb instanceof CreeperEntity)
+        {
+            IsCreeperPowered = ((CreeperEntity)elb).getPowered();
+        }
     
+        // имя
+        if(elb.hasCustomName())
+        {
+            MobName =  "\'" + elb.getCustomName() + "\'";
+        }
+        // крестьянин
+        else if(elb instanceof VillagerEntity)
+        {
+            VillagerEntity villager = (VillagerEntity)elb;
+            VillagerProfession profession = villager.getVillagerData().getProfession();
+            MobName = TxtRes.GetVillagerProfession(profession.getPointOfInterest().toString()); // "unemployed", "cleric", "farmer",...        
+        }
+        else
+        {
+            MobName = elb.getEntityString();
+        }
+    
+        // добавки к имени
+        if(elb.isChild())
+            MobName += ", " + TxtRes.GetLocalText("avttrue.informator.18", "baby");
+        
+        if(IsCreeperPowered)
+            MobName += ", " + TxtRes.GetLocalText("avttrue.informator.52", "Powered");
+        
+        if(IsHorseSkeletonTrap)
+            MobName += ", " + TxtRes.GetLocalText("avttrue.informator.53", "Trap");
+*/
+    }
+
     // TODO определяем сущность, на которую смотрим
     // http://gamedev.stackexchange.com/questions/59858/how-to-find-the-entity-im-looking-at
     // см. также getMouseOver в коде MC
