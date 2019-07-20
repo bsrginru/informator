@@ -70,12 +70,20 @@ public class Informator
                 ForgeVersion.getVersion(),
                 MCPVersion.getMCVersion(),
                 MCPVersion.getMCPVersion());
+
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::preInit);
         modEventBus.addListener(this::doClientStuff);
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ModSettings.spec);
         // если поставить здесь ForgeConfig.class (как во многих примерах), то НЕ будут вызываться event-ы Config.class
         modEventBus.register(ModSettings.class);
+
+        //см. https://www.minecraftforge.net/forum/topic/68011-config-not-working/?tab=comments#comment-328444
+        MinecraftForge.EVENT_BUS.register(new OnKeyInput());
+        MinecraftForge.EVENT_BUS.register(new OnClientTick());
+        MinecraftForge.EVENT_BUS.register(new OnRenderTick());
+        MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     // Преинициализация
@@ -89,14 +97,6 @@ public class Informator
     private void preInit(final FMLCommonSetupEvent event)
     {
         LOGGER.info("PreInit");
-
-        MinecraftForge.EVENT_BUS.register(new OnKeyInput());
-        MinecraftForge.EVENT_BUS.register(new OnClientTick());
-        MinecraftForge.EVENT_BUS.register(new OnRenderTick());
-        MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
-
-        //нет событий у этого объекта, см. https://www.minecraftforge.net/forum/topic/68011-config-not-working/?tab=comments#comment-328444
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     // Нечто, что делается только на клиентской стороне: получение настроек игры, key bindings

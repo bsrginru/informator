@@ -17,6 +17,10 @@ out
 build
 .gradle
 
+# other
+eclipse
+run
+
 # Files from Forge MDK
 forge*changelog.txt 
 gradle
@@ -28,10 +32,6 @@ CREDITS.txt
 changelog.txt
 src/test
 src/main/java/com/example
-
-# other
-eclipse
-run
 
 # Informator' specific files
 

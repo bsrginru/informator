@@ -26,10 +26,10 @@
 ![Screenshot](https://github.com/bsrginru/informator/blob/v1.10.x/screenshots/2016-05-02_19.13.01.png)
 
 ## Установка и запуск
-1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.50-installer.jar")
+1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.60-installer.jar")
 2. выбираем папку, где расположены клиентские файлы (в Windows см. каталог ...\AppData\Roaming\.minecraft) и нажимаем кнопку 'Install Client'
 3. в этой же папке создаём каталог mods, копируем в него файл informator.jar
-4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.50 )
+4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.60 )
 5. нажимаем кнопку 'ИГРАТЬ'
 
 ## Настройка
@@ -51,26 +51,26 @@
 
 Для сборки и запуска собранного mod-а потребуется более 2Гб свободного места на диске!
 
-## Сборка мода для minecraft-1.14.3 и forge-27.0.50
+## Сборка мода для minecraft-1.14.3 и forge-27.0.60
 1. Создаём каталог для файлов проекта, например ./informator/, переходим в созданный каталог и в командной консоли выполняем:
 
     git clone git@github.com:bsrginru/informator.git .
 
     (в созданном каталоге ./informator/ должны появиться файлы проекта, напр. README.md, а также каталог ./informator/src/main/)
-2. Cкачиваем [Forge MDK](https://files.minecraftforge.net/ "например, forge-1.14.3-27.0.50-mdk.zip") и распаковываем в папку ./informator/:
- 1. каталог mdk/gradle/
- 2. и файл mdk/gradlew.bat для Windows, либо файл mdk/gradlew для Linux
- 3. уже существующие файлы ./informator/.gitignore и ./informator/build.gradle следует оставить без изменений!
- однако, в случае сборки с версией Forge, отличной от приведённой в примере forge-1.14.3-27.0.50, потребуется сравнить и отредактировать файлы:
-  - ./informator/build.gradle
-  - ./informator/src/main/resources/pack.mcmeta
-  - ./informator/src/main/resources/META-INF/mods.toml
+2. Cкачиваем [Forge MDK](https://files.minecraftforge.net/ "например, forge-1.14.3-27.0.60-mdk.zip") и распаковываем в папку ./informator/:
+ - каталог mdk/gradle/
+ - и файл mdk/gradlew.bat для Windows, либо файл mdk/gradlew для Linux
+ - уже существующие файлы ./informator/.gitignore и ./informator/build.gradle следует оставить без изменений!
+ однако, в случае сборки с версией Forge, отличной от приведённой в примере forge-1.14.3-27.0.60, потребуется сравнить и отредактировать файлы:
+  -- ./informator/build.gradle
+  -- ./informator/src/main/resources/pack.mcmeta
+  -- ./informator/src/main/resources/META-INF/mods.toml
 3. В Windows скачиваем [JDK и JRE] (https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html "например, jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe" ) устанавливаем. В Linux в конмандной консоли выполняем:
 
     sudo apt install openjdk-8-jre openjdk-8-jdk
 4. Выполняем в командной консоли:
 
-    gradlew build
+    gradlew --info build
 
     Указанных команд достаточно для того, чтобы собрать .jar файл и установить его в качается mod-а.
 
@@ -80,7 +80,7 @@
 
 1. Скачиваем [Eclipse IDE for Java Developers](https://www.eclipse.org/downloads/packages/ "например eclipse-java-2019-06-R-win32-x86_64.zip") распаковываем (в скачанном пакете должна присутствовать 'Gradle integration').
 2. *Примечание: выполнить 'Getting Started with Forge - [From Zero to Modding](https://mcforge.readthedocs.io/en/latest/gettingstarted/ "From Zero to Modding")' и собрать проект с декомпиляцией исходников minecraft из Eclipse не удалось, официальная инструкция явно устарела.*
-Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.50, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
+Ниже приведена рабочая последовательность действий по декомпиляции исходных кодов minecraft-1.14.3 и forge-1.14.3-27.0.60, можно также [добавить ключи](https://www.minecraftforge.net/forum/topic/16872-setupdecompworkspace-or-setupdevworkspace-where-is-the-difference/) --debug и --refresh-dependencies).
 3. Выполняем в командной консоли:
 
     gradlew eclipse
@@ -94,8 +94,8 @@
  3. во вкладке 'Package Explorer' находим папку src\test и удаляем её
 
 # Запуск Minecraft вместе с Mod-ом
-1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.50-installer.jar")
+1. скачиваем [инсталлятор Forge](https://files.minecraftforge.net/ "например forge-1.14.3-27.0.60-installer.jar")
 2. выбираем папку, где расположены клиентские файлы и нажимаем кнопку 'Install Client'
 3. в этой же папке создаём каталог mods, копируем в него файл ./informator/build/libs/informator.jar
-4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.50 )
+4. запускаем Minecraft Launcher и выбираем в настройках только что установленную версию Forge ( например, forge-1.14.3-27.0.60 )
 5. нажимаем кнопку 'ИГРАТЬ'
