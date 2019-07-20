@@ -69,8 +69,8 @@ public class Informator
                 MCPVersion.getMCVersion(),
                 MCPVersion.getMCPVersion());
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::preInit);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+        modEventBus.addListener(this::preInit);
+        modEventBus.addListener(this::doClientStuff);
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ModSettings.spec);
         // если поставить здесь ForgeConfig.class (как во многих примерах), то НЕ будут вызываться event-ы Config.class
         modEventBus.register(ModSettings.class);
