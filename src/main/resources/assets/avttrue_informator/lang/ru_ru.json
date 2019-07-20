@@ -24,5 +24,11 @@
   "avttrue.informator.provide_power_level": "Источник, заряд",
   "avttrue.informator.wire_level": "Проводник, заряд",
   "avttrue.informator.power_level": "Заряд",
-  "avttrue.informator.powered": "Питание"
+  "avttrue.informator.powered": "Питание",
+  "avttrue.informator.behind": "сзади",
+  "avttrue.informator.infront": "спереди",
+  "avttrue.informator.onleft": "слева",
+  "avttrue.informator.onright": "справа",
+  "avttrue.informator.ontop": "сверху",
+  "avttrue.informator.below": "снизу"
 }

@@ -13,6 +13,7 @@ import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.LightType;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -102,7 +103,7 @@ public class OnRenderGameOverlay //extends Gui
             // Thesaurus
 //DrawThesaurusButton();
 
-            /**/drawDebugBar();/**/
+            /***/drawDebugBar();/***/
         }
         catch (Exception e) 
         {
@@ -538,11 +539,31 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    final static String [][] FACING_NAMES = {
-            {"снизу","сверху","сзади","спереди","справа","слева"}, // SOUTH(0)
-            {"снизу","сверху","справа","слева","спереди","сзади"}, // WEST(1)
-            {"снизу","сверху","спереди","сзади","слева","справа"}, // NORTH(2)
-            {"снизу","сверху","слева","справа","сзади","спереди"}  // EAST(3)
+    final static ITextComponent [][] FACING_NAMES = {
+        {   Informator.TRANSLATOR.field_below,
+            Informator.TRANSLATOR.field_ontop,
+            Informator.TRANSLATOR.field_behind,
+            Informator.TRANSLATOR.field_infront,
+            Informator.TRANSLATOR.field_onright,
+            Informator.TRANSLATOR.field_onleft }, // SOUTH(0)
+        {   Informator.TRANSLATOR.field_below,
+            Informator.TRANSLATOR.field_ontop,
+            Informator.TRANSLATOR.field_onright,
+            Informator.TRANSLATOR.field_onleft,
+            Informator.TRANSLATOR.field_infront,
+            Informator.TRANSLATOR.field_behind }, // WEST(1)
+        {   Informator.TRANSLATOR.field_below,
+            Informator.TRANSLATOR.field_ontop,
+            Informator.TRANSLATOR.field_infront,
+            Informator.TRANSLATOR.field_behind,
+            Informator.TRANSLATOR.field_onleft,
+            Informator.TRANSLATOR.field_onright }, // NORTH(2)
+        {   Informator.TRANSLATOR.field_below,
+            Informator.TRANSLATOR.field_ontop,
+            Informator.TRANSLATOR.field_onleft,
+            Informator.TRANSLATOR.field_onright,
+            Informator.TRANSLATOR.field_behind,
+            Informator.TRANSLATOR.field_infront }  // EAST(3)
     };
 
     private void drawBlockBar()
@@ -717,7 +738,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             }
             if (details.power.powered)
             {
-                final String nm = FACING_NAMES[details.power.facing.getHorizontalIndex()][details.power.direction.getIndex()];
+                final String nm = FACING_NAMES[details.power.facing.getHorizontalIndex()][details.power.direction.getIndex()].getFormattedText();
                 strLines[strLinesUsed++] = String.format(
                     (TextTranslation.getInstance().field_powered.getFormattedText() + " %s %d"),
                     details.power.strong ? nm.toUpperCase() : nm.toLowerCase(),
@@ -1096,7 +1117,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
     }
 
-    /**/private void drawDebugBar()
+    /***/private void drawDebugBar()
     {
         // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
         final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;
@@ -1144,6 +1165,6 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                 if (panel_widths_idx == 16) break;
             }
         }
-    }/**/
+    }/***/
 }
 

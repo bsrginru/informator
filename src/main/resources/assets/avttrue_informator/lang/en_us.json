@@ -1,4 +1,7 @@
 {
+  "avttrue_informator.name": "Informator",
+  "avttrue_informator.key.keyboard.enable": "Display information",
+  "avttrue_informator.key.keyboard.lighting": "Displays the level of illumination",
   "avttrue.thesaurus.1": "Thesaurus",
   "avttrue.informator.velocity": "Velocity: ",
   "avttrue.informator.blocks_per_sec": "b/s",
@@ -11,4 +14,21 @@
   "avttrue.informator.moon_phase.5": "waxing crescent",
   "avttrue.informator.moon_phase.6": "first quarter",
   "avttrue.informator.moon_phase.7": "waxing gibbous"
+  "avttrue.informator.fatal_error": "Mod Informator was turned off due to an unrecoverable error. Try to change the settings and contact the developers.",
+  "avttrue.informator.disabled": "Mod Informator is turned off.",
+  "avttrue.informator.enabled": "Mod Informator enabled.",
+  "avttrue.informator.illumination_of_block": "Light",
+  "avttrue.informator.block_lighting": "Lighting",
+  "avttrue.informator.luminosity_of_block": "Luminosity",
+  "avttrue.informator.of_block": "block",
+  "avttrue.informator.provide_power_level": "Source, level",
+  "avttrue.informator.wire_level": "Wire, level",
+  "avttrue.informator.power_level": "Level",
+  "avttrue.informator.powered": "Powered",
+  "avttrue.informator.behind": "behind",
+  "avttrue.informator.infront": "in front",
+  "avttrue.informator.onleft": "on left",
+  "avttrue.informator.onright": "on right",
+  "avttrue.informator.ontop": "on top",
+  "avttrue.informator.below": "below"
 }
