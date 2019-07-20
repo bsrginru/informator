@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.config.ModConfig;
 
 import avttrue.informator.Informator;
@@ -226,16 +225,6 @@ public class ModSettings
     public static final General GENERAL = new General(BUILDER);
     public static final ForgeConfigSpec spec = BUILDER.build();
     // === === === ===
-
-    // следующее событие не срабатывает (в Forge пока ВООБЩЕ нет вызовов этого метода)
-    // видимо оно как-то связано с конфигурационным GUI, который тоже отсутствует в Forge
-    // так что может быть это нормально (временно)
-    @SubscribeEvent
-    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
-    {
-        System.out.printf("Config Changed 2 %s %s", event.getModID(), event.getConfigID());
-        /**if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;*/
-    }
 
     @SubscribeEvent
     public static void onLoad(final ModConfig.Loading configEvent)

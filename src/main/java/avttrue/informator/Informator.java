@@ -7,7 +7,9 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -94,7 +96,7 @@ public class Informator
         MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
 
         //нет событий у этого объекта, см. https://www.minecraftforge.net/forum/topic/68011-config-not-working/?tab=comments#comment-328444
-        //MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     // Нечто, что делается только на клиентской стороне: получение настроек игры, key bindings
@@ -108,5 +110,15 @@ public class Informator
     {
         LOGGER.info("Game Settings {}", event.getMinecraftSupplier().get().gameSettings);
         KeyBindings.Initialization();
+    }
+
+    // следующее событие не срабатывает (в Forge пока ВООБЩЕ нет вызовов этого метода)
+    // видимо оно как-то связано с конфигурационным GUI, который тоже отсутствует в Forge
+    // так что может быть это нормально (временно)
+    @SubscribeEvent
+    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
+    {
+        System.out.printf("Config Changed %s %s", event.getModID(), event.getConfigID());
+        if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;
     }
 }
