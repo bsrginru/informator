@@ -58,13 +58,13 @@
 
     (в созданном каталоге ./informator/ должны появиться файлы проекта, напр. README.md, а также каталог ./informator/src/main/)
 2. Cкачиваем [Forge MDK](https://files.minecraftforge.net/ "например, forge-1.14.3-27.0.60-mdk.zip") и распаковываем в папку ./informator/:
- - каталог mdk/gradle/
- - и файл mdk/gradlew.bat для Windows, либо файл mdk/gradlew для Linux
- - уже существующие файлы ./informator/.gitignore и ./informator/build.gradle следует оставить без изменений!
+  * каталог mdk/gradle/
+  * и файл mdk/gradlew.bat для Windows, либо файл mdk/gradlew для Linux
+  * уже существующие файлы ./informator/.gitignore и ./informator/build.gradle следует оставить без изменений!
  однако, в случае сборки с версией Forge, отличной от приведённой в примере forge-1.14.3-27.0.60, потребуется сравнить и отредактировать файлы:
-  -- ./informator/build.gradle
-  -- ./informator/src/main/resources/pack.mcmeta
-  -- ./informator/src/main/resources/META-INF/mods.toml
+    * ./informator/build.gradle
+    * ./informator/src/main/resources/pack.mcmeta
+    * ./informator/src/main/resources/META-INF/mods.toml
 3. В Windows скачиваем [JDK и JRE] (https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html "например, jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe" ) устанавливаем. В Linux в конмандной консоли выполняем:
 
     sudo apt install openjdk-8-jre openjdk-8-jdk
