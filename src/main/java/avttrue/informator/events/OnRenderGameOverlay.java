@@ -23,6 +23,7 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
+import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -62,7 +63,6 @@ public class OnRenderGameOverlay //extends Gui
     
     private int mainWndScaledWidth;
     private int mainWndScaledHeight;
-    private ViewDetails view = new ViewDetails();
 
     @SubscribeEvent
     public void onRenderInformatorBars(RenderGameOverlayEvent event) 
@@ -93,9 +93,9 @@ public class OnRenderGameOverlay //extends Gui
             // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
             if (ModSettings.GENERAL.TargetMobBar_Show.get())
             {
-                view.refresh(ModSettings.GENERAL.BlockBar_ShowElectricity.get());
+                Informator.block.refresh(ModSettings.GENERAL.BlockBar_ShowElectricity.get());
                 // Block bar
-                if (view.block.valid && ModSettings.GENERAL.BlockBar_Show.get()) drawBlockBar();
+                if (Informator.block.data.valid && ModSettings.GENERAL.BlockBar_Show.get()) drawBlockBar();
                 // Target Mob
 //if (Informator.TargetMobBar_Show) CreateTargetMobBar();
             }
@@ -569,7 +569,7 @@ public class OnRenderGameOverlay //extends Gui
     private void drawBlockBar()
     {
         // ранее уже была выполнена проверка : удалось определить блок, на который смотрим
-        ViewDetails.BlockDetails details = view.block;
+        CollectedBlockData.Data details = Informator.block.data;
 
         // кэшируем значения перменных в этом методе
         final ClientWorld world = mc.world;

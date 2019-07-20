@@ -18,6 +18,7 @@ import net.minecraftforge.versions.forge.ForgeVersion;
 import net.minecraftforge.versions.mcp.MCPVersion;
 
 import avttrue.informator.config.ModSettings;
+import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
 import avttrue.informator.data.CollectedHeldItemsData;
@@ -54,6 +55,8 @@ public class Informator
     public static CollectedHeldItemsData held_items = new CollectedHeldItemsData();
     // используется для контроля заколдованных предметов
     public static CollectedEnchantmentsData enchantments = new CollectedEnchantmentsData();
+    // используется для обзора информации о блоках
+    public static CollectedBlockData block = new CollectedBlockData();
 
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
     //public static float R0 = 0;

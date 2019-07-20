@@ -1,4 +1,4 @@
-package avttrue.informator.events;
+package avttrue.informator.data;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -15,11 +15,27 @@ import net.minecraft.util.math.RayTraceResult;
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
 
-public class ViewDetails
+public class CollectedBlockData
 {
-    private Minecraft mc = Minecraft.getInstance();
+    public Data data = new Data();
 
-    final static Direction[] FACING_VALUES = Direction.values();
+    public class Data
+    {
+        // признак того, что собранными данными можно пользоваться (иначе считаются невалидными)
+        public boolean valid;
+        // следующие переменные валидны только при valid==true
+        public BlockRayTraceResult target; // бывший targetBlock
+        public BlockPos pos; // бывший tBlockPosition
+        public PowerDetails power = new PowerDetails(); // питание блока (частично известно, когда есть данные по pos)
+        public boolean isAir;
+        // следующие переменные не null только при isAir==false
+        public BlockState state; // бывший tBlockState
+        public Block block; // бывший tBlock
+        // следующие переменные не null только при block!=null
+        public ItemStack stack;
+        // следующие переменные не null только при stack!=null
+        public Item item;
+    }
 
     public class PowerDetails
     {
@@ -33,23 +49,8 @@ public class ViewDetails
         public Direction direction; // направление, откуда пришёл сигнал
     };
 
-    public class BlockDetails
-    {
-        public boolean valid;
-        // следующие переменные валидны только при valid==true
-        public BlockRayTraceResult target; // бывший targetBlock
-        public BlockPos pos; // бывший tBlockPosition
-        PowerDetails power = new PowerDetails(); // питание блока (частично известно, когда есть данные по pos)
-        public boolean isAir;
-        // следующие переменные не null только при isAir==false
-        public BlockState state; // бывший tBlockState
-        public Block block; // бывший tBlock
-        // следующие переменные не null только при block!=null
-        public ItemStack stack;
-        // следующие переменные не null только при stack!=null
-        public Item item;
-    }
-    public BlockDetails block = new BlockDetails();
+    private Minecraft mc = Minecraft.getInstance();
+    private final static Direction[] FACING_VALUES = Direction.values();
 
 //public EntityRayTraceResult targetEntity = null;
 //    public int MobHealth = 0;
@@ -72,7 +73,7 @@ public class ViewDetails
         try
         {
             // определяем сущность, на которую смотрим
-            block.valid = false;
+            data.valid = false;
 
             //было:vEntity = mc.getRenderViewEntity();
             //было:block.rayTrace = vEntity.rayTrace(Informator.Global_DistanceView, 1);
@@ -91,46 +92,46 @@ public class ViewDetails
 /**Informator.R4.clear();*/
                 // на всякий случай (повторно) проверяем, что блок действительно является блоком
                 // (ещё он может быть "внутри головы", см. isInside(), но пока это здесь не контролируем... это связано со строительными лесами)
-                block.target = ((BlockRayTraceResult)rtr);
-                block.valid = block.target.getType() != RayTraceResult.Type.MISS;
-                if (!block.valid) return;
+                data.target = ((BlockRayTraceResult)rtr);
+                data.valid = data.target.getType() != RayTraceResult.Type.MISS;
+                if (!data.valid) return;
 
                 final ClientWorld world = mc.world;
                 final ClientPlayerEntity player = mc.player;
 
-                block.pos = block.target.getPos();
+                data.pos = data.target.getPos();
 /**Informator.R4.add(block.target.getFace().getName() + " | " + block.pos.getX()+"x"+block.pos.getY()+"x"+block.pos.getZ() + " | " + ((block.target.getType()==RayTraceResult.Type.BLOCK)?"block":"miss") + " | " + (block.target.isInside()?"inside":""));*/
-                block.isAir = world.isAirBlock(block.pos);
+                data.isAir = world.isAirBlock(data.pos);
                 if (with_electricity)
                 {
-                    block.power.wire = false; // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
-                    block.power.strong_level = world.getStrongPower(block.pos);
-                    block.power.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
-                    block.power.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
-                    block.power.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
-                    block.power.direction = null; // направление : с которого пришёл максимальный уровень заряда
-                    block.power.facing = player.getHorizontalFacing(); // направление взгляда персонажа
+                    data.power.wire = false; // проводник : это свойство блока, способность проводить энергию (дверь, когда открывается сигналом, не является проводником)
+                    data.power.strong_level = world.getStrongPower(data.pos);
+                    data.power.powered = false; // заряжен : признак world.isBlockPowered, который является world.getRedstonePower(с-любого-из-направлений, по результатам world.getStrongPower или block.state.getWeakPower
+                    data.power.strong = false; // заряжен сильно : признак world.getStrongPower, который явлется рекурсивным поиском во всех направлениях любого активного блока (с уровнем >= 15)
+                    data.power.level = 0; // уровень заряда : максимальный из уровней заряда во всех направлениях (по результатам world.getStrongPower или block.state.getWeakPower)
+                    data.power.direction = null; // направление : с которого пришёл максимальный уровень заряда
+                    data.power.facing = player.getHorizontalFacing(); // направление взгляда персонажа
                 }
-                block.state = null;
-                block.block = null;
-                block.stack = null; // ItemStack.EMPTY;
-                block.item = null;
-                if (!block.isAir)
+                data.state = null;
+                data.block = null;
+                data.stack = null; // ItemStack.EMPTY;
+                data.item = null;
+                if (!data.isAir)
                 {
-                    block.state = world.getBlockState(block.pos);
-                    if (block.state != null)
+                    data.state = world.getBlockState(data.pos);
+                    if (data.state != null)
                     {
                         if (with_electricity)
                         {
-                            block.power.wire = block.state.canProvidePower();
+                            data.power.wire = data.state.canProvidePower();
                         }
-                        block.block = block.state.getBlock();
-                        if (block.block != null)
+                        data.block = data.state.getBlock();
+                        if (data.block != null)
                         {
-                            block.stack = block.state.getBlock().getPickBlock(block.state, block.target, world, block.pos, player);
-                            if ((block.stack != null) && !block.stack.isEmpty())
+                            data.stack = data.state.getBlock().getPickBlock(data.state, data.target, world, data.pos, player);
+                            if ((data.stack != null) && !data.stack.isEmpty())
                             {
-                                block.item = block.stack.getItem();
+                                data.item = data.stack.getItem();
                             }
                         }
                     }
@@ -164,7 +165,7 @@ public class ViewDetails
                     for(Direction direction : FACING_VALUES)
                     {
                         int level;
-                        final BlockPos pos = block.pos.offset(direction);
+                        final BlockPos pos = data.pos.offset(direction);
                         final BlockState state = world.getBlockState(pos);
                         if (state.shouldCheckWeakPower(world, pos, direction))
                         {
@@ -173,13 +174,13 @@ public class ViewDetails
                             {
 /**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
 debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toUpperCase() + level);*/
-                                block.power.powered = true;
+                                data.power.powered = true;
                                 if (level > 15) level = 15;
-                                if (level > block.power.level)
+                                if (level > data.power.level)
                                 {
-                                    block.power.strong = true;
-                                    block.power.level = level;
-                                    block.power.direction = direction;
+                                    data.power.strong = true;
+                                    data.power.level = level;
+                                    data.power.direction = direction;
                                 }
                             }
                         }
@@ -190,13 +191,13 @@ debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toUpperCase() + level)
                             {
 /**final String nm = FACING_NAMES[facing.getHorizontalIndex()][direction.getIndex()];
 debug_rotation += ((debug_rotation.isEmpty()?"":",") + nm.toLowerCase() + level);*/
-                                block.power.powered = true;
+                                data.power.powered = true;
                                 if (level > 15) level = 15;
-                                if (level > block.power.level)
+                                if (level > data.power.level)
                                 {
-                                    block.power.strong = false;
-                                    block.power.level = level;
-                                    block.power.direction = direction;
+                                    data.power.strong = false;
+                                    data.power.level = level;
+                                    data.power.direction = direction;
                                 }
                             }
                         }
