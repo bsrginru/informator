@@ -94,6 +94,7 @@ public class OnRenderGameOverlay //extends Gui
             if (ModSettings.GENERAL.TargetMobBar_Show.get())
             {
                 Informator.block.refresh(ModSettings.GENERAL.BlockBar_ShowElectricity.get());
+                Informator.entity.refresh();
                 // Block bar
                 if (Informator.block.data.valid && ModSettings.GENERAL.BlockBar_Show.get()) drawBlockBar();
                 // Target Mob

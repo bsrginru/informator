@@ -21,6 +21,7 @@ import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
+import avttrue.informator.data.CollectedEntityData;
 import avttrue.informator.data.CollectedHeldItemsData;
 import avttrue.informator.data.CollectedVelocityData;
 import avttrue.informator.data.CollectedWeatherData;
@@ -57,6 +58,8 @@ public class Informator
     public static CollectedEnchantmentsData enchantments = new CollectedEnchantmentsData();
     // используется для обзора информации о блоках
     public static CollectedBlockData block = new CollectedBlockData();
+    // используется для обзора информации о сущностях
+    public static CollectedEntityData entity = new CollectedEntityData();
 
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
     //public static float R0 = 0;
