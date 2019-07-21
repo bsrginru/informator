@@ -873,6 +873,9 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         // позиция и размеры
         final int TargetMobBar_Len = ModSettings.GENERAL.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
         final int nameLen = mc.fontRenderer.getStringWidth(details.name);
+        // дистанция
+        final String distStr = String.format("Дистанция: %3.1f", details.distance);
+        final int distLen = mc.fontRenderer.getStringWidth(distStr) + STRING_GROW_px;
 
         // расчёт размещения панели
         int target_xPos;
@@ -892,38 +895,6 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
         target_xPos += ModSettings.GENERAL.TargetMobBar_xOffset.get();
         target_yPos += ModSettings.GENERAL.TargetMobBar_yOffset.get();
-
-        // имя
-//        String mobname = view.MobName;
-        
-/*
-        // дистанция
-        String mobdist = " " + TextTranslation.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
-        int mobdistlen = mc.fontRendererObj.getStringWidth(mobdist);
-        
-        // доп. характеристики для коней
-        String mobowner = "";
-        String mobspeed = "";
-        String mobjamp = "";
-        int mobaddsetts1len = 0;
-        int mobaddsetts2len = 0;
-        int mobaddsetts3len = 0;
-        if (view.MobOwner != null)
-        {
-            mobowner = " " + TextTranslation.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
-            mobaddsetts1len = mc.fontRendererObj.getStringWidth(mobowner);
-        }
-        if (view.MobMovementSpeed > 0)
-        {
-            mobspeed += " " + TextTranslation.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
-            mobaddsetts2len = mc.fontRendererObj.getStringWidth(mobspeed);
-        }
-        if (view.MobJumpHeight > 0)
-        {
-            mobjamp += " " + TextTranslation.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
-            mobaddsetts3len = mc.fontRendererObj.getStringWidth(mobjamp);
-        }
-*/
 
         // отрисовка панелей
         //игнорируется:if (ModSettings.GENERAL.Global_ShowPanel.get()) 
@@ -963,7 +934,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             final int health_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
             final int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
             final int health_wPos = target_xPos + TargetMobBar_Len;
-            final int health_hPos = health_yPos + STRING_HEIGHT + 2;
+            final int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
             // панели здоровья
             if (details.health <= 0 || details.healthMax <= 0.01F) // исключительные ситуации (на ноль делить тоже нельзя ;)
                 healthLineLen = 1;
@@ -1043,47 +1014,93 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
 */
 
-/*
         // дистанция панель
-        int dist_y = target_yPos + STRING_HEIGHT * 2 + 3;
-        int dist_x =target_xPos + 18;
-        drawGradientRect(dist_x, dist_y, dist_x + mobdistlen, dist_y + STRING_HEIGHT, 
-                        PANEL_STEEL, PANEL_TRANSPARENT);
-                                
+        final int dist_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
+        final int dist_yPos = target_yPos + (STRING_HEIGHT + 2) * 2;
+        GuiUtils.drawGradientRect(0,
+                dist_xPos,
+                dist_yPos,
+                dist_xPos + distLen,
+                dist_yPos + STRING_HEIGHT,
+                PANEL_STEEL,//GRAY_TRANSPARENT,
+                PANEL_TRANSPARENT);
         // дистанция текст
-        mc.fontRendererObj.drawStringWithShadow(mobdist, dist_x, dist_y, FONT_WHITE);            
-        
+        mc.fontRenderer.drawStringWithShadow(
+                distStr,
+                dist_xPos + STRING_PREFIX_px,
+                dist_yPos + 1,
+                FONT_WHITE);
+
         // дополнительные характеристики / коня, собачек и кошечек
-        if(!mobowner.isEmpty() || !mobspeed.isEmpty() || !mobjamp.isEmpty())
+        if (details.tamed || details.movementPresent)
         {
-        // панель
-            dist_y = target_yPos + STRING_HEIGHT * 3 + 3;
-            drawGradientRect(dist_x, dist_y, 
-                            dist_x + mobaddsetts1len + mobaddsetts2len + mobaddsetts3len + 3, 
-                            dist_y + STRING_HEIGHT, 
-                            PANEL_STEEL, PANEL_TRANSPARENT);
-        // текст
-            mc.fontRendererObj.drawStringWithShadow(mobowner, dist_x, dist_y, FONT_WHITE);
-            dist_x += mobaddsetts1len;
-            if(view.MobMovementSpeed >= 13.0D)
-                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_AQUA); 
-            else if(view.MobMovementSpeed >= 11.0D)
-                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_GREEN);
-            else if(view.MobMovementSpeed >= 8.0D)
-                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_WHITE);
-            else
-                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_RED);
-            dist_x += mobaddsetts2len;
-            if(view.MobJumpHeight >= 5.0D)
-                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_AQUA);
-            else if(view.MobJumpHeight >= 4.0D)
-                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_GREEN);
-            else if(view.MobJumpHeight >= 2.75D)
-                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_WHITE); 
-            else
-                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
+            // доп. характеристики для приручаемых животных и коней
+            String ownerStr = "";
+            String movementSpeedStr = "";
+            String jumpHeightStr = "";
+            int ownerLen = 0;
+            int movementSpeedLen = 0;
+            int jumpHeightLen = 0;
+            if (details.tamed)
+            {
+                if (details.nameOwner == null || details.nameOwner.isEmpty())
+                    ownerStr = "Приручен(а): ???";
+                else
+                    ownerStr = String.format("Чей: %s", details.nameOwner);
+                ownerLen = mc.fontRenderer.getStringWidth(ownerStr);
+            }
+            if (details.movementPresent)
+            {
+                if (details.movementSpeed > 0)
+                {
+                    movementSpeedStr = String.format("Б.: %4.2f", details.movementSpeed);
+                    movementSpeedLen = mc.fontRenderer.getStringWidth(movementSpeedStr);
+                }
+                if (details.jumpHeight > 0)
+                {
+                    jumpHeightStr = String.format("П.: %4.2f", details.jumpHeight);
+                    jumpHeightLen = mc.fontRenderer.getStringWidth(jumpHeightStr);
+                }
+            }
+
+            // панель
+            int details_xPos = dist_xPos;
+            final int detatils_yPos = target_yPos + (STRING_HEIGHT+2) * 3 + 1; // +1 добавлен для того, чтобы потом не выравнивать каждую надпись
+            GuiUtils.drawGradientRect(0,
+                    details_xPos,
+                    (detatils_yPos-1),
+                    details_xPos + STRING_PREFIX_px + ownerLen + STRING_PREFIX_px + movementSpeedLen + jumpHeightLen + STRING_POSTFIX_px,
+                    (detatils_yPos-1) + STRING_HEIGHT,
+                    PANEL_STEEL,//GRAY_TRANSPARENT,
+                    PANEL_TRANSPARENT);
+            // текст
+            details_xPos += STRING_PREFIX_px;
+            if (details.tamed)
+            {
+                mc.fontRenderer.drawStringWithShadow(ownerStr, details_xPos, detatils_yPos, FONT_WHITE);
+                details_xPos += (ownerLen + STRING_PREFIX_px);
+            }
+            if (details.movementPresent)
+            {
+                if (details.movementSpeed >= 13.0D)
+                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_AQUA); 
+                else if (details.movementSpeed >= 11.0D)
+                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_GREEN);
+                else if (details.movementSpeed >= 8.0D)
+                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_WHITE);
+                else
+                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_RED);
+                details_xPos += (movementSpeedLen + STRING_PREFIX_px);
+                if (details.jumpHeight >= 5.0D)
+                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_AQUA);
+                else if (details.jumpHeight >= 4.0D)
+                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_GREEN);
+                else if (details.jumpHeight >= 2.75D)
+                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_WHITE); 
+                else
+                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_RED);
+            }
         }
-*/
     }
 
     private void DrawSkinIcon(int x, int y, Skin skin, int idx)
