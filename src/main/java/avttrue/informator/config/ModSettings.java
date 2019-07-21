@@ -202,8 +202,8 @@ public class ModSettings
                     .comment("Включает/отключает информацию о сущностях (блоки и NPC), на которые смотрим [false/true|default:true]")
                     .define("target_show", true);
             TargetMobBar_DistanceView = builder
-                    .comment("Дистанция видимости объектов [1..64|default:32]")
-                    .defineInRange("target_view_distance", 32, 1, 64);
+                    .comment("Дистанция видимости объектов [4..64|default:24]")
+                    .defineInRange("target_view_distance", 24, 4, 64); // Minecraft.getInstance().playerController.getBlockReachDistance()
             //----------------------------------------------------------------------
             builder.pop();
         }

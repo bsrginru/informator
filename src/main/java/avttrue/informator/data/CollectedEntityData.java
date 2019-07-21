@@ -12,6 +12,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
 import avttrue.informator.Informator;
+import avttrue.informator.config.ModSettings;
 
 public class CollectedEntityData
 {
@@ -68,7 +69,7 @@ Informator.R4.clear();
             // если метод searchTarget выдал true, то сущность на которую смотрим найдена и сохранена
             // в структуре data, кроме того, сохранена точка, куда направлен взгляд персонажа, а также
             // сохранена дистанция до цели
-            if (!searchTarget(8)) return; // mc.playerController.getBlockReachDistance()
+            if (!searchTarget(ModSettings.GENERAL.TargetMobBar_DistanceView.get())) return; // mc.playerController.getBlockReachDistance()
         }
         if (!data.valid) return;
 
