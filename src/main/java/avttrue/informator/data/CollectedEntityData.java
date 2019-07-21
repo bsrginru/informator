@@ -21,7 +21,6 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 
-import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
 import avttrue.informator.tools.Functions;
 
@@ -79,7 +78,7 @@ public class CollectedEntityData
 
     public void refresh()
     {
-Informator.R4.clear();
+/**Informator.R4.clear();/**/
 
         //final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
@@ -118,7 +117,7 @@ Informator.R4.clear();
         data.armor = data.isLiving ? lentity.getTotalArmorValue() : -1;
         data.isVillager = false;
  
-/**/Informator.R4.add(String.format(
+/**Informator.R4.add(String.format(
     "%s at %5.2f %5.2f %5.2f distance %5.2f",
     data.name,
     data.pointer.x,
