@@ -1,23 +1,15 @@
 package avttrue.informator.data;
 
 import java.util.Optional;
-import java.util.function.Predicate;
-
-import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 import avttrue.informator.Informator;
 
@@ -31,8 +23,10 @@ public class CollectedEntityData
         public boolean valid;
         // следующие переменные валидны только при valid==true
         public Entity entity;
-        public String name;
+        public double distance;
+        public Vec3d pointer; // точка, куда направлен взгляд персонажа, с учётом дистанции до entity
         // следующие переменные валидны только при entity!=null
+        public String name;
     }
 
     private Minecraft mc = Minecraft.getInstance();
@@ -55,26 +49,39 @@ public class CollectedEntityData
 
     public void refresh()
     {
-        // нет никакой необходимости пользоваться RayTraceResult
-        // т.к. весь функционал перенесён в GameRenderer.getMouseOver
-        //RayTraceResult rtr = mc.objectMouseOver;
-        //if (rtr == null) return;
-        //if (rtr.getType() != RayTraceResult.Type.ENTITY) return;
+Informator.R4.clear();
 
         final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
 
-Informator.R4.clear();
-getTarget(8, null); // this.mc.playerController.getBlockReachDistance()
-
-        // определяем сущность, на которую смотрим
+        // определяем сущность, на которую смотрим (сначала идём по простому пути, учитывая REACH_DISTANCE контроллера
+        // используемого в игровом процессе, потом пытаемся использовать настройки пользователя
         data.entity = mc.pointedEntity;
         data.valid = data.entity != null;
+        if (data.valid)
+        {
+            data.distance = data.entity.getDistance(player);
+            data.pointer = player.getEyePosition(1.0F).add(player.getLook(1.0F).scale(data.distance));
+        }
+        else
+        {
+            // если метод searchTarget выдал true, то сущность на которую смотрим найдена и сохранена
+            // в структуре data, кроме того, сохранена точка, куда направлен взгляд персонажа, а также
+            // сохранена дистанция до цели
+            if (!searchTarget(8)) return; // mc.playerController.getBlockReachDistance()
+        }
         if (!data.valid) return;
 
-Informator.R4.add(data.entity.getDisplayName().getFormattedText());
-//Informator.R4.add(String.valueOf((Object)Registry.ENTITY_TYPE.getKey(data.entity.getType())));
-data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));
+        data.name = data.entity.getDisplayName().getFormattedText();
+
+/**/Informator.R4.add(String.format(
+    "%s at %5.2f %5.2f %5.2f distance %5.2f",
+    data.name,
+    data.pointer.x,
+    data.pointer.y,
+    data.pointer.z,
+    data.distance));
+data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));/**/
 
 /*
 
@@ -194,89 +201,115 @@ data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));
     // см. также getMouseOver в коде MC
     // см. пример в PointOfInterestDebugRenderer.func_217710_d()
     // см. также пример в ProjectileHelper.func_221273_a
-    private LivingEntity getTarget(double distance, RayTraceResult CheckBlock)
+    private boolean searchTarget(final double distanceMax)
     {
-        Entity pointedEntity = null;
-        double pointedDistance = distance;
-        Vec3d pointedPosVec3d = null;
+        final ClientWorld world = mc.world;
+        final ClientPlayerEntity player = mc.player;
 
-        Vec3d vec3d_EyePos =  mc.player.getEyePosition(1.0F);
-Informator.R4.add(String.format("(getTarget) eye = %5.2f %5.2f %5.2f", vec3d_EyePos.x, vec3d_EyePos.y, vec3d_EyePos.z));
-        Vec3d vec31 = mc.player.getLook(1.0F);
-Informator.R4.add(String.format("(getTarget) look = %5.2f %5.2f %5.2f", vec31.x, vec31.y, vec31.z));
-        Vec3d vec32 = vec3d_EyePos.add(vec31.scale(pointedDistance));
-Informator.R4.add(String.format("(getTarget) sum = %5.2f %5.2f %5.2f", vec32.x, vec32.y, vec32.z));
+        data.valid = false;
+        data.entity = null;
+        data.distance = 0;
+        data.pointer = null;
+
+        final Vec3d vec3d_EyePos =  player.getEyePosition(1.0F);
+        final Vec3d vec3d_Look = player.getLook(1.0F);
+        final Vec3d vec3d_MaxViewPoint = vec3d_EyePos.add(vec3d_Look.scale(distanceMax));
+
+/**Informator.R4.add(String.format("eye = %5.2f %5.2f %5.2f", vec3d_EyePos.x, vec3d_EyePos.y, vec3d_EyePos.z));
+Informator.R4.add(String.format("look = %5.2f %5.2f %5.2f", vec3d_Look.x, vec3d_Look.y, vec3d_Look.z));
+Informator.R4.add(String.format("max = %5.2f %5.2f %5.2f", vec3d_MaxViewPoint.x, vec3d_MaxViewPoint.y, vec3d_MaxViewPoint.z));/**/
 
         // следующий метод найдёт все сущность по направлению взгляда персонажа (за исключением spectator-а)
-        AxisAlignedBB axisalignedbb0 = mc.player.getBoundingBox().expand(vec31.scale(pointedDistance))/*.grow(1.0D)*/;
-        for(Entity entity1 : mc.world.getEntitiesWithinAABBExcludingEntity(mc.player, axisalignedbb0))
+        AxisAlignedBB axisalignedbb0 = player.getBoundingBox().expand(vec3d_Look.scale(distanceMax))/*.grow(1.0D)*/;
+        for (final Entity entityFound : world.getEntitiesWithinAABBExcludingEntity(player, axisalignedbb0))
         {
-            float f2 = entity1.getCollisionBorderSize();
-            AxisAlignedBB axisalignedbb = entity1.getBoundingBox().expand(f2, f2, f2);
-            Informator.R4.add(String.format(
-                    "(getTarget) %s at %5.2f %5.2f %5.2f distance %5.2f : %s",
-                    entity1.getDisplayName().getFormattedText(),
-                    entity1.posX, entity1.posY, entity1.posZ,
-                    entity1.getDistance(mc.player),
-                    axisalignedbb.toString()
-                    ));
+            // получение границ найденной entity
+            final float entityBorder = entityFound.getCollisionBorderSize();
+            // получение box-а координат найденной entity
+            final AxisAlignedBB axisalignedbb = entityFound.getBoundingBox().expand(entityBorder, entityBorder, entityBorder);
+            // вот так можно определить, что box персонажа пересекается с box-ом найденной entity:
+            //final boolean intersects = axisalignedbb.intersects(player.getBoundingBox());
 
-            // вот так можно отпределить, что box персонажа пересекается с box-ом найденной entity:
-            //final boolean intersects = axisalignedbb.intersects(mc.player.getBoundingBox());
+/**Informator.R4.add(String.format(
+    "%s at [%5.2f %5.2f %5.2f -> %5.2f %5.2f %5.2f] distance %5.2f",
+    entityFound.getDisplayName().getFormattedText(),
+    // раньне было так, позиция entity, а теперь смотрим её box: entityFound.posX, entityFound.posY, entityFound.posZ,
+    axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ,
+    axisalignedbb.maxX, axisalignedbb.maxY, axisalignedbb.maxZ,
+    entityFound.getDistance(player)
+    ));/**/
 
-            Optional<Vec3d> optional = axisalignedbb.rayTrace(vec3d_EyePos, vec32);
-            if (axisalignedbb.contains(vec3d_EyePos)) {
-               if (pointedDistance >= 0.0D) {
-                   pointedEntity = entity1;
-                   pointedPosVec3d = optional.orElse(vec3d_EyePos);
-                  pointedDistance = 0.0D;
-Informator.R4.add(String.format("(getTarget) contains pointedEntity %s", pointedEntity.getDisplayName().getFormattedText()));
-               }
-            } else if (optional.isPresent()) {
-               Vec3d newPosVec3d = optional.get();
-               final double newDistance = vec3d_EyePos.distanceTo(newPosVec3d);
-Informator.R4.add(String.format("(getTarget) distance %5.2f", newDistance));
-               if (newDistance < pointedDistance || pointedDistance == 0.0D) {
-                  if (entity1.getLowestRidingEntity() == mc.player.getLowestRidingEntity()) {
-                     if (pointedDistance == 0.0D) {
-                         pointedEntity = entity1;
-                        pointedPosVec3d = newPosVec3d;
-Informator.R4.add(String.format("(getTarget) lowest pointedEntity %s", pointedEntity.getDisplayName().getFormattedText()));
-                     }
-                  } else {
-                      pointedEntity = entity1;
-                     pointedPosVec3d = newPosVec3d;
-                     pointedDistance = newDistance;
-Informator.R4.add(String.format("(getTarget) else pointedEntity %s", pointedEntity.getDisplayName().getFormattedText()));
-                  }
-               }
+            Optional<Vec3d> optional = axisalignedbb.rayTrace(vec3d_EyePos, vec3d_MaxViewPoint);
+            if (axisalignedbb.contains(vec3d_EyePos))
+            {
+                if (data.distance >= 0.0D)
+                {
+                    data.entity = entityFound;
+                    data.pointer = optional.orElse(vec3d_EyePos);
+                    data.distance = 0.0D;
+                }
+            }
+            else if (optional.isPresent())
+            {
+                final Vec3d newPosVec3d = optional.get();
+                final double newDistance = vec3d_EyePos.distanceTo(newPosVec3d);
+                if (newDistance < data.distance || data.distance == 0.0D)
+                {
+                    if (entityFound.getLowestRidingEntity() == player.getLowestRidingEntity())
+                    {
+                        if (data.distance == 0.0D)
+                        {
+                            data.entity = entityFound;
+                            data.pointer = newPosVec3d;
+                        }
+                    }
+                    else
+                    {
+                        data.entity = entityFound;
+                        data.pointer = newPosVec3d;
+                        data.distance = newDistance;
+                    }
+                }
             }
         }
 
-        // теперь отпределяем куда направлен взгляд
-        if (pointedEntity != null)
+        data.valid = data.entity != null;
+
+        // теперь отпределяем куда направлен взгляд, если между взглядом на entity есть block, то приравниваем
+        // это обстоятельство к препятствию, а смотреть "через стены нельзя", см. пункт 1.4 http://minecrafting.ru/page/rules
+        // "...На сервере запрещено использование любых программ, плагинов, модификаций и ресурс-паков (далее - программного
+        // обеспечения, ПО), дающих преимущество в игре, а также использование багов игры в личных целях. Все вместе это
+        // называется "читерство" и ведет к моментальному бану без права на амнистию и реабилитацию..."
+        if (data.valid)
         {
-Informator.R4.add(String.format("(getTarget) vec33 = %5.2f %5.2f %5.2f", pointedPosVec3d.x, pointedPosVec3d.y, pointedPosVec3d.z));
-            float f = mc.player.rotationPitch;
-            float __f1 = mc.player.rotationYaw;
-Informator.R4.add(String.format("pitch = %5.2f, yaw = %5.2f, eye = %5.2f %5.2f %5.2f", f, __f1, vec3d_EyePos.x, vec3d_EyePos.y, vec3d_EyePos.z));
-//            float __f2 = MathHelper.cos(-__f1 * ((float)Math.PI / 180F) - (float)Math.PI);
-//            float f3 = MathHelper.sin(-__f1 * ((float)Math.PI / 180F) - (float)Math.PI);
-//            float f4 = -MathHelper.cos(-f * ((float)Math.PI / 180F));
-//            float f5 = MathHelper.sin(-f * ((float)Math.PI / 180F));
-//            float f6 = f3 * f4;
-//            float f7 = __f2 * f4;
-//Informator.R4.add(String.format("f2 = %5.2f, f3 = %5.2f, f4 = %5.2f, f5 = %5.2f, f6 = %5.2f, f7 = %5.2f", __f2,f3,f4,f5,f6,f7));
-//            Vec3d vec3d1 = vec3d_EyePos.add((double)f6 * d0, (double)f5 * d0, (double)f7 * d0);
-//Informator.R4.add(String.format("vec3d1 = %5.2f %5.2f %5.2f", vec33.x, vec33.y, vec33.z));
-            RayTraceResult rtr = mc.world.rayTraceBlocks(new RayTraceContext(vec3d_EyePos, pointedPosVec3d, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player));
+            // (на пямять) Есть ещё один способ определения направления взгляда персонажа, и вычисления векторов:
+            // (например с целью поиска пересечений в направлении взгляда)
+            //float f = player.rotationPitch;
+            //float f1 = player.rotationYaw;
+            //float f2 = MathHelper.cos(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
+            //float f3 = MathHelper.sin(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
+            //float f4 = -MathHelper.cos(-f * ((float)Math.PI / 180F));
+            //float f5 = MathHelper.sin(-f * ((float)Math.PI / 180F));
+            //float f6 = f3 * f4;
+            //float f7 = f2 * f4;
+            //Vec3d vec3d1 = vec3d_EyePos.add((double)f6 * data.distance, (double)f5 * data.distance, (double)f7 * data.distance);
+
+            RayTraceResult rtr = world.rayTraceBlocks(new RayTraceContext(
+                            vec3d_EyePos,
+                            data.pointer,
+                            RayTraceContext.BlockMode.COLLIDER,
+                            RayTraceContext.FluidMode.ANY,
+                            player));
+
             if (rtr.getType() == RayTraceResult.Type.BLOCK)
             {
-                BlockRayTraceResult brtr = ((BlockRayTraceResult)rtr);
-Informator.R4.add(String.format("!!! block at %d %d %d", brtr.getPos().getX(), brtr.getPos().getY(), brtr.getPos().getZ()));
+                data.valid = false;
+/**BlockRayTraceResult brtr = ((BlockRayTraceResult)rtr);
+Informator.R4.add(String.format("!!! block at %d %d %d", brtr.getPos().getX(), brtr.getPos().getY(), brtr.getPos().getZ()));/**/
             }
         }
-        return null;
+
+        return data.valid;
     }
     
 //    
