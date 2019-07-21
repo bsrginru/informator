@@ -1,18 +1,29 @@
 package avttrue.informator.data;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.merchant.villager.VillagerEntity;
+import net.minecraft.entity.merchant.villager.VillagerProfession;
+import net.minecraft.entity.monster.CreeperEntity;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.entity.passive.horse.SkeletonHorseEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.ITextComponent;
 
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
+import avttrue.informator.tools.Functions;
 
 public class CollectedEntityData
 {
@@ -28,6 +39,24 @@ public class CollectedEntityData
         public Vec3d pointer; // точка, куда направлен взгляд персонажа, с учётом дистанции до entity
         // следующие переменные валидны только при entity!=null
         public String name;
+        public ITextComponent nameCustom; // имя, данное с помощью бирки
+        public String nameClass; // идентификатор класса сущности
+        public boolean tamed; // признак того, что животное приручено
+        public String nameOwner; // валидно при tamed=true, но м.б. null, если не удалось загрузить данные об игроке
+        public boolean movementPresent;
+        public double movementSpeed; // валидно для лошадей (при movementPresent=true)
+        public double jumpHeight; // валидно для лошадей (при movementPresent=true)
+        public boolean isSkeletonTrap; // скелето-лошадь является ловушкой
+        public boolean isCreeperPowered; // крипер заряжен
+        public boolean isLiving; // признак того, что это сущность типа LivingEntity
+        public boolean isChild; // признак того, что это ребёнок (валидно при isLiving=true)
+        public boolean isUndead; // признак того, что это нежить (валидно при isLiving=true)
+        public float health; // жизнь entity (валидно при isLiving=true)
+        public float healthMax; // максимальная жизнь entity (валидно при isLiving=true)
+        public int armor; // броня entity (валидно при isLiving=true)
+        // можно также получить у LivingEntity.getHeldItem (что в руках)
+        public boolean isVillager; // признак того, что entity является крестьянином
+        public VillagerProfession villagerProfession; // профессия крестьянина (валидно при isVillager = true), но м.б. неизвестна
     }
 
     private Minecraft mc = Minecraft.getInstance();
@@ -52,7 +81,7 @@ public class CollectedEntityData
     {
 Informator.R4.clear();
 
-        final ClientWorld world = mc.world;
+        //final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
 
         // определяем сущность, на которую смотрим (сначала идём по простому пути, учитывая REACH_DISTANCE контроллера
@@ -73,8 +102,22 @@ Informator.R4.clear();
         }
         if (!data.valid) return;
 
-        data.name = data.entity.getDisplayName().getFormattedText();
+        final LivingEntity lentity = (data.entity instanceof LivingEntity) ? ((LivingEntity)data.entity) : null;
 
+        data.name = data.entity.getDisplayName().getFormattedText();
+        data.nameCustom =  data.entity.hasCustomName() ? data.entity.getCustomName() : null;
+        data.nameClass = data.entity.getEntityString();
+        data.tamed = false;
+        data.movementPresent = false;
+        data.isSkeletonTrap = false;
+        data.isLiving = lentity != null;
+        data.isChild = data.isLiving ? lentity.isChild() : false;
+        data.isUndead = data.isLiving ? lentity.isEntityUndead() : false;
+        data.health = data.isLiving ? lentity.getHealth() : -1.0F;
+        data.healthMax = data.isLiving ? lentity.getMaxHealth() : -1.0F;
+        data.armor = data.isLiving ? lentity.getTotalArmorValue() : -1;
+        data.isVillager = false;
+ 
 /**/Informator.R4.add(String.format(
     "%s at %5.2f %5.2f %5.2f distance %5.2f",
     data.name,
@@ -85,14 +128,12 @@ Informator.R4.clear();
 data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));/**/
 
 /*
-
         if (elb != null) // сохраняем время и моба для показа с задержкой
         {
             Informator.lastmobtime = new Date();
             Informator.lastmob = elb;
             ISeeNow = true;
         }
-            
         // реализуем задержку при показе
         if (elb == null &&                     // если в текущий момент моба не наблюдаем
             Informator.lastmob != null &&     // последний виденный моб есть?
@@ -114,77 +155,65 @@ data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));/**/
             ISee = false;
             return;
         }
-        
+
         ISee = true;
         MobHealth = (int)(elb.getHealth());
         MobMaxHealth = (int)(elb.getMaxHealth());
         DistToPlayer = new BigDecimal(elb.getDistance(mc.player)).setScale(1,RoundingMode.UP).doubleValue();
         MobTotalArmor = elb.getTotalArmorValue();
-        
+*/
+
         // конь
-        if(elb instanceof AbstractHorseEntity)
+        if (data.entity instanceof AbstractHorseEntity)
         {
-            double jstrength = ((AbstractHorseEntity)elb).getHorseJumpStrength();
-            
-            // TODO проверять в новых версиях
+            final AbstractHorseEntity horse = (AbstractHorseEntity)data.entity;
+            double jstrength = horse.getHorseJumpStrength();
+
             // метод вычисления скорости из изысканий Румикона
-            // (проверено по исходникам Spigot-а в феврале 2019)
+            // (43.0D - волшебная константа из изысканий Румикона)
+            // также совпало с исследованиями bsrgin и SATALIN по исходникам Spigot-а в феврале 2019
             double jheight= 0;
             while (jstrength > 0)
             {
                  jheight += jstrength;
                  jstrength = (jstrength - 0.08D) * 0.9800000190734863D;
             }
-            
-            // 43 - волшебная константа из изысканий Румикона
-            double speed = 43.0D * ((AbstractHorseEntity)elb).getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue();
-            
-            MobOwner = Functions.getUsernameByUUID(((AbstractHorseEntity)elb).getOwnerUniqueId());
-            MobMovementSpeed = new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
-            MobJumpHeight = new BigDecimal(jheight).setScale(3, RoundingMode.UP).doubleValue();
-            
-            if (elb instanceof SkeletonHorseEntity)
+            final double speed = 43.0D * horse.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue();
+            final UUID owner = horse.getOwnerUniqueId();
+            data.tamed = owner != null;
+            if (data.tamed)
             {
-                IsHorseSkeletonTrap = true;
+                data.nameOwner = Functions.getUsernameByUUID(owner);
             }
-            else
+            data.movementPresent = true;
+            data.movementSpeed = speed; //new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
+            data.jumpHeight = jheight; //new BigDecimal(jheight).setScale(3, RoundingMode.UP).doubleValue();
+            data.isSkeletonTrap = horse instanceof SkeletonHorseEntity;
+        }
+        // приручаемые животные : волк, котик
+        else if (data.entity instanceof TameableEntity)
+        {
+            final UUID owner = ((TameableEntity)data.entity).getOwnerId();
+            data.tamed = owner != null;
+            if (data.tamed)
             {
-                IsHorseSkeletonTrap = false;
+                data.nameOwner = Functions.getUsernameByUUID(owner);
             }
-        }
-        // волк
-        else if (elb instanceof WolfEntity)
-        {
-            MobOwner = Functions.getUsernameByUUID(((WolfEntity)elb).getOwnerId());
-        }
-        // котик
-        else if(elb instanceof CatEntity)
-        {
-            MobOwner = Functions.getUsernameByUUID(((CatEntity)elb).getOwnerId());
         }
         // криппер
-        else if(elb instanceof CreeperEntity)
+        else if (data.entity instanceof CreeperEntity)
         {
-            IsCreeperPowered = ((CreeperEntity)elb).getPowered();
-        }
-    
-        // имя
-        if(elb.hasCustomName())
-        {
-            MobName =  "\'" + elb.getCustomName() + "\'";
+            data.isCreeperPowered = ((CreeperEntity)data.entity).getPowered();
         }
         // крестьянин
-        else if(elb instanceof VillagerEntity)
+        else if(data.entity instanceof VillagerEntity)
         {
-            VillagerEntity villager = (VillagerEntity)elb;
-            VillagerProfession profession = villager.getVillagerData().getProfession();
-            MobName = TxtRes.GetVillagerProfession(profession.getPointOfInterest().toString()); // "unemployed", "cleric", "farmer",...        
+            final VillagerEntity villager = (VillagerEntity)data.entity;
+            data.isVillager = true;
+            data.villagerProfession = villager.getVillagerData().getProfession(); // profession.getPointOfInterest().toString()); // "unemployed", "cleric", "farmer",...
         }
-        else
-        {
-            MobName = elb.getEntityString();
-        }
-    
+
+/*
         // добавки к имени
         if(elb.isChild())
             MobName += ", " + TxtRes.GetLocalText("avttrue.informator.18", "baby");

@@ -68,9 +68,10 @@ public class ModSettings
         // Панели сущностей, на которые смотрим
         public final ForgeConfigSpec.BooleanValue TargetMobBar_Show;
         public final ForgeConfigSpec.IntValue TargetMobBar_DistanceView;
-//        public static int TargetMobBar_WidthScreenPercentage;
-//        public static int TargetMobBar_yPos;
-//        public static int TargetMobBar_xPos;
+        public final ForgeConfigSpec.IntValue TargetMobBar_ScreenWidth;
+        public final ForgeConfigSpec.IntValue TargetMobBar_xOffset;
+        public final ForgeConfigSpec.IntValue TargetMobBar_yOffset;
+        public final ForgeConfigSpec.IntValue TargetMobBar_alignMode; // 0 top_center; 1 top_left; 2 top_right
 //        public static boolean TargetMobBar_DrawMobPortrait;
 //        public static boolean TargetMobBar_DrawBuffIcon;
 //        public static String TargetMobBar_alignMode;
@@ -204,6 +205,18 @@ public class ModSettings
             TargetMobBar_DistanceView = builder
                     .comment("Дистанция видимости объектов [4..64|default:24]")
                     .defineInRange("target_view_distance", 24, 4, 64); // Minecraft.getInstance().playerController.getBlockReachDistance()
+            TargetMobBar_ScreenWidth = builder
+                    .comment("Размер информационной панели, на которой выводится информация о NPC, сущностях [10..100|default:30], в процентах от ширины экрана")
+                    .defineInRange("target_view_distance", 30, 10, 100);
+            TargetMobBar_alignMode = builder
+                    .comment("Расположение панели информации о блоке на экране [0:top_center,1:top_left,2:top_right]")
+                    .defineInRange("target_align", 0, 0, 2);
+            TargetMobBar_xOffset = builder
+                    .comment("Смещение на экране панели информации о NPC, сущностях по оси x [-9999..9999:default:0]")
+                    .defineInRange("target_offset_x", 0, -9999, 9999);
+            TargetMobBar_yOffset = builder
+                    .comment("Смещение на экране панели информации о NPC, сущностях  по оси y [-9999..9999:default:0]")
+                    .defineInRange("target_offset_y", 0, -9999, 9999);
             //----------------------------------------------------------------------
             builder.pop();
         }

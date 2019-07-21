@@ -13,12 +13,12 @@ import net.minecraft.item.ItemStack;
 public class Drawing
 {
     // отрисовка модели сущности на экране
-    public static void drawEntityOnScreen(int x, int y, int scale, float mouseX, float mouseY, LivingEntity entity_elb)
+    public static void drawEntityOnScreen(int x, int y, float scale, float mouseX, float mouseY, LivingEntity entity_elb)
     {
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
         GlStateManager.translatef((float)x, (float)y, 50.0F);
-        GlStateManager.scalef((float)(-scale), (float)scale, (float)scale);
+        GlStateManager.scalef(-scale, scale, scale);
         GlStateManager.rotatef(180.0F, 0.0F, 0.0F, 1.0F);
         float f2 = entity_elb.renderYawOffset;
         float f3 = entity_elb.rotationYaw;

@@ -7,6 +7,9 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.ReportedException;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -26,6 +29,7 @@ import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
+import avttrue.informator.data.CollectedEntityData;
 import avttrue.informator.data.CollectedHeldItemsData;
 import avttrue.informator.data.CollectedHeldItemsData.HeldItem;
 import avttrue.informator.data.CollectedVelocityData;
@@ -37,12 +41,14 @@ import avttrue.informator.tools.TextTranslation;
 public class OnRenderGameOverlay //extends Gui
 {
     private Minecraft mc = Minecraft.getInstance();
-    //private ScaledResolution scaledResolution = null;
-    
+
     private static final int PANEL_TRANSPARENT = 0;
-    private static final int PANEL_STEEL = -9408400;
-    private static final int PANEL_GRAY = Color.lightGray.getRGB();
-    
+    private static final int PANEL_STEEL = (int)0xFF707070; // стальной
+    private static final int PANEL_STEEL_TRANSPARENT = (int)0xA0404040; // стальной, немного прозрачный (для нанесения поверх PANEL_GRAY_TRANSPARENT)
+    private static final int PANEL_GRAY_TRANSPARENT = Color.lightGray.getRGB() + 0x60000000; // светло-серый, почти прозрачный
+    private static final int PANEL_MAROON = (int)0xFFA5072C; // густой красный
+    private static final int PANEL_GREEN = (int)0xFF1AB615; // травянисто-зелёный
+
     private static final int FONT_WHITE = 0xffffff;
     private static final int FONT_GRAY = 0xBFBFBE;
     private static final int FONT_GREEN = 0x00FF00;
@@ -91,22 +97,25 @@ public class OnRenderGameOverlay //extends Gui
             if (ModSettings.GENERAL.EnchantBar_Show.get()) drawEnchantBar();
 
             // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
-            if (ModSettings.GENERAL.TargetMobBar_Show.get())
+            // Block bar
+            if (ModSettings.GENERAL.BlockBar_Show.get())
             {
                 Informator.block.refresh(ModSettings.GENERAL.BlockBar_ShowElectricity.get());
+                if (Informator.block.data.valid) drawBlockBar();
+            }
+            // Target Mob
+            if (ModSettings.GENERAL.TargetMobBar_Show.get())
+            {
                 Informator.entity.refresh();
-                // Block bar
-                if (Informator.block.data.valid && ModSettings.GENERAL.BlockBar_Show.get()) drawBlockBar();
-                // Target Mob
-//if (Informator.TargetMobBar_Show) CreateTargetMobBar();
+                if (Informator.entity.data.valid && (Informator.entity.data.entity != null)) drawTargetBar();
             }
 
             // Thesaurus
-//DrawThesaurusButton();
+            //DrawThesaurusButton();
 
             /***/drawDebugBar();/***/
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             ModSettings.GENERAL.Global_ON.set(false);
             System.out.println(e.getMessage());
@@ -487,7 +496,7 @@ public class OnRenderGameOverlay //extends Gui
         }
     }
 
-    public void drawEnchantBar()
+    private void drawEnchantBar()
     {
         final CollectedEnchantmentsData.Data enchantments = Informator.enchantments.data;
         if (!enchantments.valid) return;
@@ -850,175 +859,234 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
     }
 
-    /*public void CreateTargetMobBar()
+    private void drawTargetBar()
     {
-            if (!view.ISee) return;
-         
-            // позиция и размеры
-            int TargetMobBar_Len = Informator.TargetMobBar_WidthScreenPercentage * mainWndScaledWidth / 100;
-            
-            // custom
-            int TargetMobBar_x = Informator.TargetMobBar_xPos;
-            int TargetMobBar_y = Informator.TargetMobBar_yPos;
-            
-            // по центру
-            if (Informator.TargetMobBar_alignMode.toLowerCase().contains("center"))
-            {
-                TargetMobBar_x = (mainWndScaledWidth - TargetMobBar_Len) / 2;
-                TargetMobBar_y = 0;
-            }
-            // слева
-            else if (Informator.TargetMobBar_alignMode.toLowerCase().contains("topleft"))
-            {
-                TargetMobBar_x = 0;
-                TargetMobBar_y = 0;
-            }
-            // справа
-            else if (Informator.TargetMobBar_alignMode.toLowerCase().contains("topright"))
-            {
-                TargetMobBar_x = mainWndScaledWidth - TargetMobBar_Len;
-                TargetMobBar_y = 0;
-            }
-                        
-            // имя
-            String mobname = view.MobName;
-            int mobnamexpos = TargetMobBar_x + 1 + (TargetMobBar_Len - 2 - mc.fontRendererObj.getStringWidth(mobname)) / 2;
-            
-            // дистанция
-            String mobdist = " " + TextTranslation.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
-            int mobdistlen = mc.fontRendererObj.getStringWidth(mobdist);
-            
-            // доп. характеристики для коней
-            String mobowner = "";
-            String mobspeed = "";
-            String mobjamp = "";
-            int mobaddsetts1len = 0;
-            int mobaddsetts2len = 0;
-            int mobaddsetts3len = 0;
-            if (view.MobOwner != null)
-            {
-                mobowner = " " + TextTranslation.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
-                mobaddsetts1len = mc.fontRendererObj.getStringWidth(mobowner);
-            }
-            if (view.MobMovementSpeed > 0)
-            {
-                mobspeed += " " + TextTranslation.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
-                mobaddsetts2len = mc.fontRendererObj.getStringWidth(mobspeed);
-            }
-            if (view.MobJumpHeight > 0)
-            {
-                mobjamp += " " + TextTranslation.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
-                mobaddsetts3len = mc.fontRendererObj.getStringWidth(mobjamp);
-            }
-                        
-            // отрисовка панелей
+        // ранее уже была выполнена проверка : удалось определить сущность, на которую смотрим
+        CollectedEntityData.Data details = Informator.entity.data;
+
+        // кэшируем значения перменных в этом методе
+        final ClientWorld world = mc.world;
+        final ClientPlayerEntity player = mc.player;
+        //final int dimentionTypeId = world.getDimension().getType().getId();
+
+/*
+        if (!view.ISee) return;
+*/
+        // позиция и размеры
+        final int TargetMobBar_Len = ModSettings.GENERAL.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
+        final int nameLen = mc.fontRenderer.getStringWidth(details.name);
+
+        // расчёт размещения панели
+        int target_xPos;
+        int target_yPos = 0;
+        switch (ModSettings.GENERAL.TargetMobBar_alignMode.get())
+        {
+        default:
+        case 0: // topcenter
+            target_xPos = (mainWndScaledWidth - TargetMobBar_Len) / 2;
+            break;
+        case 1: // topleft
+            target_xPos = 0;
+            break;
+        case 2: // topright
+            target_xPos = mainWndScaledWidth - TargetMobBar_Len;
+            break;
+        }
+        target_xPos += ModSettings.GENERAL.TargetMobBar_xOffset.get();
+        target_yPos += ModSettings.GENERAL.TargetMobBar_yOffset.get();
+
+        // имя
+//        String mobname = view.MobName;
+        
+/*
+        // дистанция
+        String mobdist = " " + TextTranslation.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
+        int mobdistlen = mc.fontRendererObj.getStringWidth(mobdist);
+        
+        // доп. характеристики для коней
+        String mobowner = "";
+        String mobspeed = "";
+        String mobjamp = "";
+        int mobaddsetts1len = 0;
+        int mobaddsetts2len = 0;
+        int mobaddsetts3len = 0;
+        if (view.MobOwner != null)
+        {
+            mobowner = " " + TextTranslation.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
+            mobaddsetts1len = mc.fontRendererObj.getStringWidth(mobowner);
+        }
+        if (view.MobMovementSpeed > 0)
+        {
+            mobspeed += " " + TextTranslation.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
+            mobaddsetts2len = mc.fontRendererObj.getStringWidth(mobspeed);
+        }
+        if (view.MobJumpHeight > 0)
+        {
+            mobjamp += " " + TextTranslation.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
+            mobaddsetts3len = mc.fontRendererObj.getStringWidth(mobjamp);
+        }
+*/
+
+        // отрисовка панелей
+        //игнорируется:if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        {
             // основная панель
-            drawRect(TargetMobBar_x, TargetMobBar_y, TargetMobBar_x + TargetMobBar_Len,
-                    TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 3, PANEL_GRAY);
-            
-            // имя панель
-            drawGradientRect(TargetMobBar_x + 1, TargetMobBar_y + 1, TargetMobBar_x + TargetMobBar_Len - 1,
-                    TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT + 1, PANEL_STEEL, PANEL_TRANSPARENT);
-            
-            // имя текст
-            mc.fontRendererObj.drawStringWithShadow(mobname, mobnamexpos, TargetMobBar_y + 1, FONT_WHITE);
-            
-            // здоровье панель красная
-            if (view.MobMaxHealth > view.MobHealth) // типа экономим
-            {
-                Color cr = new Color(0xA5072C);
-                drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
-                        TargetMobBar_x + TargetMobBar_Len - 1,
-                        TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, cr.getRGB());
-            }
-            
+            GuiUtils.drawGradientRect(0,
+                    target_xPos,
+                    target_yPos,
+                    target_xPos + TargetMobBar_Len,
+                    target_yPos + 1 + STRING_HEIGHT + 1,
+                    PANEL_GRAY_TRANSPARENT,
+                    PANEL_GRAY_TRANSPARENT);
+            // панель имени
+            GuiUtils.drawGradientRect(0,
+                    target_xPos + 1,
+                    target_yPos + 1,
+                    target_xPos + TargetMobBar_Len - 1,
+                    target_yPos + 1 + STRING_HEIGHT,
+                    PANEL_STEEL_TRANSPARENT,
+                    PANEL_TRANSPARENT);
+        }
+        // имя текст
+        mc.fontRenderer.drawStringWithShadow(
+                details.name,
+                target_xPos + 1 + (TargetMobBar_Len - nameLen) / 2,
+                target_yPos + 1 + 1,
+                FONT_WHITE);
+
+        if (details.isLiving)
+        {
+            final String healthStr =
+                    (details.armor == 0) ?
+                    String.format("Жизнь %d/%d", (int)details.health, (int)details.healthMax) :
+                    String.format("Жизнь %d/%d | Броня %d", (int)details.health, (int)details.healthMax, details.armor);
+            final int healthLen = mc.fontRenderer.getStringWidth(healthStr);
+            int healthLineLen = TargetMobBar_Len;
+            final int health_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
+            final int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
+            final int health_wPos = target_xPos + TargetMobBar_Len;
+            final int health_hPos = health_yPos + STRING_HEIGHT + 2;
             // панели здоровья
-            String mobhealth = TextTranslation.GetLocalText("avttrue.informator.19", "Health") + " " +
-                    view.MobHealth + " / " + view.MobMaxHealth + " | " +
-                    TextTranslation.GetLocalText("avttrue.informator.20", "Armor") + " " +
-                    view.MobTotalArmor;
-            int mobhealslinelen = TargetMobBar_Len - 18;
-            int mobhealthXtxtpos = TargetMobBar_x + 18 + (mobhealslinelen - mc.fontRendererObj.getStringWidth(mobhealth)) / 2;
-            if (view.MobHealth <= 0) // типа экономим
-                mobhealslinelen = 1;
-            else if (view.MobMaxHealth > view.MobHealth) // типа экономим
-                mobhealslinelen = (int)(Math.round(((float)view.MobHealth/(float)view.MobMaxHealth) * mobhealslinelen));
+            if (details.health <= 0 || details.healthMax <= 0.01F) // исключительные ситуации (на ноль делить тоже нельзя ;)
+                healthLineLen = 1;
+            else if (details.healthMax > details.health)
+                healthLineLen = (int)(Math.round(((float)details.health/(float)details.healthMax) * healthLineLen));
             // здоровье панель зелёная
-            Color cg = new Color(0x1AB615);
-            drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
-                    TargetMobBar_x + mobhealslinelen + 17,
-                    TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, cg.getRGB());
-            
+            GuiUtils.drawGradientRect(0,
+                    health_xPos,
+                    health_yPos,
+                    target_xPos + healthLineLen,
+                    health_hPos,
+                    PANEL_GREEN,
+                    PANEL_GREEN);
+            // здоровье панель красная
+            if (healthLineLen < TargetMobBar_Len)
+            {
+                GuiUtils.drawGradientRect(0,
+                        target_xPos + healthLineLen,
+                        health_yPos,
+                        target_xPos + TargetMobBar_Len,
+                        health_hPos,
+                        PANEL_MAROON,
+                        PANEL_MAROON);
+            }
             // здоровье панель серая 
-            drawGradientRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
-                                TargetMobBar_x + TargetMobBar_Len,
-                                TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, PANEL_TRANSPARENT, PANEL_GRAY);
-            
+            GuiUtils.drawGradientRect(0,
+                    health_xPos + 1,
+                    health_yPos + 1,
+                    health_wPos - 1,
+                    health_hPos - 1,
+                    PANEL_STEEL,//GRAY_TRANSPARENT,
+                    PANEL_TRANSPARENT);
             // здоровье и броня текст
-            mc.fontRendererObj.drawStringWithShadow(mobhealth, mobhealthXtxtpos, 
-                                                    TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, FONT_WHITE);
-            
-            // портретная панель светлая
-            drawRect(TargetMobBar_x, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
-                    TargetMobBar_x + 18, TargetMobBar_y + 20 + mc.fontRendererObj.FONT_HEIGHT, 
-                    PANEL_GRAY);
-            
-            // рисуем портреты
-            if(view.elb != null && 
-                    Informator.TargetMobBar_DrawMobPortrait)
-            {
-                int scl = (int) (20 / Math.max(view.elb.height, view.elb.width));
-                Drawing.drawEntityOnScreen(TargetMobBar_x + 9, 
-                                        TargetMobBar_y + 18 + mc.fontRendererObj.FONT_HEIGHT, 
-                                        scl, 0, 0, view.elb);
-            }
-            else
-            {
-                mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-                drawTexturedModalRect(TargetMobBar_x + 1, TargetMobBar_y + 3 + mc.fontRendererObj.FONT_HEIGHT, 
-                                        16, 0, Skin.MC_ICON_SIZE, Skin.MC_ICON_SIZE);
-            }
-            
-            // дистанция панель
-            int dist_y = TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 3;
-            int dist_x =TargetMobBar_x + 18;
-            drawGradientRect(dist_x, dist_y, dist_x + mobdistlen, dist_y + mc.fontRendererObj.FONT_HEIGHT, 
+            mc.fontRenderer.drawStringWithShadow(
+                    healthStr,
+                    health_xPos + 1 + (TargetMobBar_Len - (Skin.MC_ICON_SIZE + 2) - healthLen) / 2,
+                    health_yPos + 1 + 1,
+                    FONT_WHITE);
+        }
+
+        // портретная панель светлая
+        GuiUtils.drawGradientRect(0,
+                target_xPos,
+                target_yPos + 1 + STRING_HEIGHT + 1,
+                target_xPos + (Skin.MC_ICON_SIZE + 2),
+                target_yPos + 1 + STRING_HEIGHT + 1 + (Skin.MC_ICON_SIZE + 2),
+                PANEL_GRAY_TRANSPARENT,
+                PANEL_GRAY_TRANSPARENT);
+        
+        // рисуем портреты
+        
+        if (details.isLiving &&
+            !mc.skipRenderWorld &&
+            (world != null) &&
+            (player != null) &&
+            Minecraft.isGuiEnabled() &&
+            !mc.isGamePaused() &&
+            (mc.getRenderViewEntity() != null)
+//                && Informator.TargetMobBar_DrawMobPortrait
+                )
+        {
+            float scale = (float)Skin.MC_ICON_SIZE / Math.max(details.entity.getHeight(), details.entity.getWidth());
+            try {
+                Drawing.drawEntityOnScreen(
+                        target_xPos + 1 + Skin.MC_ICON_SIZE/2/*отсчёт от центра?*/,
+                        target_yPos + 1 + STRING_HEIGHT + 1 + (2/*поправка?*/ + Skin.MC_ICON_SIZE),
+                        scale, 0, 0,
+                        (LivingEntity)details.entity);
+            } catch (Exception e) { } // почему-то рисовалка портретов падает при первом старте, если entity в прицеле, а мир загружается
+        }
+/*
+        else
+        {
+            mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
+            drawTexturedModalRect(target_xPos + 1, target_yPos + 3 + STRING_HEIGHT, 
+                                    16, 0, Skin.MC_ICON_SIZE, Skin.MC_ICON_SIZE);
+        }
+*/
+
+/*
+        // дистанция панель
+        int dist_y = target_yPos + STRING_HEIGHT * 2 + 3;
+        int dist_x =target_xPos + 18;
+        drawGradientRect(dist_x, dist_y, dist_x + mobdistlen, dist_y + STRING_HEIGHT, 
+                        PANEL_STEEL, PANEL_TRANSPARENT);
+                                
+        // дистанция текст
+        mc.fontRendererObj.drawStringWithShadow(mobdist, dist_x, dist_y, FONT_WHITE);            
+        
+        // дополнительные характеристики / коня, собачек и кошечек
+        if(!mobowner.isEmpty() || !mobspeed.isEmpty() || !mobjamp.isEmpty())
+        {
+        // панель
+            dist_y = target_yPos + STRING_HEIGHT * 3 + 3;
+            drawGradientRect(dist_x, dist_y, 
+                            dist_x + mobaddsetts1len + mobaddsetts2len + mobaddsetts3len + 3, 
+                            dist_y + STRING_HEIGHT, 
                             PANEL_STEEL, PANEL_TRANSPARENT);
-                                    
-            // дистанция текст
-            mc.fontRendererObj.drawStringWithShadow(mobdist, dist_x, dist_y, FONT_WHITE);            
-            
-            // дополнительные характеристики / коня, собачек и кошечек
-            if(!mobowner.isEmpty() || !mobspeed.isEmpty() || !mobjamp.isEmpty())
-            {
-            // панель
-                dist_y = TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 3 + 3;
-                drawGradientRect(dist_x, dist_y, 
-                                dist_x + mobaddsetts1len + mobaddsetts2len + mobaddsetts3len + 3, 
-                                dist_y + mc.fontRendererObj.FONT_HEIGHT, 
-                                PANEL_STEEL, PANEL_TRANSPARENT);
-            // текст
-                mc.fontRendererObj.drawStringWithShadow(mobowner, dist_x, dist_y, FONT_WHITE);
-                dist_x += mobaddsetts1len;
-                if(view.MobMovementSpeed >= 13.0D)
-                    mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_AQUA); 
-                else if(view.MobMovementSpeed >= 11.0D)
-                    mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_GREEN);
-                else if(view.MobMovementSpeed >= 8.0D)
-                    mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_WHITE);
-                else
-                    mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_RED);
-                dist_x += mobaddsetts2len;
-                if(view.MobJumpHeight >= 5.0D)
-                    mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_AQUA);
-                else if(view.MobJumpHeight >= 4.0D)
-                    mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_GREEN);
-                else if(view.MobJumpHeight >= 2.75D)
-                    mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_WHITE); 
-                else
-                    mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
-            }    
-    }*/
+        // текст
+            mc.fontRendererObj.drawStringWithShadow(mobowner, dist_x, dist_y, FONT_WHITE);
+            dist_x += mobaddsetts1len;
+            if(view.MobMovementSpeed >= 13.0D)
+                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_AQUA); 
+            else if(view.MobMovementSpeed >= 11.0D)
+                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_GREEN);
+            else if(view.MobMovementSpeed >= 8.0D)
+                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_WHITE);
+            else
+                mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_RED);
+            dist_x += mobaddsetts2len;
+            if(view.MobJumpHeight >= 5.0D)
+                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_AQUA);
+            else if(view.MobJumpHeight >= 4.0D)
+                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_GREEN);
+            else if(view.MobJumpHeight >= 2.75D)
+                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_WHITE); 
+            else
+                mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
+        }
+*/
+    }
 
     private void DrawSkinIcon(int x, int y, Skin skin, int idx)
     {
