@@ -7,8 +7,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -113,7 +111,7 @@ public class OnRenderGameOverlay //extends Gui
             // Thesaurus
             //DrawThesaurusButton();
 
-            /***/drawDebugBar();/***/
+            /***drawDebugBar();/***/
         }
         catch (Exception e)
         {
@@ -1186,7 +1184,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
     }
 
-    /***/private void drawDebugBar()
+    /***private void drawDebugBar()
     {
         // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
         final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;

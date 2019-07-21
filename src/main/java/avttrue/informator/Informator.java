@@ -1,7 +1,5 @@
 package avttrue.informator;
 
-import java.util.ArrayList;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,9 +60,9 @@ public class Informator
     public static CollectedEntityData entity = new CollectedEntityData();
 
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
-    //public static float R0 = 0;
+/** //public static float R0 = 0;
     public static Integer R1 = null, R2 = null, R3 = null;
-    public static ArrayList<String> R4 = new ArrayList<String>();
+    public static ArrayList<String> R4 = new ArrayList<String>();/**/
 
     // Хватит руться в Интернете!
     // правильный (актуальный) пример (и последовательность) инициализации см. в net.minecraftforge.common.ForgeMod
@@ -125,6 +123,6 @@ public class Informator
     public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
     {
         System.out.printf("Config Changed %s %s", event.getModID(), event.getConfigID());
-        if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;
+        /**if (Informator.R1 == null) Informator.R1 = new Integer(1); else Informator.R1++;/**/
     }
 }
