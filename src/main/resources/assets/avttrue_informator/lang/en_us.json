@@ -30,5 +30,7 @@
   "avttrue.informator.onleft": "on left",
   "avttrue.informator.onright": "on right",
   "avttrue.informator.ontop": "on top",
-  "avttrue.informator.below": "below"
+  "avttrue.informator.below": "below",
+  "avttrue.informator.outdated": "§eNew §eversion §e(§7{0}§e) §efor §a{1} §eis §eavailable §for §Minecraft §Forge §e{2}!\n§eDownload §eat: §a{3}",
+  "avttrue.informator.click_to_download": "Click to open download page."
 }

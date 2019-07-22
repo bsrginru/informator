@@ -30,5 +30,7 @@
   "avttrue.informator.onleft": "слева",
   "avttrue.informator.onright": "справа",
   "avttrue.informator.ontop": "сверху",
-  "avttrue.informator.below": "снизу"
+  "avttrue.informator.below": "снизу",
+  "avttrue.informator.outdated": "§eДоступна §eновая §eверсия §e(§7{0}§e) §eмода §a{1} §eдля §eforge §e{2}!\n§eСкачать §eмод §eможно §eпо §eадресу: §a{3}",
+  "avttrue.informator.click_to_download": "Открыть ссылку."
 }
