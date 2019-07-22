@@ -15,12 +15,18 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.LightType;
 
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.VersionChecker;
+import net.minecraftforge.fml.VersionChecker.CheckResult;
 import net.minecraftforge.fml.client.config.GuiUtils;
+import net.minecraftforge.forgespi.language.IModInfo;
+import net.minecraftforge.versions.forge.ForgeVersion;
 
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
@@ -64,13 +70,65 @@ public class OnRenderGameOverlay //extends Gui
     private static final int BUFF_ICON_BASE_V_OFFSET = 198;
     private static final int BUFF_ICONS_PER_ROW = 8;
     private static final String mobsetts = null;
-    
+
     private int mainWndScaledWidth;
     private int mainWndScaledHeight;
+
+    private boolean versionChecked = false;
+    private long checkVersionFirstTick = 0;
+
+    private void checkVersion()
+    {
+        // если игра ещё не активна
+        if (!mc.isGameFocused() || mc.player == null)  return;
+        // начинаем отсчёт в 3 секунды
+        if (checkVersionFirstTick == 0) { checkVersionFirstTick = Informator.realTimeTick; return; }
+        // проверяем, что разница более чем в 10*300=3000ms
+        // простецким образом проверяем переход счётчика через 0
+        if (Math.abs(Informator.realTimeTick - checkVersionFirstTick) < 300) return;
+        versionChecked = true;
+        // получаем информации о ерсии мода (здесь она не грузится... а УЖЕ готова, т.к. считывалась с серверов по время загрузки клиента)
+        IModInfo mod = ModList.get().getModFileById(Informator.MODID).getMods().get(0);
+        CheckResult res = VersionChecker.getResult(mod);
+        if (res == null) return; // проблемы с получением информации по указанному MODID? сменился в .toml файле?
+        switch (res.status)
+        {
+        default:
+        case FAILED: // невозможно подключиться к указанному url
+        case UP_TO_DATE: // текущая версия равна последней стабильной версии, или новее
+            return;
+        case PENDING: // запрошенный результат еще не завершен (повторяем проверку через 3 сек)
+            versionChecked = false;
+            checkVersionFirstTick = 0;
+            return;
+        case OUTDATED: // есть новая стабильная версия
+        case BETA_OUTDATED: // существует новая нестабильная версия
+        case BETA: // текущая версия равна или новее последней нестабильной версии
+            //return;
+            break;
+        }
+        
+        
+        ITextComponent comp = new StringTextComponent(
+                "\u00a7eNew version (\u00a77" + res.target + "\u00a7e) for\u00a7a " + mod.getDisplayName() + " \u00a7eis available for Minecraft Forge " + ForgeVersion.getVersion() + "!\n\u00a7bDownload at: \u00a7a" + res.url
+        );
+        Informator.TOOLS.SendMessageToUser(comp);
+        
+        Informator.R4.add(res.status.name());
+        if (res.target != null)
+        {
+            Informator.R4.add(res.target.toString());
+        }
+    }
 
     @SubscribeEvent
     public void onRenderInformatorBars(RenderGameOverlayEvent event) 
     {
+        if (!versionChecked)
+        {
+            checkVersion();
+        }
+
         // выключили по горячей клавише
         if (!ModSettings.GENERAL.Global_ON.get()) return;
         // показывает в отрисовке хотбара
@@ -111,7 +169,7 @@ public class OnRenderGameOverlay //extends Gui
             // Thesaurus
             //DrawThesaurusButton();
 
-            /***drawDebugBar();/***/
+            /***/drawDebugBar();/***/
         }
         catch (Exception e)
         {
@@ -1201,7 +1259,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
     }
 
-    /***private void drawDebugBar()
+    /***/private void drawDebugBar()
     {
         // включаем отладку (скрытую), если поменялись тестовые регистры, то будет заменена надпись в тек.временем на их значения
         final boolean nums = Informator.R1 != null || Informator.R2 != null || Informator.R3 != null;
