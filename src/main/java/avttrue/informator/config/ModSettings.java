@@ -207,7 +207,7 @@ public class ModSettings
                     .defineInRange("target_view_distance", 24, 4, 64); // Minecraft.getInstance().playerController.getBlockReachDistance()
             TargetMobBar_ScreenWidth = builder
                     .comment("Размер информационной панели, на которой выводится информация о NPC, сущностях [10..100|default:30], в процентах от ширины экрана")
-                    .defineInRange("target_view_distance", 30, 10, 100);
+                    .defineInRange("target_width", 30, 10, 100);
             TargetMobBar_alignMode = builder
                     .comment("Расположение панели информации о блоке на экране [0:top_center,1:top_left,2:top_right]")
                     .defineInRange("target_align", 0, 0, 2);
