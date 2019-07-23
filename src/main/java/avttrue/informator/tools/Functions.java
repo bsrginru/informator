@@ -124,7 +124,7 @@ public class Functions
             break;
         }
         final String ver = (res.target == null) ? "???" : res.target.toString(); // м.б. null
-        ITextComponent comp = new StringTextComponent(ForgeI18n.parseMessage("avttrue.informator.outdated", // не знаю пока как загрузить готовый ресурс, наверное никак...
+        ITextComponent comp = new StringTextComponent(ForgeI18n.parseMessage(Informator.TRANSLATOR.field_outdated.getFormattedText(),
                 ver,
                 mod.getDisplayName(),
                 ForgeVersion.getVersion(),

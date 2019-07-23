@@ -2,7 +2,6 @@
   "avttrue_informator.name": "Informator",
   "avttrue_informator.key.keyboard.enable": "Display information",
   "avttrue_informator.key.keyboard.lighting": "Displays the level of illumination",
-  "avttrue.thesaurus.1": "Thesaurus",
   "avttrue.informator.velocity": "Velocity: ",
   "avttrue.informator.blocks_per_sec": "b/s",
   "avttrue.informator.moon_phase": "Phase",
@@ -32,5 +31,6 @@
   "avttrue.informator.ontop": "on top",
   "avttrue.informator.below": "below",
   "avttrue.informator.outdated": "§eNew §eversion §e(§7{0}§e) §efor §a{1} §eis §eavailable §for §Minecraft §Forge §e{2}!\n§eDownload §eat: §a{3}",
-  "avttrue.informator.click_to_download": "Click to open download page."
-}
+  "avttrue.informator.click_to_download": "Click to open download page.",
+  "avttrue.informator.health": "Health {0}/{1}",
+  "avttrue.informator.health_and_armor": "Health {0}/{1} | Armor {2}"}

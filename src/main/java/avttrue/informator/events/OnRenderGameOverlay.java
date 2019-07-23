@@ -20,6 +20,7 @@ import net.minecraft.world.LightType;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ForgeI18n;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
 import avttrue.informator.Informator;
@@ -929,8 +930,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         {
             final String healthStr =
                     (details.armor == 0) ?
-                    String.format("Жизнь %d/%d", (int)details.health, (int)details.healthMax) :
-                    String.format("Жизнь %d/%d | Броня %d", (int)details.health, (int)details.healthMax, details.armor);
+                    ForgeI18n.parseMessage(Informator.TRANSLATOR.field_health.getFormattedText(), (int)details.health, (int)details.healthMax) :
+                    ForgeI18n.parseMessage(Informator.TRANSLATOR.field_health_and_armor.getFormattedText(), (int)details.health, (int)details.healthMax, details.armor);
             final int healthLen = mc.fontRenderer.getStringWidth(healthStr);
             int healthLineLen = TargetMobBar_Len;
             final int health_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
@@ -1046,7 +1047,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             if (details.tamed)
             {
                 if (details.nameOwner == null || details.nameOwner.isEmpty())
-                    ownerStr = "Приручен(а): ???";
+                    ownerStr = "Приручен: ???";
                 else
                     ownerStr = String.format("Чей: %s", details.nameOwner);
                 ownerLen = mc.fontRenderer.getStringWidth(ownerStr);
@@ -1084,23 +1085,17 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             }
             if (details.movementPresent)
             {
-                if (details.movementSpeed >= 13.0D)
-                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_AQUA); 
-                else if (details.movementSpeed >= 11.0D)
-                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_GREEN);
-                else if (details.movementSpeed >= 8.0D)
-                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_WHITE);
-                else
-                    mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, FONT_RED);
+                int movement_color = FONT_RED;
+                int jump_color = FONT_RED;
+                if (details.movementSpeed >= 13.0D)      movement_color = FONT_AQUA; 
+                else if (details.movementSpeed >= 11.0D) movement_color = FONT_GREEN;
+                else if (details.movementSpeed >= 8.0D)  movement_color = FONT_WHITE;
+                if (details.jumpHeight >= 5.0D)          jump_color = FONT_AQUA;
+                else if (details.jumpHeight >= 4.0D)     jump_color = FONT_GREEN;
+                else if (details.jumpHeight >= 2.75D)    jump_color = FONT_WHITE; 
+                mc.fontRenderer.drawStringWithShadow(movementSpeedStr, details_xPos, detatils_yPos, movement_color);
                 details_xPos += (movementSpeedLen + STRING_PREFIX_px);
-                if (details.jumpHeight >= 5.0D)
-                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_AQUA);
-                else if (details.jumpHeight >= 4.0D)
-                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_GREEN);
-                else if (details.jumpHeight >= 2.75D)
-                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_WHITE); 
-                else
-                    mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, FONT_RED);
+                mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, jump_color);
             }
         }
     }

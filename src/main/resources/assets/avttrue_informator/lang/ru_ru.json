@@ -2,7 +2,6 @@
   "avttrue_informator.name": "Информатор",
   "avttrue_informator.key.keyboard.enable": "Вывод сведений на экран",
   "avttrue_informator.key.keyboard.lighting": "Отображение уровня освещённости",
-  "avttrue.thesaurus.1": "Тезаурус",
   "avttrue.informator.velocity": "Скорость: ",
   "avttrue.informator.blocks_per_sec": "б/с",
   "avttrue.informator.moon_phase": "Фаза",
@@ -32,5 +31,7 @@
   "avttrue.informator.ontop": "сверху",
   "avttrue.informator.below": "снизу",
   "avttrue.informator.outdated": "§eДоступна §eновая §eверсия §e(§7{0}§e) §eмода §a{1} §eдля §eforge §e{2}!\n§eСкачать §eмод §eможно §eпо §eадресу: §a{3}",
-  "avttrue.informator.click_to_download": "Открыть ссылку."
+  "avttrue.informator.click_to_download": "Открыть ссылку.",
+  "avttrue.informator.health": "Жизнь {0}/{1}",
+  "avttrue.informator.health_and_armor": "Жизнь {0}/{1} | Броня {2}"
 }

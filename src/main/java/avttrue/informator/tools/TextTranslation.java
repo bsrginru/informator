@@ -38,8 +38,10 @@ public class TextTranslation
     public ITextComponent field_onright = new TranslationTextComponent("avttrue.informator.onright");
     public ITextComponent field_ontop = new TranslationTextComponent("avttrue.informator.ontop");
     public ITextComponent field_below = new TranslationTextComponent("avttrue.informator.below");
-    //public ITextComponent field_outdated = new TranslationTextComponent("avttrue.informator.outdated");
+    public ITextComponent field_outdated = new TranslationTextComponent("avttrue.informator.outdated");
     public ITextComponent field_click_to_download = new TranslationTextComponent("avttrue.informator.click_to_download");
+    public ITextComponent field_health = new TranslationTextComponent("avttrue.informator.health");
+    public ITextComponent field_health_and_armor = new TranslationTextComponent("avttrue.informator.health_and_armor");
 
     //
     // возвращает название профессии селянина по ID
