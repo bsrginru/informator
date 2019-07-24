@@ -67,14 +67,14 @@ public class ModSettings
         //----------------------------------------------------------------------
         // Панели сущностей, на которые смотрим
         public final ForgeConfigSpec.BooleanValue TargetMobBar_Show;
+        public final ForgeConfigSpec.BooleanValue TargetMobBar_ShowDistance;
         public final ForgeConfigSpec.IntValue TargetMobBar_DistanceView;
         public final ForgeConfigSpec.IntValue TargetMobBar_ScreenWidth;
         public final ForgeConfigSpec.IntValue TargetMobBar_xOffset;
         public final ForgeConfigSpec.IntValue TargetMobBar_yOffset;
         public final ForgeConfigSpec.IntValue TargetMobBar_alignMode; // 0 top_center; 1 top_left; 2 top_right
-//        public static boolean TargetMobBar_DrawMobPortrait;
+        public final ForgeConfigSpec.BooleanValue TargetMobBar_ShowPortrait;
 //        public static boolean TargetMobBar_DrawBuffIcon;
-//        public static String TargetMobBar_alignMode;
 //        public static int TargetMobBar_ViewDelay;
 //        public static boolean TargetMobBar_SeachOwnerInWeb;
 //        public static int TargetMobBar_OwnerDataPeriod;
@@ -230,9 +230,12 @@ public class ModSettings
             TargetMobBar_Show = builder
                     .comment("Включает/отключает информацию о сущностях (блоки и NPC), на которые смотрим [false/true|default:true]")
                     .define("target_show", true);
+            TargetMobBar_ShowDistance = builder
+                    .comment("Включает/отключает отображение дистанции до существа [false/true|default:true]")
+                    .define("target_show_distance", true);
             TargetMobBar_DistanceView = builder
-                    .comment("Дистанция видимости объектов [4..64|default:24]")
-                    .defineInRange("target_distance", 24, 4, 64); // Minecraft.getInstance().playerController.getBlockReachDistance()
+                    .comment("Дистанция видимости существ [4..64|default:24], учитывается при target_show_distance=true")
+                    .defineInRange("target_distance", 32, 4, 64); // Minecraft.getInstance().playerController.getBlockReachDistance()
             TargetMobBar_ScreenWidth = builder
                     .comment("Размер информационной панели, на которой выводится информация о NPC, сущностях [10..100|default:30], в процентах от ширины экрана")
                     .defineInRange("target_width", 30, 10, 100);
@@ -245,6 +248,9 @@ public class ModSettings
             TargetMobBar_yOffset = builder
                     .comment("Смещение на экране панели информации о NPC, сущностях  по оси y [-9999..9999:default:0]")
                     .defineInRange("target_offset_y", 0, -9999, 9999);
+            TargetMobBar_ShowPortrait = builder
+                    .comment("Отображение портрета существа на которого направлен взгляд персонажа [false/true|default:true]")
+                    .define("target_show_portrait", true);
             //----------------------------------------------------------------------
             builder.pop();
         }

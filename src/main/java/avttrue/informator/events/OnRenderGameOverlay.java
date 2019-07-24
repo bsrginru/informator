@@ -869,6 +869,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
         //final int dimentionTypeId = world.getDimension().getType().getId();
+        final boolean portraitPresent = ModSettings.GENERAL.TargetMobBar_ShowPortrait.get();
 
 /*
         if (!view.ISee) return;
@@ -876,9 +877,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         // позиция и размеры
         final int TargetMobBar_Len = ModSettings.GENERAL.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
         final int nameLen = mc.fontRenderer.getStringWidth(details.name);
-        // дистанция
-        final String distStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_distance.getFormattedText(), String.format("%3.1f", details.distance));
-        final int distLen = mc.fontRenderer.getStringWidth(distStr) + STRING_GROW_px;
+        final int portraitBorder = 2;
+        final int portraitSize = portraitPresent ? (Skin.MC_ICON_SIZE + portraitBorder) : 0;
 
         // расчёт размещения панели
         int target_xPos;
@@ -934,7 +934,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                     ForgeI18n.parseMessage(Informator.TRANSLATOR.field_health_and_armor.getFormattedText(), (int)details.health, (int)details.healthMax, details.armor);
             final int healthLen = mc.fontRenderer.getStringWidth(healthStr);
             int healthLineLen = TargetMobBar_Len;
-            final int health_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
+            final int health_xPos = target_xPos + portraitSize;
             final int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
             final int health_wPos = target_xPos + TargetMobBar_Len;
             final int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
@@ -973,66 +973,75 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             // здоровье и броня текст
             mc.fontRenderer.drawStringWithShadow(
                     healthStr,
-                    health_xPos + 1 + (TargetMobBar_Len - (Skin.MC_ICON_SIZE + 2) - healthLen) / 2,
+                    health_xPos + 1 + (TargetMobBar_Len - portraitSize - healthLen) / 2,
                     health_yPos + 1 + 1,
                     FONT_WHITE);
         }
 
-        // портретная панель светлая
-        GuiUtils.drawGradientRect(0,
-                target_xPos,
-                target_yPos + 1 + STRING_HEIGHT + 1,
-                target_xPos + (Skin.MC_ICON_SIZE + 2),
-                target_yPos + 1 + STRING_HEIGHT + 1 + (Skin.MC_ICON_SIZE + 2),
-                PANEL_GRAY_TRANSPARENT,
-                PANEL_GRAY_TRANSPARENT);
-        
         // рисуем портреты
-        
-        if (details.isLiving &&
-            !mc.skipRenderWorld &&
-            (world != null) &&
-            (player != null) &&
-            Minecraft.isGuiEnabled() &&
-            !mc.isGamePaused() &&
-            (mc.getRenderViewEntity() != null)
-//                && Informator.TargetMobBar_DrawMobPortrait
-                )
+        if (portraitPresent)
         {
-            float scale = (float)Skin.MC_ICON_SIZE / Math.max(details.entity.getHeight(), details.entity.getWidth());
-            try {
-                Drawing.drawEntityOnScreen(
-                        target_xPos + 1 + Skin.MC_ICON_SIZE/2/*отсчёт от центра?*/,
-                        target_yPos + 1 + STRING_HEIGHT + 1 + (2/*поправка?*/ + Skin.MC_ICON_SIZE),
-                        scale, 0, 0,
-                        (LivingEntity)details.entity);
-            } catch (Exception e) { } // почему-то рисовалка портретов падает при первом старте, если entity в прицеле, а мир загружается
-        }
+            // портретная панель светлая
+            GuiUtils.drawGradientRect(0,
+                    target_xPos,
+                    target_yPos + 1 + STRING_HEIGHT + 1,
+                    target_xPos + portraitSize,
+                    target_yPos + 1 + STRING_HEIGHT + 1 + portraitSize,
+                    PANEL_GRAY_TRANSPARENT,
+                    PANEL_GRAY_TRANSPARENT);
+            // рисуем портрет
+            if (details.isLiving &&
+                !mc.skipRenderWorld &&
+                (world != null) &&
+                (player != null) &&
+                Minecraft.isGuiEnabled() &&
+                !mc.isGamePaused() &&
+                (mc.getRenderViewEntity() != null))
+            {
+                float scale = (float)(portraitSize-portraitBorder) / Math.max(details.entity.getHeight(), details.entity.getWidth());
+                try {
+                    Drawing.drawEntityOnScreen(
+                            target_xPos + 1 + (portraitSize-portraitBorder)/2/*отсчёт от центра?*/,
+                            target_yPos + 1 + STRING_HEIGHT + 1 + portraitSize,
+                            scale, 0, 0,
+                            (LivingEntity)details.entity);
+                } catch (Exception e) { } // почему-то рисовалка портретов падает при первом старте, если entity в прицеле, а мир загружается
+            }
 /*
-        else
-        {
-            mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-            drawTexturedModalRect(target_xPos + 1, target_yPos + 3 + STRING_HEIGHT, 
-                                    16, 0, Skin.MC_ICON_SIZE, Skin.MC_ICON_SIZE);
-        }
+            else
+            {
+                mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
+                drawTexturedModalRect(target_xPos + 1, target_yPos + 3 + STRING_HEIGHT, 
+                                        16, 0, portraitSize-portraitBorder, portraitSize-portraitBorder);
+            }
 */
+        }
 
-        // дистанция панель
-        final int dist_xPos = target_xPos + (Skin.MC_ICON_SIZE + 2);
-        final int dist_yPos = target_yPos + (STRING_HEIGHT + 2) * 2;
-        GuiUtils.drawGradientRect(0,
-                dist_xPos,
-                dist_yPos,
-                dist_xPos + distLen,
-                dist_yPos + STRING_HEIGHT,
-                PANEL_STEEL,//GRAY_TRANSPARENT,
-                PANEL_TRANSPARENT);
-        // дистанция текст
-        mc.fontRenderer.drawStringWithShadow(
-                distStr,
-                dist_xPos + STRING_PREFIX_px,
-                dist_yPos + 1,
-                FONT_WHITE);
+        // дистанция
+        int shownLines = 0;
+        if (ModSettings.GENERAL.TargetMobBar_ShowDistance.get())
+        {
+            // дистанция, расчёт
+            final String distStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_distance.getFormattedText(), String.format("%3.1f", details.distance));
+            final int distLen = mc.fontRenderer.getStringWidth(distStr) + STRING_GROW_px;
+            final int dist_xPos = target_xPos + portraitSize;
+            final int dist_yPos = target_yPos + (STRING_HEIGHT + 2) * 2;
+            shownLines++;
+            // дистанция панель
+            GuiUtils.drawGradientRect(0,
+                    dist_xPos,
+                    dist_yPos,
+                    dist_xPos + distLen,
+                    dist_yPos + STRING_HEIGHT,
+                    PANEL_STEEL,//GRAY_TRANSPARENT,
+                    PANEL_TRANSPARENT);
+            // дистанция текст
+            mc.fontRenderer.drawStringWithShadow(
+                    distStr,
+                    dist_xPos + STRING_PREFIX_px,
+                    dist_yPos + 1,
+                    FONT_WHITE);
+        }
 
         // дополнительные характеристики / коня, собачек и кошечек
         if (details.tamed || details.movementPresent)
@@ -1067,8 +1076,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             }
 
             // панель
-            int details_xPos = dist_xPos;
-            final int detatils_yPos = target_yPos + (STRING_HEIGHT+2) * 3 + 1; // +1 добавлен для того, чтобы потом не выравнивать каждую надпись
+            int details_xPos = target_xPos + portraitSize;
+            final int detatils_yPos = target_yPos + (STRING_HEIGHT+2) * (2+shownLines) + 1; // +1 добавлен для того, чтобы потом не выравнивать каждую надпись
             GuiUtils.drawGradientRect(0,
                     details_xPos,
                     (detatils_yPos-1),
@@ -1097,6 +1106,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                 details_xPos += (movementSpeedLen + STRING_PREFIX_px);
                 mc.fontRenderer.drawStringWithShadow(jumpHeightStr, details_xPos, detatils_yPos, jump_color);
             }
+            shownLines++;
         }
     }
 
