@@ -877,7 +877,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         final int TargetMobBar_Len = ModSettings.GENERAL.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
         final int nameLen = mc.fontRenderer.getStringWidth(details.name);
         // дистанция
-        final String distStr = String.format("Дистанция: %3.1f", details.distance);
+        final String distStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_distance.getFormattedText(), String.format("%3.1f", details.distance));
         final int distLen = mc.fontRenderer.getStringWidth(distStr) + STRING_GROW_px;
 
         // расчёт размещения панели
@@ -1047,21 +1047,21 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             if (details.tamed)
             {
                 if (details.nameOwner == null || details.nameOwner.isEmpty())
-                    ownerStr = "Приручен: ???";
+                    ownerStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_whose.getFormattedText(), "???");
                 else
-                    ownerStr = String.format("Чей: %s", details.nameOwner);
+                    ownerStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_whose.getFormattedText(), details.nameOwner);
                 ownerLen = mc.fontRenderer.getStringWidth(ownerStr);
             }
             if (details.movementPresent)
             {
                 if (details.movementSpeed > 0)
                 {
-                    movementSpeedStr = String.format("Б.: %4.2f", details.movementSpeed);
+                    movementSpeedStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_movement_speed.getFormattedText(), String.format("%4.2f", details.movementSpeed));
                     movementSpeedLen = mc.fontRenderer.getStringWidth(movementSpeedStr);
                 }
                 if (details.jumpHeight > 0)
                 {
-                    jumpHeightStr = String.format("П.: %4.2f", details.jumpHeight);
+                    jumpHeightStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_jump_height.getFormattedText(), String.format("%4.2f", details.jumpHeight));
                     jumpHeightLen = mc.fontRenderer.getStringWidth(jumpHeightStr);
                 }
             }

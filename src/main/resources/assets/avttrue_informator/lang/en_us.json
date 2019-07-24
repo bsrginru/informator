@@ -33,4 +33,9 @@
   "avttrue.informator.outdated": "§eNew §eversion §e(§7{0}§e) §efor §a{1} §eis §eavailable §for §Minecraft §Forge §e{2}!\n§eDownload §eat: §a{3}",
   "avttrue.informator.click_to_download": "Click to open download page.",
   "avttrue.informator.health": "Health {0}/{1}",
-  "avttrue.informator.health_and_armor": "Health {0}/{1} | Armor {2}"}
+  "avttrue.informator.health_and_armor": "Health {0}/{1} | Armor {2}",
+  "avttrue.informator.whose": "Whose: {0}",
+  "avttrue.informator.movement_speed": "S: {0}",
+  "avttrue.informator.jump_height": "J: {0}",
+  "avttrue.informator.distance": "Distance: {0}"
+}

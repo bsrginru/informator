@@ -33,5 +33,9 @@
   "avttrue.informator.outdated": "§eДоступна §eновая §eверсия §e(§7{0}§e) §eмода §a{1} §eдля §eforge §e{2}!\n§eСкачать §eмод §eможно §eпо §eадресу: §a{3}",
   "avttrue.informator.click_to_download": "Открыть ссылку.",
   "avttrue.informator.health": "Жизнь {0}/{1}",
-  "avttrue.informator.health_and_armor": "Жизнь {0}/{1} | Броня {2}"
+  "avttrue.informator.health_and_armor": "Жизнь {0}/{1} | Броня {2}",
+  "avttrue.informator.whose": "Чей: {0}",
+  "avttrue.informator.movement_speed": "Б: {0}",
+  "avttrue.informator.jump_height": "П: {0}",
+  "avttrue.informator.distance": "Дистанция: {0}"
 }
