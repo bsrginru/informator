@@ -20,8 +20,8 @@ public class OnRenderTick
                 Informator.weather.collectDataDuringTick(Informator.realTimeTick);
                 Informator.enchantments.collectDataDuringTick(
                         Informator.realTimeTick,
-                        ModSettings.GENERAL.EnchantBar_ShowHands.get(),
-                        ModSettings.GENERAL.EnchantBar_ShowBody.get());
+                        ModSettings.ENCHANTS.EnchantBar_ShowHands.get(),
+                        ModSettings.ENCHANTS.EnchantBar_ShowBody.get());
             }
             else //подразумевается: if (event.phase == TickEvent.Phase.END)
             {

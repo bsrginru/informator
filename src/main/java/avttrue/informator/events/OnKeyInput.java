@@ -41,7 +41,7 @@ public class OnKeyInput
         //    }
         }
         
-        else if (KeyBindings.InformatorDebug.isPressed())
+        /***else if (KeyBindings.InformatorDebug.isPressed())
         {
             //!!!debug only
             kuk++; 
@@ -55,7 +55,7 @@ public class OnKeyInput
             ModSettings.GENERAL.BlockBar_ShowIcons.set(((kuk / 8) % 2) == 0);
             ModSettings.GENERAL.BlockBar_ShowPlayerOffset.set(((kuk / 16) % 2) == 0);
             ModSettings.GENERAL.BlockBar_ShowName.set(((kuk / 32) % 2) == 0);
-        }
+        }/***/
     }
 
     static int kuk = 0;

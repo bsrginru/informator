@@ -97,7 +97,7 @@ public class CollectedEntityData
             // если метод searchTarget выдал true, то сущность на которую смотрим найдена и сохранена
             // в структуре data, кроме того, сохранена точка, куда направлен взгляд персонажа, а также
             // сохранена дистанция до цели
-            if (!searchTarget(ModSettings.GENERAL.TargetMobBar_DistanceView.get())) return; // mc.playerController.getBlockReachDistance()
+            if (!searchTarget(ModSettings.TARGET.TargetMobBar_DistanceView.get())) return; // mc.playerController.getBlockReachDistance()
         }
         if (!data.valid) return;
 

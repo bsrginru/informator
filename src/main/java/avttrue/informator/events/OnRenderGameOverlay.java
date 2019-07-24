@@ -89,23 +89,23 @@ public class OnRenderGameOverlay //extends Gui
 
             // === ИНФОРМАЦИОННЫЕ ПАНЕЛИ НА ЭКРАНЕ ===
             // Clock bar
-            if (ModSettings.GENERAL.TimeBar_Show.get()) drawClockBar();
+            if (ModSettings.TIME.TimeBar_Show.get()) drawClockBar();
             // Velocity Bar
-            if (ModSettings.GENERAL.VelocityBar_Show.get()) drawVelocityBar();
+            if (ModSettings.VELOCITY.VelocityBar_Show.get()) drawVelocityBar();
             // Held item bar
-            if (ModSettings.GENERAL.HeldItemDetails_Show.get()) drawHeldItemBar();
+            if (ModSettings.HELD.HeldItemDetails_Show.get()) drawHeldItemBar();
             // Current Enchantments
-            if (ModSettings.GENERAL.EnchantBar_Show.get()) drawEnchantBar();
+            if (ModSettings.ENCHANTS.EnchantBar_Show.get()) drawEnchantBar();
 
             // == НАДПИСИ В НАПРАВЛЕНИИ ВЗГЛЯДА ===
             // Block bar
-            if (ModSettings.GENERAL.BlockBar_Show.get())
+            if (ModSettings.BLOCK.BlockBar_Show.get())
             {
-                Informator.block.refresh(ModSettings.GENERAL.BlockBar_ShowElectricity.get());
+                Informator.block.refresh(ModSettings.BLOCK.BlockBar_ShowElectricity.get());
                 if (Informator.block.data.valid) drawBlockBar();
             }
             // Target Mob
-            if (ModSettings.GENERAL.TargetMobBar_Show.get())
+            if (ModSettings.TARGET.TargetMobBar_Show.get())
             {
                 Informator.entity.refresh();
                 if (Informator.entity.data.valid && (Informator.entity.data.entity != null)) drawTargetBar();
@@ -143,8 +143,8 @@ public class OnRenderGameOverlay //extends Gui
             // отрисовка панели
             if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
-                final float alarm_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageAlarm.get() / 100.0F;
-                final float warning_level = (float)ModSettings.GENERAL.HeldItemDetails_DamageWarning.get() / 100.0F;
+                final float alarm_level = (float)ModSettings.HELD.HeldItemDetails_DamageAlarm.get() / 100.0F;
+                final float warning_level = (float)ModSettings.HELD.HeldItemDetails_DamageWarning.get() / 100.0F;
                 final boolean critical = hitm.damageFactor < alarm_level;
                 final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
                 final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
@@ -178,8 +178,8 @@ public class OnRenderGameOverlay //extends Gui
         final CollectedVelocityData.Data velocity = Informator.velocity.data;
         if (!velocity.valid) return;
 
-        final int VelocityBar_xPos = ModSettings.GENERAL.VelocityBar_xOffset.get();
-        final int VelocityBar_yPos = ModSettings.GENERAL.VelocityBar_yOffset.get() +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
+        final int VelocityBar_xPos = ModSettings.VELOCITY.VelocityBar_xOffset.get();
+        final int VelocityBar_yPos = ModSettings.VELOCITY.VelocityBar_yOffset.get() +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
 
         // отрисовка панели
         if (ModSettings.GENERAL.Global_ShowPanel.get()) 
@@ -196,7 +196,7 @@ public class OnRenderGameOverlay //extends Gui
         // отрисовка текста: максимальная скорость
         boolean showMaxVelocity = false;
         int color = FONT_RED;
-        if (ModSettings.GENERAL.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
+        if (ModSettings.VELOCITY.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
         {
             if (startDrawMaxVelocity == 0)
                 startDrawMaxVelocity = Informator.realTimeTick;
@@ -265,16 +265,16 @@ public class OnRenderGameOverlay //extends Gui
         if (!clock.valid || !weather.valid) return;
 
         final int currentTimeStrLen = mc.fontRenderer.getStringWidth(clock.currentTime) + STRING_GROW_px;
-        final boolean showBedIcon = ModSettings.GENERAL.TimeBarBed_Show.get() ? clock.restTimeHourOverhead : false;
+        final boolean showBedIcon = ModSettings.TIME.TimeBarBed_Show.get() ? clock.restTimeHourOverhead : false;
 
         // учёт сдвига на размер иконки луны при прижатии книзу
-        final boolean isWeatherBarPresent = ModSettings.GENERAL.TimeBarMoon_Show.get() || ModSettings.GENERAL.TimeBarWeather_Show.get();
+        final boolean isWeatherBarPresent = ModSettings.TIME.TimeBarMoon_Show.get() || ModSettings.TIME.TimeBarWeather_Show.get();
         final int weatherBarHeight = isWeatherBarPresent ? Skin.ICON_WEATHER_PRETTY.size : 0;
 
         // расчёт размещения панели
         int time_xPos = 0;
         int time_yPos = 0;
-        switch (ModSettings.GENERAL.TimeBar_alignMode.get())
+        switch (ModSettings.TIME.TimeBar_alignMode.get())
         {
         default:
         case 0: // topleft
@@ -294,8 +294,8 @@ public class OnRenderGameOverlay //extends Gui
             time_yPos = mainWndScaledHeight - Skin.ICON_WEATHER_TIME.size - weatherBarHeight;
             break;
         }
-        time_xPos += ModSettings.GENERAL.TimeBar_xOffset.get();
-        time_yPos += ModSettings.GENERAL.TimeBar_yOffset.get();
+        time_xPos += ModSettings.TIME.TimeBar_xOffset.get();
+        time_yPos += ModSettings.TIME.TimeBar_yOffset.get();
 
         int moon_xPos = time_xPos;
         int moon_yPos = time_yPos;
@@ -321,17 +321,17 @@ public class OnRenderGameOverlay //extends Gui
             //134000 — Молодая луна.
             //158000 — Первая четверть.
             //182000 — Прибывающая луна.
-            if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+            if (ModSettings.TIME.TimeBarMoon_Show.get())
             {
                 moonPhaseLen = STRING_GROW_px + Math.max(
                         mc.fontRenderer.getStringWidth(weather.sMoonPhase),
                         mc.fontRenderer.getStringWidth(weather.sMoonPhaseFactor));
                 // позиция и размеры
-                switch (ModSettings.GENERAL.TimeBar_alignMode.get())
+                switch (ModSettings.TIME.TimeBar_alignMode.get())
                 {
                 default:
                 case 0: // topleft
-                    moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                    moon_xPos = ModSettings.TIME.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
                     moon_yPos = 0;
                     break;
                 case 1: // topright
@@ -339,7 +339,7 @@ public class OnRenderGameOverlay //extends Gui
                     moon_yPos = 0;
                     break;
                 case 2: // bottomleft
-                    moon_xPos = ModSettings.GENERAL.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
+                    moon_xPos = ModSettings.TIME.TimeBarWeather_Show.get() ? Skin.ICON_WEATHER_PRETTY.size : 0;
                     break;
                 case 3: // bottomright
                     moon_xPos = mainWndScaledWidth - moonPhaseLen - (1+Skin.ICON_MOON.size+1);
@@ -352,10 +352,10 @@ public class OnRenderGameOverlay //extends Gui
             //
             weather_xPos = moon_xPos;
             weather_yPos = moon_yPos;
-            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
+            if (ModSettings.TIME.TimeBarWeather_Show.get())
             {
                 // позиция и размеры
-                switch (ModSettings.GENERAL.TimeBar_alignMode.get())
+                switch (ModSettings.TIME.TimeBar_alignMode.get())
                 {
                 default:
                 case 0: // topleft
@@ -363,14 +363,14 @@ public class OnRenderGameOverlay //extends Gui
                     weather_yPos = 0;
                     break;
                 case 1: // topright
-                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.TIME.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
                     weather_yPos = 0;
                     break;
                 case 2: // bottomleft
                     weather_xPos = 0;
                     break;
                 case 3: // bottomright
-                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.GENERAL.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
+                    weather_xPos = mainWndScaledWidth - moonPhaseLen - (ModSettings.TIME.TimeBarMoon_Show.get() ? 1 : 0) * (1+Skin.ICON_MOON.size+1) - Skin.ICON_WEATHER_PRETTY.size;
                     break;
                 }
             }
@@ -394,7 +394,7 @@ public class OnRenderGameOverlay //extends Gui
                 time_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
                 FONT_WHITE);
         // ЛУНА и ПОГОДА: (погода отдельно не отображается, либо ВМЕСТЕ с луной, либо ВМЕСТО иконки времени) 
-        if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+        if (ModSettings.TIME.TimeBarMoon_Show.get())
         {
             // ЛУНА: отрисовка панели
             if (ModSettings.GENERAL.Global_ShowPanel.get()) 
@@ -420,7 +420,7 @@ public class OnRenderGameOverlay //extends Gui
                     FONT_WHITE);
 
             // ПОГОДА:
-            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
+            if (ModSettings.TIME.TimeBarWeather_Show.get())
             {
                 // ПОГОДА:отрисовка панели
                 if (ModSettings.GENERAL.Global_ShowPanel.get()) 
@@ -438,7 +438,7 @@ public class OnRenderGameOverlay //extends Gui
 
         // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
         mc.getTextureManager().bindTexture(new ResourceLocation("avttrue_informator:textures/wthr.png"));
-        if (ModSettings.GENERAL.TimeBarMoon_Show.get())
+        if (ModSettings.TIME.TimeBarMoon_Show.get())
         {
             // ЛУНА: отрисовка иконки луны
             DrawSkinIcon(
@@ -447,10 +447,10 @@ public class OnRenderGameOverlay //extends Gui
                     Skin.ICON_MOON,
                     weather.moonPhase);
             // ПОГОДА: (отображается на отдельной панели только СОВМЕСТНО с луной)
-            if (ModSettings.GENERAL.TimeBarWeather_Show.get())
+            if (ModSettings.TIME.TimeBarWeather_Show.get())
             {
                 // отрисовка иконки
-                if (!ModSettings.GENERAL.TimeBarWeatherPretty_Show.get())
+                if (!ModSettings.TIME.TimeBarWeatherPretty_Show.get())
                 {
                     DrawSkinIcon(
                             weather_xPos,
@@ -470,7 +470,7 @@ public class OnRenderGameOverlay //extends Gui
             }
         }
         // ВРЕМЯ: отрисовка иконки часов
-        if (ModSettings.GENERAL.TimeBarMoon_Show.get() && ModSettings.GENERAL.TimeBarWeather_Show.get())
+        if (ModSettings.TIME.TimeBarMoon_Show.get() && ModSettings.TIME.TimeBarWeather_Show.get())
         {
             Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.CLOCK), time_xPos, time_yPos);
         }
@@ -503,8 +503,8 @@ public class OnRenderGameOverlay //extends Gui
         if (!enchantments.valid) return;
         if (enchantments.held_enchanted.isEmpty()) return;
 
-        int deltaY = ModSettings.GENERAL.EnchantBar_yOffset.get(); // смещение по высоте
-        final int xPos = ModSettings.GENERAL.EnchantBar_xOffset.get() + mainWndScaledWidth; // правая граница панелей
+        int deltaY = ModSettings.ENCHANTS.EnchantBar_yOffset.get(); // смещение по высоте
+        final int xPos = ModSettings.ENCHANTS.EnchantBar_xOffset.get() + mainWndScaledWidth; // правая граница панелей
 
         // перебираем список зачарованных предметов
         // (список отфильтрован флагами Informator.EnchantBar_ShowHands, Informator.EnchantBar_ShowBody)
@@ -678,7 +678,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                 }
             }*/
         // смещение относительно координат персонажа (если это место ещё не занято)
-        if (!playerOffsetShown && ModSettings.GENERAL.BlockBar_ShowPlayerOffset.get())
+        if (!playerOffsetShown && ModSettings.BLOCK.BlockBar_ShowPlayerOffset.get())
         {
             strLines[strLinesUsed++] = String.format("[±] %d %d %d", x - playerPos.getX(), y - playerPos.getY(), z - playerPos.getZ());
         }
@@ -734,7 +734,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         }
 
         // ===== ЭЛЕКТРИФИКАЦИЯ (ЗАРЯД) БЛОКА, механизмы и схемы =====
-        if (ModSettings.GENERAL.BlockBar_ShowElectricity.get())
+        if (ModSettings.BLOCK.BlockBar_ShowElectricity.get())
         {
             if (details.power.wire)
             {
@@ -778,7 +778,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         final int BlockName_xPos;
         final int BlockName_yPos;
         // позиционирование панели
-        switch (ModSettings.GENERAL.BlockBar_alignMode.get())
+        switch (ModSettings.BLOCK.BlockBar_alignMode.get())
         {
         default:
         case 0: // topleft
@@ -806,10 +806,10 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             BlockName_xPos = mainWndScaledWidth - blockNameStrLen;
             break;
         }
-        InfoBlockBar_xPos += ModSettings.GENERAL.BlockBar_xOffset.get();
-        InfoBlockBar_yPos += ModSettings.GENERAL.BlockBar_yOffset.get();
+        InfoBlockBar_xPos += ModSettings.BLOCK.BlockBar_xOffset.get();
+        InfoBlockBar_yPos += ModSettings.BLOCK.BlockBar_yOffset.get();
         // отрисовка панели
-        final boolean hasBlockName = ModSettings.GENERAL.BlockBar_ShowName.get() && (blockNameStrLen != 0);
+        final boolean hasBlockName = ModSettings.BLOCK.BlockBar_ShowName.get() && (blockNameStrLen != 0);
         if (ModSettings.GENERAL.Global_ShowPanel.get()) 
         {
             GuiUtils.drawGradientRect(0,
@@ -854,7 +854,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                     color);
         }
         // отрисовка иконки (если stack==null, то смысла рисовать иконку ItemStack.EMPTY нет, т.к. она полностью прозначная)
-        if (ModSettings.GENERAL.BlockBar_ShowIcons.get() && details.stack != null)
+        if (ModSettings.BLOCK.BlockBar_ShowIcons.get() && details.stack != null)
         {
             Drawing.DrawItemStack(mc.getItemRenderer(), details.stack, InfoBlockBar_xPos, InfoBlockBar_yPos);
         }
@@ -869,13 +869,13 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         final ClientWorld world = mc.world;
         final ClientPlayerEntity player = mc.player;
         //final int dimentionTypeId = world.getDimension().getType().getId();
-        final boolean portraitPresent = ModSettings.GENERAL.TargetMobBar_ShowPortrait.get();
+        final boolean portraitPresent = ModSettings.TARGET.TargetMobBar_ShowPortrait.get();
 
 /*
         if (!view.ISee) return;
 */
         // позиция и размеры
-        final int TargetMobBar_Len = ModSettings.GENERAL.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
+        final int TargetMobBar_Len = ModSettings.TARGET.TargetMobBar_ScreenWidth.get() * mainWndScaledWidth / 100;
         final int nameLen = mc.fontRenderer.getStringWidth(details.name);
         final int portraitBorder = 2;
         final int portraitSize = portraitPresent ? (Skin.MC_ICON_SIZE + portraitBorder) : 0;
@@ -883,7 +883,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         // расчёт размещения панели
         int target_xPos;
         int target_yPos = 0;
-        switch (ModSettings.GENERAL.TargetMobBar_alignMode.get())
+        switch (ModSettings.TARGET.TargetMobBar_alignMode.get())
         {
         default:
         case 0: // topcenter
@@ -896,8 +896,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             target_xPos = mainWndScaledWidth - TargetMobBar_Len;
             break;
         }
-        target_xPos += ModSettings.GENERAL.TargetMobBar_xOffset.get();
-        target_yPos += ModSettings.GENERAL.TargetMobBar_yOffset.get();
+        target_xPos += ModSettings.TARGET.TargetMobBar_xOffset.get();
+        target_yPos += ModSettings.TARGET.TargetMobBar_yOffset.get();
 
         // отрисовка панелей
         //игнорируется:if (ModSettings.GENERAL.Global_ShowPanel.get()) 
@@ -1019,7 +1019,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
 
         // дистанция
         int shownLines = 0;
-        if (ModSettings.GENERAL.TargetMobBar_ShowDistance.get())
+        if (ModSettings.TARGET.TargetMobBar_ShowDistance.get())
         {
             // дистанция, расчёт
             final String distStr = ForgeI18n.parseMessage(Informator.TRANSLATOR.field_distance.getFormattedText(), String.format("%3.1f", details.distance));
@@ -1137,7 +1137,7 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
     private void drawWeatherAndMoon(int x, int y, boolean for_time, int weather, int moon)
     {
         // используем стандартные иконки, так быстрее, нежели смешивать два слоя
-        if (!ModSettings.GENERAL.TimeBarWeather_WithMoonPhases.get() || // ИЛИ режим выключен
+        if (!ModSettings.TIME.TimeBarWeather_WithMoonPhases.get() || // ИЛИ режим выключен
             (moon == 0) || // ИЛИ полнолуние
             ((weather % 2) == 0)) // ИЛИ сейчас день и луну/месяц не видно
         {

@@ -59,7 +59,7 @@ public class CollectedVelocityData
 
     public void collectDataDuringTick()
     {
-        if (!ModSettings.GENERAL.VelocityBar_Show.get())
+        if (!ModSettings.VELOCITY.VelocityBar_Show.get())
         {
             data.valid = false;
             data.locCursor = 0;
