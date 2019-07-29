@@ -7,6 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.config.ModConfig;
 
 import avttrue.informator.Informator;
+import avttrue.informator.tools.UsernameSearcher;
 
 // Настройки мода, которые хранятся в ./config/avttrue_informator-client.toml файле
 // Кодирование .toml файла описано здесь: https://github.com/toml-lang/toml
@@ -304,7 +305,7 @@ public class ModSettings
 //        public static boolean TargetMobBar_DrawBuffIcon;
 //        public static int TargetMobBar_ViewDelay;
 //        public static boolean TargetMobBar_SeachOwnerInWeb;
-//        public static int TargetMobBar_OwnerDataPeriod;
+        public final ForgeConfigSpec.IntValue TargetMobBar_OwnerNamesCacheDays;
         //----------------------------------------------------------------------
 
         public Target(ForgeConfigSpec.Builder builder)
@@ -338,6 +339,9 @@ public class ModSettings
             TargetMobBar_ShowPortrait = builder
                     .comment("Отображение портрета существа на которого направлен взгляд персонажа [false/true|default:true]")
                     .define("target_show_portrait", true);
+            TargetMobBar_OwnerNamesCacheDays = builder
+                    .comment("Длительность хранения полученных из Internet имён персонажей [1..30|default:7]")
+                    .defineInRange("target_owner_cache_days", 7, 1, 30);
             //----------------------------------------------------------------------
             builder.pop();
         }
@@ -370,6 +374,8 @@ public class ModSettings
     public static void onLoad(final ModConfig.Loading configEvent)
     {
         Informator.LOGGER.debug("Loaded Informator' config file {}", configEvent.getConfig().getFileName());
+        // получаем путь к файлу с настройками, чтобы от его имени отсчитывать свои доп.наименования
+        UsernameSearcher.initialization(configEvent.getConfig().getFileName());
     }
 
     // это просто событие о том, что изменился файл

@@ -13,7 +13,6 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 
-import net.minecraftforge.common.UsernameCache;
 import net.minecraftforge.fml.ForgeI18n;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.VersionChecker;
@@ -25,6 +24,13 @@ import avttrue.informator.Informator;
 
 public class Functions
 {
+    // синглтон утилит
+    private static final Functions instance = new Functions();
+    public static Functions getInstance()
+    {
+        return instance;
+    }
+
     // сообщение в чат текущему игроку
     public void SendMessageToUser(ITextComponent text)
     {
@@ -60,34 +66,13 @@ public class Functions
         chat.printChatMessage(text);
     }
 
-    // синглтон утилит
-    private static final Functions instance = new Functions();
-    public static Functions getInstance()
-    {
-        return instance;
-    }
-
-    // TODO возвращает имя по UUID
+    // возвращает имя по UUID
     @Nullable
     public static String getUsernameByUUID(@Nullable final UUID uuid) 
     {
         //uuid = UUID.fromString("20d6918d-e3e7-4a69-a83d-39d13a6285ec"); // для проверки
         if (uuid == null) return null;
-
-        String username = null;
-/*
-        // ищем в нашем кэше
-        String username = Informator.ProfileCashListFromWeb.FindNameByUUID(uuid.toString());
-        // ищем на сайте
-        if (Informator.TargetMobBar_SeachOwnerInWeb && username == null)
-            Informator.PWC.SetUUID(uuid.toString());
-*/
-
-        // ищем в кэше клиента
-        if (username == null)
-            username = UsernameCache.getLastKnownUsername(uuid);
-
-        return username;
+        return UsernameSearcher.getUsernameByUUID(uuid);
     }
 
     public boolean versionChecked = false;
