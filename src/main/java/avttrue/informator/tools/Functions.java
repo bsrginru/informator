@@ -21,6 +21,7 @@ import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.versions.forge.ForgeVersion;
 
 import avttrue.informator.Informator;
+import avttrue.informator.tools.usernames.UsernameSearcher;
 
 public class Functions
 {
@@ -72,7 +73,7 @@ public class Functions
     {
         //uuid = UUID.fromString("20d6918d-e3e7-4a69-a83d-39d13a6285ec"); // для проверки
         if (uuid == null) return null;
-        return UsernameSearcher.getUsernameByUUID(uuid);
+        return UsernameSearcher.getInstance().getUsernameByUUID(uuid);
     }
 
     public boolean versionChecked = false;

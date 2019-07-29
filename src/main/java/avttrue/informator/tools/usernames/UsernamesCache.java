@@ -1,4 +1,4 @@
-package avttrue.informator.tools;
+package avttrue.informator.tools.usernames;
 
 import java.io.BufferedReader;
 import java.io.File;

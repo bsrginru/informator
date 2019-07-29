@@ -7,7 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.config.ModConfig;
 
 import avttrue.informator.Informator;
-import avttrue.informator.tools.UsernameSearcher;
+import avttrue.informator.tools.usernames.UsernameSearcher;
 
 // Настройки мода, которые хранятся в ./config/avttrue_informator-client.toml файле
 // Кодирование .toml файла описано здесь: https://github.com/toml-lang/toml
@@ -304,7 +304,7 @@ public class ModSettings
         public final ForgeConfigSpec.BooleanValue TargetMobBar_ShowPortrait;
 //        public static boolean TargetMobBar_DrawBuffIcon;
 //        public static int TargetMobBar_ViewDelay;
-//        public static boolean TargetMobBar_SeachOwnerInWeb;
+        public final ForgeConfigSpec.BooleanValue TargetMobBar_SeachOwnerInWeb;
         public final ForgeConfigSpec.IntValue TargetMobBar_OwnerNamesCacheDays;
         //----------------------------------------------------------------------
 
@@ -339,6 +339,9 @@ public class ModSettings
             TargetMobBar_ShowPortrait = builder
                     .comment("Отображение портрета существа на которого направлен взгляд персонажа [false/true|default:true]")
                     .define("target_show_portrait", true);
+            TargetMobBar_SeachOwnerInWeb = builder
+                    .comment("Поиск сведений о персонажах в Internet-е [false/true|default:true], позволяет загружать имена владельцев питомцев, когда те находятся offline")
+                    .define("target_owner_web_search", true);
             TargetMobBar_OwnerNamesCacheDays = builder
                     .comment("Длительность хранения полученных из Internet имён персонажей [1..30|default:7]")
                     .defineInRange("target_owner_cache_days", 7, 1, 30);
@@ -375,7 +378,7 @@ public class ModSettings
     {
         Informator.LOGGER.debug("Loaded Informator' config file {}", configEvent.getConfig().getFileName());
         // получаем путь к файлу с настройками, чтобы от его имени отсчитывать свои доп.наименования
-        UsernameSearcher.initialization(configEvent.getConfig().getFileName());
+        UsernameSearcher.getInstance().initialization(configEvent.getConfig().getFileName());
     }
 
     // это просто событие о том, что изменился файл
