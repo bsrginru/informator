@@ -17,15 +17,15 @@ public class OnPlayerTick
     public void onPlayerTick(PlayerTickEvent event) 
     {
 		// если игра ещё не начата вдруг
-		if (mc.theWorld == null || 
-			mc.thePlayer == null) 
+		if (mc.world == null || 
+			mc.player == null) 
 		{
 			return;
 		}
 		
     	// после проверки обновлений обрабатываем клик по чату
     	if (!Informator.haveWarnedVersionOutOfDate &&
-    		event.player.worldObj.isRemote && 
+    		event.player.world.isRemote && 
     		!Informator.versionChecker.isLatestVersion())
     	{
     		ClickEvent versionCheckChatClickEvent = new ClickEvent(ClickEvent.Action.OPEN_URL, Informator.INFORMATORDOWNLOAD_URL);
@@ -45,18 +45,18 @@ public class OnPlayerTick
     	// получение опыта
     	if (Informator.playertotalxp == -1)
     	{
-    		Informator.playertotalxp = mc.thePlayer.experienceTotal;
+    		Informator.playertotalxp = mc.player.experienceTotal;
     	}
     	else if (Informator.PickupedXP_Show)
     	{
-    		int newplayertotalxp =  mc.thePlayer.experienceTotal;
+    		int newplayertotalxp =  mc.player.experienceTotal;
     		
     		if (Informator.playertotalxp < newplayertotalxp)
     		{
     			String xpmessage = String.format(TxtRes.GetLocalText("avttrue.informator.35",
 						"\u00A76Experience total %1$d (level %2$d), pickuped %3$d"), 
     					newplayertotalxp, 
-						mc.thePlayer.experienceLevel, 
+						mc.player.experienceLevel, 
 						newplayertotalxp - Informator.playertotalxp);
     			Functions.SendMessageToUser("\u00A76" + xpmessage, null);
     		}
@@ -65,12 +65,12 @@ public class OnPlayerTick
     			String xpmessage = String.format(TxtRes.GetLocalText("avttrue.informator.36",
 						"\u00A76Experience total %1$d (level %2$d), pickuped %3$d"), 
     					newplayertotalxp, 
-						mc.thePlayer.experienceLevel, 
+						mc.player.experienceLevel, 
 						Informator.playertotalxp - newplayertotalxp);
     			Functions.SendMessageToUser("\u00A76" + xpmessage, null);
     		}
     		
     	}
-    	Informator.playertotalxp = mc.thePlayer.experienceTotal;
+    	Informator.playertotalxp = mc.player.experienceTotal;
     }
 }

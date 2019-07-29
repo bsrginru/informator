@@ -86,51 +86,51 @@ public class Functions
 			{
 				if (block == Blocks.REDSTONE_WIRE)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockRedstoneWire.POWER);
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockRedstoneWire.POWER);
 				}
 				else if (block == Blocks.DETECTOR_RAIL)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockRailDetector.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockRailDetector.POWERED).compareTo(false) * 15;
 				}
 				else if (block == Blocks.LEVER)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockLever.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockLever.POWERED).compareTo(false) * 15;
 				}
 				else if (block == Blocks.TRIPWIRE_HOOK)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockTripWireHook.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockTripWireHook.POWERED).compareTo(false) * 15;
 				}
 				else if (block == Blocks.STONE_BUTTON)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockButtonStone.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockButtonStone.POWERED).compareTo(false) * 15;
 				}
 				else if (block == Blocks.WOODEN_BUTTON)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockButtonWood.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockButtonWood.POWERED).compareTo(false) * 15;
 				}
 				else if (block == Blocks.DAYLIGHT_DETECTOR ||
 						block == Blocks.DAYLIGHT_DETECTOR_INVERTED)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockDaylightDetector.POWER);
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockDaylightDetector.POWER);
 				}
 				else if (block == Blocks.POWERED_COMPARATOR ||
 						block == Blocks.UNPOWERED_COMPARATOR)
 				{
-					return "Mode:" + mc.theWorld.getBlockState(blockPos).getValue(BlockRedstoneComparator.MODE).toString();
+					return "Mode:" + mc.world.getBlockState(blockPos).getValue(BlockRedstoneComparator.MODE).toString();
 				}
 				else if (block == Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE || 
 						block == Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockPressurePlateWeighted.POWER);
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockPressurePlateWeighted.POWER);
 				}
 				else if (block == Blocks.STONE_PRESSURE_PLATE ||
 						block == Blocks.WOODEN_PRESSURE_PLATE)
 				{
-					return "" + mc.theWorld.getBlockState(blockPos).getValue(BlockPressurePlate.POWERED).compareTo(false) * 15;
+					return "" + mc.world.getBlockState(blockPos).getValue(BlockPressurePlate.POWERED).compareTo(false) * 15;
 				}
 				else if(block == Blocks.UNPOWERED_REPEATER)
 				{
-					return "Delay:" + mc.theWorld.getBlockState(blockPos).getValue(BlockRedstoneRepeater.DELAY) + " (0)";
+					return "Delay:" + mc.world.getBlockState(blockPos).getValue(BlockRedstoneRepeater.DELAY) + " (0)";
 				}
 				else if(block == Blocks.UNLIT_REDSTONE_TORCH)
 				{
@@ -142,11 +142,11 @@ public class Functions
 				}
 				else if(block == Blocks.POWERED_REPEATER)
 				{
-					return "Delay:" + mc.theWorld.getBlockState(blockPos).getValue(BlockRedstoneRepeater.DELAY) + " (15)";
+					return "Delay:" + mc.world.getBlockState(blockPos).getValue(BlockRedstoneRepeater.DELAY) + " (15)";
 				}
 				else
 				{
-					return "" + mc.theWorld.isBlockIndirectlyGettingPowered(blockPos);
+					return "" + mc.world.isBlockIndirectlyGettingPowered(blockPos);
 				}
 			}
 			else
@@ -208,7 +208,7 @@ public class Functions
 		Block b = world.getBlockState(bp).getBlock();
 		IBlockState ibs = world.getBlockState(bp);
 		
-		if (world.getWorldType() != WorldType.DEBUG_WORLD)
+		if (world.getWorldType() != WorldType.DEBUG_ALL_BLOCK_STATES)
         {
             ibs = ibs.getActualState(world, bp);
         }

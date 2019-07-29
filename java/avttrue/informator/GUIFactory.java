@@ -2,9 +2,13 @@ package avttrue.informator;
 
 import java.util.Set;
 
+import avttrue.informator.ModConfigGUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraftforge.common.config.ConfigElement;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.IModGuiFactory;
+import net.minecraftforge.fml.client.config.GuiConfig;
 
 public class GUIFactory implements IModGuiFactory
 {
@@ -16,9 +20,15 @@ public class GUIFactory implements IModGuiFactory
 	    }
 
 	    @Override
-	    public Class<? extends GuiScreen> mainConfigGuiClass() 
+	    public boolean hasConfigGui()
 	    {
-	      return ModConfigGUI.class;
+	        return true;
+	    }
+	    
+	    @Override
+	    public GuiScreen createConfigGui(GuiScreen parentScreen)
+	    {
+	    	return new ModConfigGUI(parentScreen);
 	    }
 
 	    @Override
@@ -27,10 +37,10 @@ public class GUIFactory implements IModGuiFactory
 	        return null;
 	    }
 
-	    @Override
-	    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element)
-	    {
-	        return null;
-	    }
+//	    @Override
+//	    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element)
+//	    {
+//	        return null;
+//	    }
 	
 }

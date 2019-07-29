@@ -11,7 +11,6 @@ import java.util.Date;
 import avttrue.informator.Events.OnClientConnectedToServer;
 import avttrue.informator.Events.OnClientTick;
 import avttrue.informator.Events.OnKeyInput;
-import avttrue.informator.Events.OnMouseInput;
 import avttrue.informator.Events.OnPlayerTick;
 import avttrue.informator.Events.OnRenderGameOverlay;
 import avttrue.informator.Events.OnRenderWorldLastEvent;
@@ -41,13 +40,12 @@ public class Informator
 {
 	public static final String MODID = "avttrue_informator";
     public static final String MODNAME = "AVTTRUE:Informator";
-    public static final String MODVER = "[1.11] 0.9.0";
+    public static final String MODVER = "[1.12] 0.9.0";
     
     public static final String INFORMATORDOWNLOAD_URL = "https://goo.gl/vSq65V";
     public static final String MINECRAFTING_URL = "http://www.minecrafting.ru";
     public static final String INFORVERSIONCHECKER_URL = "http://avttrue.ucoz.net/version_file";
     public static final String PROFILEFILENAME = "InformatorProfilesCash.json";
-    public static final String THESAURUSCONFIGFILENAME = "InformatorThesaurusConfig.json";
     
 	
     public static Configuration configFile;
@@ -134,9 +132,6 @@ public class Informator
     public static int playertotalxp = -1;
     public static boolean PickupedXP_Show;
     
-    // отображать кнопку Тезауруса
-    public static boolean ShowThesaurusButton;
-    
     // используется для кэширования результатов поиска игроков на сайте
     public volatile static ProfileCashList ProfileCashListFromWeb = new ProfileCashList(); 
     // поток проверки имён на api.mojang.com
@@ -165,7 +160,6 @@ public class Informator
     public void onFMLInitialization(FMLInitializationEvent event)
     {
     	MinecraftForge.EVENT_BUS.register(new OnKeyInput());
-    	MinecraftForge.EVENT_BUS.register(new OnMouseInput());
     	MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
     	MinecraftForge.EVENT_BUS.register(new OnClientTick());
     	MinecraftForge.EVENT_BUS.register(new OnPlayerTick());
@@ -326,10 +320,6 @@ public class Informator
     	//PickupedXP_Show
     	PickupedXP_Show = configFile.getBoolean("Pickuped XP Show", gen_category, true, 
     			TxtRes.GetLocalText("avttrue.informator.42","Show Pickuped XP Information"));
-    	
-    	// ShowThesaurusButton
-    	ShowThesaurusButton = configFile.getBoolean("Thesaurus Button Show", gen_category, true, 
-    			TxtRes.GetLocalText("avttrue.informator.56","Show Thesaurus button at chat mode"));
     	
     	if(configFile.hasChanged())
          {

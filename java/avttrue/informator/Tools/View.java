@@ -6,6 +6,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+
 import avttrue.informator.Informator;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
@@ -22,10 +27,12 @@ import net.minecraft.entity.passive.EntitySkeletonHorse;
 import net.minecraft.entity.passive.EntityOcelot;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 public class View 
 {
@@ -61,8 +68,8 @@ public class View
 			if (targetBlock != null) 
 			{
 				tBlockPosition = targetBlock.getBlockPos();
-				tBlock = this.mc.theWorld.getBlockState(tBlockPosition).getBlock();
-				tBlockState = this.mc.theWorld.getBlockState(tBlockPosition);
+				tBlock = this.mc.world.getBlockState(tBlockPosition).getBlock();
+				tBlockState = this.mc.world.getBlockState(tBlockPosition);
 				
 			}
 		
@@ -84,9 +91,9 @@ public class View
 			// реализуем задержку при показе
 			if (elb == null && 					// если в текущий момент моба не наблюдаем
 				Informator.lastmob != null &&	 // последний виденный моб есть?
-				!mc.thePlayer.isDead &&			// игрок жив ли?
+				!mc.player.isDead &&			// игрок жив ли?
 				!Informator.lastmob.isDead &&	// моб жив ли?
-				Informator.lastmob.getDistanceToEntity(mc.thePlayer) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
+				Informator.lastmob.getDistanceToEntity(mc.player) <= Informator.Global_DistanceView) // дистанция в рамках настроек? (различие миров не учитывается)
 			{
 				ISeeNow = false;
 				Date currtime = new Date(); // текущее время
@@ -106,7 +113,7 @@ public class View
 			ISee = true;
 			MobHealth = (int)(elb.getHealth());
 			MobMaxHealth = (int)(elb.getMaxHealth());
-			DistToPlayer = new BigDecimal(elb.getDistanceToEntity(mc.thePlayer)).
+			DistToPlayer = new BigDecimal(elb.getDistanceToEntity(mc.player)).
 												setScale(1, RoundingMode.UP).doubleValue();
 			MobTotalArmor = elb.getTotalArmorValue();
 			
@@ -206,15 +213,21 @@ public class View
 	    
 	    Vec3d vec3 =  vEntity.getPositionEyes(tick);
 	    Vec3d vec31 = vEntity.getLook(tick);
-	    Vec3d vec32 = vec3.addVector(vec31.xCoord * d0, vec31.yCoord * d0, vec31.zCoord * d0);
+	    Vec3d vec32 = vec3.addVector(vec31.x * d0, vec31.y * d0, vec31.z * d0);
 	    Vec3d vec33 = null;
 	    pointedEntity = null;
 	   
 	    try
 	    {
-	    	List list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), 
-	    			vEntity.getEntityBoundingBox().addCoord(vec31.xCoord * d0, vec31.yCoord * d0, vec31.zCoord * d0).
-	    			expand((double)f1, (double)f1, (double)f1));
+	    	List<Entity> list = mc.world.getEntitiesInAABBexcluding(mc.getRenderViewEntity(),
+	    			vEntity.getEntityBoundingBox().expand(vec31.x * d0, vec31.y * d0, vec31.z * d0).
+	    			grow((double)f1, (double)f1, (double)f1), Predicates.and(EntitySelectors.NOT_SPECTATING, new Predicate<Entity>()
+	    			{
+	                    public boolean apply(@Nullable Entity p_apply_1_)
+	                    {
+	                        return p_apply_1_ != null && p_apply_1_.canBeCollidedWith();
+	                    }
+	                }));	                
 	    	double d2 = d1;
 
 	    	for (int i = 0; i < list.size(); ++i)
@@ -226,7 +239,8 @@ public class View
 	    			AxisAlignedBB axisalignedbb = entity.getEntityBoundingBox().expand((double)f2, (double)f2, (double)f2);
 	    			RayTraceResult movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
 
-	    			if (axisalignedbb.isVecInside(vec3))
+	    			if (axisalignedbb.contains(vec3))
+//	    			if (axisalignedbb.isVecInside(vec3))
 	    			{
 	    				if (0.0D < d2 || d2 == 0.0D)
 	    				{
@@ -282,12 +296,12 @@ public class View
 		    	if (CheckBlock != null)
 		    	{
 		    		// вычисляем дистанцию до блока
-		    		double deltax = mc.thePlayer.posX - CheckBlock.getBlockPos().getX();
-					double deltay = mc.thePlayer.posY - CheckBlock.getBlockPos().getY();
-					double deltaz = mc.thePlayer.posZ - CheckBlock.getBlockPos().getZ();
+		    		double deltax = mc.player.posX - CheckBlock.getBlockPos().getX();
+					double deltay = mc.player.posY - CheckBlock.getBlockPos().getY();
+					double deltaz = mc.player.posZ - CheckBlock.getBlockPos().getZ();
 		    		float disttoblock = (float)Math.sqrt(Math.pow(deltax, 2) + Math.pow(deltay, 2) + Math.pow(deltaz, 2));
 		    		
-		    		if(rtr.entityHit.getDistanceToEntity(mc.thePlayer) > disttoblock)
+		    		if(rtr.entityHit.getDistanceToEntity(mc.player) > disttoblock)
 		    		{
 		    			return null;
 		    		}

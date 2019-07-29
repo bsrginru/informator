@@ -62,12 +62,12 @@ public class SurfaceChecker extends Thread
 private void updateLightLevel(int radius, int chunkRadius) 
 {
 		Minecraft mc = Minecraft.getMinecraft();
-		if (mc.thePlayer == null) return;
+		if (mc.player == null) return;
 		
-		WorldClient world = mc.theWorld;
-		int playerPosY = (int)Math.floor(mc.thePlayer.posY);
-		int playerChunkX = mc.thePlayer.chunkCoordX;
-		int playerChunkZ = mc.thePlayer.chunkCoordZ; 
+		WorldClient world = mc.world;
+		int playerPosY = (int)Math.floor(mc.player.posY);
+		int playerChunkX = mc.player.chunkCoordX;
+		int playerChunkZ = mc.player.chunkCoordZ; 
 		int skyLightSub = world.calculateSkylightSubtracted(1.0f);
 		boolean mychunk = false;
 		boolean useSkyLight = false; // можно параметризировать
@@ -75,7 +75,7 @@ private void updateLightLevel(int radius, int chunkRadius)
 		for (int chunkX = playerChunkX - radius; chunkX <= playerChunkX + radius; chunkX++)
 		for (int chunkZ = playerChunkZ - radius; chunkZ <= playerChunkZ + radius; chunkZ++) 
 		{
-			Chunk chunk = mc.theWorld.getChunkFromChunkCoords(chunkX, chunkZ);
+			Chunk chunk = mc.world.getChunkFromChunkCoords(chunkX, chunkZ);
 			if (!chunk.isLoaded()) continue;
 			ArrayList<SurfaceOverlay> buffer = new ArrayList<SurfaceOverlay>();
 			for (int offsetX = 0; offsetX < 16; offsetX++)
@@ -121,8 +121,8 @@ private void updateLightLevel(int radius, int chunkRadius)
 					
 					if(Informator.LightLevelIndicatorShowChunkBorder) // показывать границы чанка
 					{
-						if(chunk.xPosition != mc.thePlayer.chunkCoordX || 
-								chunk.zPosition != mc.thePlayer.chunkCoordZ)
+						if(chunk.x != mc.player.chunkCoordX || 
+								chunk.z != mc.player.chunkCoordZ)
 							mychunk = false;
 						else
 							mychunk = true;

@@ -18,7 +18,7 @@ public class OnRenderWorldLastEvent
 		if (Informator.Gobal_ON && 
 			Informator.SurfaceCheckerIsActive) 
 		{
-			EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+			EntityPlayerSP player = Minecraft.getMinecraft().player;
 			if (player == null) return;
 			double x = player.lastTickPosX + (player.posX - player.lastTickPosX) * evt.getPartialTicks();
 	        double y = player.lastTickPosY + (player.posY - player.lastTickPosY) * evt.getPartialTicks();

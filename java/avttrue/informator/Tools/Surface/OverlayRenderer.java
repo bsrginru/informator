@@ -7,7 +7,7 @@ import org.lwjgl.opengl.GL11;
 import avttrue.informator.Informator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
@@ -42,7 +42,8 @@ public class OverlayRenderer
 	{
 		int mychunk = 0;
 		TextureManager tm = Minecraft.getMinecraft().renderEngine;
-		VertexBuffer vb = Tessellator.getInstance().getBuffer();
+//		VertexBuffer vb = Tessellator.getInstance().getBuffer();
+		BufferBuilder bb = Tessellator.getInstance().getBuffer();
 		
 		if(Informator.LightLevelIndicatorShowDigital)
 			tm.bindTexture(textured);
@@ -54,8 +55,8 @@ public class OverlayRenderer
 		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_ZERO);
-		vb.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
-		vb.setTranslation(-x, -y, -z);
+		bb.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+		bb.setTranslation(-x, -y, -z);
 		for (int i = 0; i < surfaceOverlays.length; i++)
 		for (int j = 0; j < surfaceOverlays[i].length; j++) 
 		{
@@ -66,14 +67,14 @@ public class OverlayRenderer
 				else
 					mychunk = 0;
 					
-				vb.pos(u.x,     u.y, u.z    ).tex(texureMinX[u.lightLevel + mychunk], 0.0).color(255, 255, 255, 255).endVertex();
-				vb.pos(u.x,     u.y, u.z + 1).tex(texureMinX[u.lightLevel + mychunk], 1.0).color(255, 255, 255, 255).endVertex();
-				vb.pos(u.x + 1, u.y, u.z + 1).tex(texureMaxX[u.lightLevel + mychunk], 1.0).color(255, 255, 255, 255).endVertex();
-				vb.pos(u.x + 1, u.y, u.z    ).tex(texureMaxX[u.lightLevel + mychunk], 0.0).color(255, 255, 255, 255).endVertex();
+				bb.pos(u.x,     u.y, u.z    ).tex(texureMinX[u.lightLevel + mychunk], 0.0).color(255, 255, 255, 255).endVertex();
+				bb.pos(u.x,     u.y, u.z + 1).tex(texureMinX[u.lightLevel + mychunk], 1.0).color(255, 255, 255, 255).endVertex();
+				bb.pos(u.x + 1, u.y, u.z + 1).tex(texureMaxX[u.lightLevel + mychunk], 1.0).color(255, 255, 255, 255).endVertex();
+				bb.pos(u.x + 1, u.y, u.z    ).tex(texureMaxX[u.lightLevel + mychunk], 0.0).color(255, 255, 255, 255).endVertex();
 			}
 		}
 		Tessellator.getInstance().draw();
-		vb.setTranslation(0, 0, 0);
+		bb.setTranslation(0, 0, 0);
 		GL11.glPopMatrix();
 		GL11.glPopAttrib();
 	}

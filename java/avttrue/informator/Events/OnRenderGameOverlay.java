@@ -61,7 +61,7 @@ public class OnRenderGameOverlay extends Gui
 	public OnRenderGameOverlay() 
 	{
 		super();
-		STRING_HEIGHT = mc.fontRendererObj.FONT_HEIGHT;
+		STRING_HEIGHT = mc.fontRenderer.FONT_HEIGHT;
 	}
 
 	@SubscribeEvent
@@ -100,9 +100,6 @@ public class OnRenderGameOverlay extends Gui
 			// Target Mob
 			if(Informator.TargetMobBar_Show) CreateTargetMobBar();
 			
-			// Thesaurus
-			DrawThesaurusButton();
-			
 			GlStateManager.enableRescaleNormal();	
 			GlStateManager.enableBlend();
 		}
@@ -123,14 +120,14 @@ public class OnRenderGameOverlay extends Gui
 					
 			if(Informator.EnchantBar_ShowHands) 
 			{
-				istacks.add(mc.thePlayer.getHeldItemMainhand()); //добавляем удерживаемый предмет в основной руке
-				istacks.add(mc.thePlayer.getHeldItemOffhand()); //добавляем удерживаемый предмет во второй руке
+				istacks.add(mc.player.getHeldItemMainhand()); //добавляем удерживаемый предмет в основной руке
+				istacks.add(mc.player.getHeldItemOffhand()); //добавляем удерживаемый предмет во второй руке
 			}
 			
 			if(Informator.EnchantBar_ShowBody)
 			{
 				for(int i=0; i < 4; i++) 
-					istacks.add(mc.thePlayer.inventory.armorInventory.get(i)); // одетые предметы
+					istacks.add(mc.player.inventory.armorInventory.get(i)); // одетые предметы
 			}
 			
 			for(Iterator<ItemStack> is = istacks.iterator(); is.hasNext();)
@@ -143,7 +140,7 @@ public class OnRenderGameOverlay extends Gui
 					for(Iterator<String> s = EnchantmentsList.iterator(); s.hasNext();) 
 					{
 						String text = " " + s.next() + " ";
-						int sLen = mc.fontRendererObj.getStringWidth(text);
+						int sLen = mc.fontRenderer.getStringWidth(text);
 						int xPos = scaledResolution.getScaledWidth() - sLen;
 						if(iterator == 0) xPos -= ICON_SIZE;
 						
@@ -160,10 +157,10 @@ public class OnRenderGameOverlay extends Gui
 					
 						// отрисовка текста
 						if(iterator == 0)
-							mc.fontRendererObj.drawStringWithShadow(text, xPos + ICON_SIZE,
+							mc.fontRenderer.drawStringWithShadow(text, xPos + ICON_SIZE,
 									deltaY + Informator.EnchantBar_yPos + STRING_HEIGHT / 3, FONT_WHITE);
 						else
-							mc.fontRendererObj.drawStringWithShadow(text, xPos,
+							mc.fontRenderer.drawStringWithShadow(text, xPos,
 									deltaY + Informator.EnchantBar_yPos, FONT_WHITE);
 
 						// отрисовка иконки
@@ -201,12 +198,12 @@ public class OnRenderGameOverlay extends Gui
 		{
 			DAMAGE_ALARM = Informator.HeldItemDetails_DamageAlarm;
 			
-			ItemStack heldMHIS = mc.thePlayer.getHeldItemMainhand();
-			ItemStack heldOHIS = mc.thePlayer.getHeldItemOffhand();
-			ItemStack headIS = mc.thePlayer.inventory.armorItemInSlot(3);
-			ItemStack bodyIS = mc.thePlayer.inventory.armorItemInSlot(2);
-			ItemStack legsIS = mc.thePlayer.inventory.armorItemInSlot(1);
-			ItemStack footsIS = mc.thePlayer.inventory.armorItemInSlot(0);
+			ItemStack heldMHIS = mc.player.getHeldItemMainhand();
+			ItemStack heldOHIS = mc.player.getHeldItemOffhand();
+			ItemStack headIS = mc.player.inventory.armorItemInSlot(3);
+			ItemStack bodyIS = mc.player.inventory.armorItemInSlot(2);
+			ItemStack legsIS = mc.player.inventory.armorItemInSlot(1);
+			ItemStack footsIS = mc.player.inventory.armorItemInSlot(0);
 			
 			Item heldMHI = null;
 			Item heldOHI = null;
@@ -252,10 +249,10 @@ public class OnRenderGameOverlay extends Gui
 					if (heldMHI == Items.BOW) 
 					{
 						// ищем стрелы
-						ArrowCount = Functions.GetArrowsCount(mc.thePlayer);
+						ArrowCount = Functions.GetArrowsCount(mc.player);
 						heldMHItemInfo += "("+ ArrowCount + ") ";
 					}
-					heldItemMHInfo_Len = mc.fontRendererObj.getStringWidth(heldMHItemInfo) + ICON_SIZE;
+					heldItemMHInfo_Len = mc.fontRenderer.getStringWidth(heldMHItemInfo) + ICON_SIZE;
 				}
 			}
 			
@@ -270,10 +267,10 @@ public class OnRenderGameOverlay extends Gui
 					if (heldOHI == Items.BOW) 
 					{
 						// ищем стрелы
-						if(ArrowCount == 0) ArrowCount = Functions.GetArrowsCount(mc.thePlayer);
+						if(ArrowCount == 0) ArrowCount = Functions.GetArrowsCount(mc.player);
 						heldOHItemInfo += "("+ ArrowCount + ") ";
 					}
-					heldItemOHInfo_Len = mc.fontRendererObj.getStringWidth(heldOHItemInfo) + ICON_SIZE;
+					heldItemOHInfo_Len = mc.fontRenderer.getStringWidth(heldOHItemInfo) + ICON_SIZE;
 				}
 			}
 			
@@ -284,7 +281,7 @@ public class OnRenderGameOverlay extends Gui
 				{
 				headItemInfo = (headI.getMaxDamage(headIS) - headI.getDamage(headIS) + 1) + "/"
 						+ (headI.getMaxDamage(headIS) + 1) + " ";
-				headItemInfo_Len = mc.fontRendererObj.getStringWidth(headItemInfo) + ICON_SIZE;
+				headItemInfo_Len = mc.fontRenderer.getStringWidth(headItemInfo) + ICON_SIZE;
 				}
 			}
 			if(bodyIS != null) // тело
@@ -294,7 +291,7 @@ public class OnRenderGameOverlay extends Gui
 				{
 					bodyItemInfo = (bodyI.getMaxDamage(bodyIS) - bodyI.getDamage(bodyIS) + 1) + "/"
 						+ (bodyI.getMaxDamage(bodyIS) + 1) + " ";
-					bodyItemInfo_Len = mc.fontRendererObj.getStringWidth(bodyItemInfo) + ICON_SIZE;
+					bodyItemInfo_Len = mc.fontRenderer.getStringWidth(bodyItemInfo) + ICON_SIZE;
 				}
 			}
 			if(legsIS != null) // ноги
@@ -304,7 +301,7 @@ public class OnRenderGameOverlay extends Gui
 				{
 					legsItemInfo = (legsI.getMaxDamage(legsIS) - legsI.getDamage(legsIS) + 1) + "/"
 						+ (legsI.getMaxDamage(legsIS) + 1) + " ";
-					legsItemInfo_Len = mc.fontRendererObj.getStringWidth(legsItemInfo) + ICON_SIZE;
+					legsItemInfo_Len = mc.fontRenderer.getStringWidth(legsItemInfo) + ICON_SIZE;
 				}
 			}
 			if(footsIS != null) // ступни
@@ -314,7 +311,7 @@ public class OnRenderGameOverlay extends Gui
 				{
 					footsItemInfo = (footsI.getMaxDamage(footsIS) - footsI.getDamage(footsIS) + 1) + "/"
 						+ (footsI.getMaxDamage(footsIS) + 1) + " ";
-					footsItemInfo_Len = mc.fontRendererObj.getStringWidth(footsItemInfo) + ICON_SIZE;
+					footsItemInfo_Len = mc.fontRenderer.getStringWidth(footsItemInfo) + ICON_SIZE;
 				}
 			}	
 			
@@ -341,7 +338,7 @@ public class OnRenderGameOverlay extends Gui
 				Drawing.DrawItemStack(mc.getRenderItem(), headIS, xPos, yPos);
 				
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(headItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(headItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				
 				yPos += ICON_SIZE;
 			}
@@ -360,7 +357,7 @@ public class OnRenderGameOverlay extends Gui
 				// отрисовка иконки
 				Drawing.DrawItemStack(mc.getRenderItem(), bodyIS, xPos, yPos);
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(bodyItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(bodyItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				yPos += ICON_SIZE;
 			}
 			
@@ -378,7 +375,7 @@ public class OnRenderGameOverlay extends Gui
 				// отрисовка иконки
 				Drawing.DrawItemStack(mc.getRenderItem(), legsIS, xPos, yPos);
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(legsItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(legsItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				yPos += ICON_SIZE;
 			}
 			
@@ -396,7 +393,7 @@ public class OnRenderGameOverlay extends Gui
 				// отрисовка иконки
 				Drawing.DrawItemStack(mc.getRenderItem(), footsIS, xPos, yPos);
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(footsItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(footsItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				yPos += ICON_SIZE;
 			}
 			
@@ -414,7 +411,7 @@ public class OnRenderGameOverlay extends Gui
 				// отрисовка иконки
 				Drawing.DrawItemStack(mc.getRenderItem(), heldMHIS, xPos, yPos);
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(heldMHItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(heldMHItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				yPos += ICON_SIZE;
 			}
 			
@@ -432,7 +429,7 @@ public class OnRenderGameOverlay extends Gui
 				// отрисовка иконки
 				Drawing.DrawItemStack(mc.getRenderItem(), heldOHIS, xPos, yPos);
 				// отрисовка текста
-				mc.fontRendererObj.drawStringWithShadow(heldOHItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(heldOHItemInfo, xPos + ICON_SIZE, yPos + STRING_HEIGHT/3, FONT_WHITE);
 				yPos += ICON_SIZE;
 			}
 		}
@@ -460,10 +457,10 @@ public class OnRenderGameOverlay extends Gui
 				return;
 			
 			// если мы смотрим не в воздух
-			if (view.tBlock.isAir(view.tBlockState, mc.theWorld, view.tBlockPosition)) 
+			if (view.tBlock.isAir(view.tBlockState, mc.world, view.tBlockPosition)) 
 				return;
 			
-			ItemStack itst = Functions.GetItemStack(mc.theWorld, view.targetBlock);
+			ItemStack itst = Functions.GetItemStack(mc.world, view.targetBlock);
 			if (itst == null) return; // не можем нарисовать иконку (значит, вообщё чёрти что)
 			
 			int InfoBlockBar_xPos = Informator.InfoBlockBar_xPos;
@@ -474,14 +471,14 @@ public class OnRenderGameOverlay extends Gui
 			BlockPos upBlockPos = new BlockPos(view.tBlockPosition.getX(), 
 												view.tBlockPosition.getY() + 1, 
 												view.tBlockPosition.getZ());
-			Block upBlock = mc.theWorld.getBlockState(upBlockPos).getBlock();
+			Block upBlock = mc.world.getBlockState(upBlockPos).getBlock();
 
 			// имя блока
 			String BlockName = " " + itst.getDisplayName();
 			
 			int BlockName_xPos = 0;
 			int BlockName_yPos = 0;			
-			int BlockName_strLen = mc.fontRendererObj.getStringWidth(BlockName);
+			int BlockName_strLen = mc.fontRenderer.getStringWidth(BlockName);
 			
 			// координаты
 			String BlockXYZ = " X=" + view.tBlockPosition.getX() + " Y=" + 
@@ -489,9 +486,9 @@ public class OnRenderGameOverlay extends Gui
 								view.tBlockPosition.getZ() + " ";
 
 			// расстояние
-			String BlockXYZDelta = " dX=" + Math.abs((int) Math.floor(mc.thePlayer.posX) - view.tBlockPosition.getX()) +
-					" dY=" + Math.abs((int) Math.floor(mc.thePlayer.posY) - view.tBlockPosition.getY() - 1) + // ибо Y игрока отображается относительно куба ног 
-					" dZ=" + Math.abs((int) Math.floor(mc.thePlayer.posZ) - view.tBlockPosition.getZ()) + " ";
+			String BlockXYZDelta = " dX=" + Math.abs((int) Math.floor(mc.player.posX) - view.tBlockPosition.getX()) +
+					" dY=" + Math.abs((int) Math.floor(mc.player.posY) - view.tBlockPosition.getY() - 1) + // ибо Y игрока отображается относительно куба ног 
+					" dZ=" + Math.abs((int) Math.floor(mc.player.posZ) - view.tBlockPosition.getZ()) + " ";
 
 			// освещённость
 			String BlockLight = "";
@@ -504,7 +501,7 @@ public class OnRenderGameOverlay extends Gui
 			}
 			else
 			{
-				Chunk c = mc.theWorld.getChunkFromBlockCoords(upBlockPos);
+				Chunk c = mc.world.getChunkFromBlockCoords(upBlockPos);
 				BlockLight = " " + TxtRes.GetLocalText("avttrue.informator.2", "Light") +
 						"=" + c.getLightFor(EnumSkyBlock.BLOCK, upBlockPos) + " / " + 
 						c.getLightFor(EnumSkyBlock.SKY, upBlockPos) + " (" + 
@@ -515,10 +512,10 @@ public class OnRenderGameOverlay extends Gui
 			String BlockPower = " " + TxtRes.GetLocalText("avttrue.informator.3", "Power") +
 					"=" + Functions.GetTextPower(mc, view.tBlock, view.tBlockPosition) + " ";
 			
-			int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRendererObj.getStringWidth(BlockXYZ),
-												(Math.max(mc.fontRendererObj.getStringWidth(BlockXYZDelta),
-												(Math.max(mc.fontRendererObj.getStringWidth(BlockLight),
-												(mc.fontRendererObj.getStringWidth(BlockPower)))))));
+			int InfoBlockBar_strLen =ICON_SIZE + Math.max(mc.fontRenderer.getStringWidth(BlockXYZ),
+												(Math.max(mc.fontRenderer.getStringWidth(BlockXYZDelta),
+												(Math.max(mc.fontRenderer.getStringWidth(BlockLight),
+												(mc.fontRenderer.getStringWidth(BlockPower)))))));
 			
 			// отрисовка панели
 			if(Informator.InfoBlockBar_alignMode.toLowerCase().contains("bottomright"))
@@ -560,16 +557,16 @@ public class OnRenderGameOverlay extends Gui
 
 			// отрисовка текста
 			// координаты
-			mc.fontRendererObj.drawStringWithShadow(BlockXYZ, InfoBlockBar_xPos + ICON_SIZE, 
+			mc.fontRenderer.drawStringWithShadow(BlockXYZ, InfoBlockBar_xPos + ICON_SIZE, 
 					InfoBlockBar_yPos, FONT_WHITE);
 			// дистанция
-			mc.fontRendererObj.drawStringWithShadow(BlockXYZDelta, InfoBlockBar_xPos  + ICON_SIZE, 
+			mc.fontRenderer.drawStringWithShadow(BlockXYZDelta, InfoBlockBar_xPos  + ICON_SIZE, 
 					InfoBlockBar_yPos + STRING_HEIGHT, FONT_WHITE);
 			// освещённость
-			mc.fontRendererObj.drawStringWithShadow(BlockLight, InfoBlockBar_xPos + ICON_SIZE, 
+			mc.fontRenderer.drawStringWithShadow(BlockLight, InfoBlockBar_xPos + ICON_SIZE, 
 					InfoBlockBar_yPos + STRING_HEIGHT * 2, FONT_WHITE);
 			// заряд
-			mc.fontRendererObj.drawStringWithShadow(BlockPower, InfoBlockBar_xPos + ICON_SIZE, 
+			mc.fontRenderer.drawStringWithShadow(BlockPower, InfoBlockBar_xPos + ICON_SIZE, 
 					InfoBlockBar_yPos + STRING_HEIGHT * 3, FONT_WHITE);
 			
 			// отрисовка панели имени блока
@@ -584,7 +581,7 @@ public class OnRenderGameOverlay extends Gui
 				}
 				// имя блока
 				if(!BlockName.isEmpty())
-					mc.fontRendererObj.drawStringWithShadow(BlockName, BlockName_xPos, 
+					mc.fontRenderer.drawStringWithShadow(BlockName, BlockName_xPos, 
 											BlockName_yPos, FONT_WHITE);
 			}
 			// отрисовка иконки
@@ -624,7 +621,7 @@ public class OnRenderGameOverlay extends Gui
 			String sSpeed = " " + TxtRes.GetLocalText("avttrue.informator.1", "Speed") + ": " + 
 								String.format("%1$5.2f %2$s ", Informator.Speed, 
 											TxtRes.GetLocalText("avttrue.informator.15", "b/s")); 
-			int iSpeedLen = mc.fontRendererObj.getStringWidth(sSpeed);
+			int iSpeedLen = mc.fontRenderer.getStringWidth(sSpeed);
 
 			// отрисовка панели
 			if (Informator.Global_ShowPanel) 
@@ -635,7 +632,7 @@ public class OnRenderGameOverlay extends Gui
 			}
 
 			// отрисовка текста
-			mc.fontRendererObj.drawStringWithShadow(sSpeed, SpeedBar_xPos + ICON_SIZE,
+			mc.fontRenderer.drawStringWithShadow(sSpeed, SpeedBar_xPos + ICON_SIZE,
 													SpeedBar_yPos + STRING_HEIGHT / 3, FONT_WHITE);
 
 			// отрисовка иконки
@@ -691,7 +688,7 @@ public class OnRenderGameOverlay extends Gui
  				currentTime = String.format(" %1$tT || ??:?? ", date.getTime());
  			}
 
- 			int currentTimeStrLen = mc.fontRendererObj.getStringWidth(currentTime);
+ 			int currentTimeStrLen = mc.fontRenderer.getStringWidth(currentTime);
  			
  			// отрисовка панели
  			int dy = 0; // учёт сдвига на размер иконки луны при прижатии к низу
@@ -725,7 +722,7 @@ public class OnRenderGameOverlay extends Gui
  			}
 
  			// отрисовка текста
- 			mc.fontRendererObj.drawStringWithShadow(currentTime, currentTime_xPos + ICON_SIZE, 
+ 			mc.fontRenderer.drawStringWithShadow(currentTime, currentTime_xPos + ICON_SIZE, 
  													currentTime_yPos + 2, FONT_WHITE);
 
  			// отрисовка иконки
@@ -736,8 +733,8 @@ public class OnRenderGameOverlay extends Gui
 			int moonPhaseFactorLen = 0; // длина текста фазы луны
  			if (Informator.TimeBarMoon_Show) 
  			{
- 				int moonPhase = mc.theWorld.getMoonPhase();
- 				float moonPhaseFactor = mc.theWorld.getCurrentMoonPhaseFactor();
+ 				int moonPhase = mc.world.getMoonPhase();
+ 				float moonPhaseFactor = mc.world.getCurrentMoonPhaseFactor();
  				String sMoonPhase = " " + TxtRes.GetLocalText("avttrue.informator.4", "Phase") + ": " + moonPhase + " ";
  				String sMoonPhaseFactor = "";
  				String sMoonPhase_FACTOR = TxtRes.GetLocalText("avttrue.informator.5", "Factor");
@@ -761,7 +758,7 @@ public class OnRenderGameOverlay extends Gui
  				else
  					sMoonPhaseFactor = " " + sMoonPhase_FACTOR + ": " + moonPhaseFactor + " ";
 
- 				moonPhaseFactorLen = mc.fontRendererObj.getStringWidth(sMoonPhaseFactor);
+ 				moonPhaseFactorLen = mc.fontRenderer.getStringWidth(sMoonPhaseFactor);
 
  				// отрисовка панели
  			    // позиция и размеры
@@ -794,9 +791,9 @@ public class OnRenderGameOverlay extends Gui
  				}
 
  				// отрисовка текста
- 				mc.fontRendererObj.drawStringWithShadow(sMoonPhase, currentTime_xPos + 20,
+ 				mc.fontRenderer.drawStringWithShadow(sMoonPhase, currentTime_xPos + 20,
  						currentTime_yPos + ICON_SIZE, FONT_WHITE);
- 				mc.fontRendererObj.drawStringWithShadow(sMoonPhaseFactor, currentTime_xPos + 20,
+ 				mc.fontRenderer.drawStringWithShadow(sMoonPhaseFactor, currentTime_xPos + 20,
  						currentTime_yPos + ICON_SIZE + STRING_HEIGHT + 1, FONT_WHITE);
 
  				// отрисовка иконки луны
@@ -811,8 +808,8 @@ public class OnRenderGameOverlay extends Gui
 			//
 			if (Informator.TimeBarWeather_Show) 
  			{
-				float weatherReain = mc.theWorld.getRainStrength(1.0f);
-				float weatherThander = mc.theWorld.getThunderStrength(0.1f);
+				float weatherReain = mc.world.getRainStrength(1.0f);
+				float weatherThander = mc.world.getThunderStrength(0.1f);
 				
 				int weatherPhase = 0;  // солнечно
 				if(weatherReain > 0 && weatherThander > 0) // дождь с грозой
@@ -902,11 +899,11 @@ public class OnRenderGameOverlay extends Gui
 						
 			// имя
 			String mobname = view.MobName;
-			int mobnamexpos = TargetMobBar_x + 1 + (TargetMobBar_Len - 2 - mc.fontRendererObj.getStringWidth(mobname)) / 2;
+			int mobnamexpos = TargetMobBar_x + 1 + (TargetMobBar_Len - 2 - mc.fontRenderer.getStringWidth(mobname)) / 2;
 			
 			// дистанция
 			String mobdist = " " + TxtRes.GetLocalText("avttrue.informator.16", "Distance") + ": " + view.DistToPlayer + " ";
-			int mobdistlen = mc.fontRendererObj.getStringWidth(mobdist);
+			int mobdistlen = mc.fontRenderer.getStringWidth(mobdist);
 			
 			// доп. характеристики для коней
 			String mobowner = "";
@@ -918,38 +915,38 @@ public class OnRenderGameOverlay extends Gui
 			if (view.MobOwner != null)
 			{
 				mobowner = " " + TxtRes.GetLocalText("avttrue.informator.31", "Owner") + ": " + view.MobOwner + " ";
-				mobaddsetts1len = mc.fontRendererObj.getStringWidth(mobowner);
+				mobaddsetts1len = mc.fontRenderer.getStringWidth(mobowner);
 			}
 			if (view.MobMovementSpeed > 0)
 			{
 				mobspeed += " " + TxtRes.GetLocalText("avttrue.informator.32", "S.") + ": " + view.MobMovementSpeed;
-				mobaddsetts2len = mc.fontRendererObj.getStringWidth(mobspeed);
+				mobaddsetts2len = mc.fontRenderer.getStringWidth(mobspeed);
 			}
 			if (view.MobJumpHeight > 0)
 			{
 				mobjamp += " " + TxtRes.GetLocalText("avttrue.informator.33", "J.") + ": " + view.MobJumpHeight;
-				mobaddsetts3len = mc.fontRendererObj.getStringWidth(mobjamp);
+				mobaddsetts3len = mc.fontRenderer.getStringWidth(mobjamp);
 			}
 						
 			// отрисовка панелей
 			// основная панель
 			drawRect(TargetMobBar_x, TargetMobBar_y, TargetMobBar_x + TargetMobBar_Len,
-					TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 3, PANEL_GRAY);
+					TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 2 + 3, PANEL_GRAY);
 			
 			// имя панель
 			drawGradientRect(TargetMobBar_x + 1, TargetMobBar_y + 1, TargetMobBar_x + TargetMobBar_Len - 1,
-					TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT + 1, PANEL_STEEL, PANEL_TRANSPARENT);
+					TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT + 1, PANEL_STEEL, PANEL_TRANSPARENT);
 			
 			// имя текст
-			mc.fontRendererObj.drawStringWithShadow(mobname, mobnamexpos, TargetMobBar_y + 1, FONT_WHITE);
+			mc.fontRenderer.drawStringWithShadow(mobname, mobnamexpos, TargetMobBar_y + 1, FONT_WHITE);
 			
 			// здоровье панель красная
 			if (view.MobMaxHealth > view.MobHealth) // типа экономим
 			{
 				Color cr = new Color(0xA5072C);
-				drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
+				drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRenderer.FONT_HEIGHT, 
 						TargetMobBar_x + TargetMobBar_Len - 1,
-						TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, cr.getRGB());
+						TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 2 + 2, cr.getRGB());
 			}
 			
 			// панели здоровья
@@ -958,29 +955,29 @@ public class OnRenderGameOverlay extends Gui
 					TxtRes.GetLocalText("avttrue.informator.20", "Armor") + " " +
 					view.MobTotalArmor;
 			int mobhealslinelen = TargetMobBar_Len - 18;
-			int mobhealthXtxtpos = TargetMobBar_x + 18 + (mobhealslinelen - mc.fontRendererObj.getStringWidth(mobhealth)) / 2;
+			int mobhealthXtxtpos = TargetMobBar_x + 18 + (mobhealslinelen - mc.fontRenderer.getStringWidth(mobhealth)) / 2;
 			if (view.MobHealth <= 0) // типа экономим
 				mobhealslinelen = 1;
 			else if (view.MobMaxHealth > view.MobHealth) // типа экономим
 				mobhealslinelen = (int)(Math.round(((float)view.MobHealth/(float)view.MobMaxHealth) * mobhealslinelen));
 			// здоровье панель зелёная
 			Color cg = new Color(0x1AB615);
-			drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
+			drawRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRenderer.FONT_HEIGHT, 
 					TargetMobBar_x + mobhealslinelen + 17,
-					TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, cg.getRGB());
+					TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 2 + 2, cg.getRGB());
 			
 			// здоровье панель серая 
-			drawGradientRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
+			drawGradientRect(TargetMobBar_x + 18, TargetMobBar_y + 2 + mc.fontRenderer.FONT_HEIGHT, 
 								TargetMobBar_x + TargetMobBar_Len,
-								TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 2, PANEL_TRANSPARENT, PANEL_GRAY);
+								TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 2 + 2, PANEL_TRANSPARENT, PANEL_GRAY);
 			
 			// здоровье и броня текст
-			mc.fontRendererObj.drawStringWithShadow(mobhealth, mobhealthXtxtpos, 
-													TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, FONT_WHITE);
+			mc.fontRenderer.drawStringWithShadow(mobhealth, mobhealthXtxtpos, 
+													TargetMobBar_y + 2 + mc.fontRenderer.FONT_HEIGHT, FONT_WHITE);
 			
 			// портретная панель светлая
-			drawRect(TargetMobBar_x, TargetMobBar_y + 2 + mc.fontRendererObj.FONT_HEIGHT, 
-					TargetMobBar_x + 18, TargetMobBar_y + 20 + mc.fontRendererObj.FONT_HEIGHT, 
+			drawRect(TargetMobBar_x, TargetMobBar_y + 2 + mc.fontRenderer.FONT_HEIGHT, 
+					TargetMobBar_x + 18, TargetMobBar_y + 20 + mc.fontRenderer.FONT_HEIGHT, 
 					PANEL_GRAY);
 			
 			// рисуем портреты
@@ -989,54 +986,54 @@ public class OnRenderGameOverlay extends Gui
 			{
 				int scl = (int) (20 / Math.max(view.elb.height, view.elb.width));
 				Drawing.drawEntityOnScreen(TargetMobBar_x + 9, 
-										TargetMobBar_y + 18 + mc.fontRendererObj.FONT_HEIGHT, 
+										TargetMobBar_y + 18 + mc.fontRenderer.FONT_HEIGHT, 
 										scl, 0, 0, view.elb);
 			}
 			else
 			{
 				mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-				drawTexturedModalRect(TargetMobBar_x + 1, TargetMobBar_y + 3 + mc.fontRendererObj.FONT_HEIGHT, 
+				drawTexturedModalRect(TargetMobBar_x + 1, TargetMobBar_y + 3 + mc.fontRenderer.FONT_HEIGHT, 
 										16, 0, ICON_SIZE, ICON_SIZE);
 			}
 			
 			// дистанция панель
-			int dist_y = TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 2 + 3;
+			int dist_y = TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 2 + 3;
 			int dist_x =TargetMobBar_x + 18;
-			drawGradientRect(dist_x, dist_y, dist_x + mobdistlen, dist_y + mc.fontRendererObj.FONT_HEIGHT, 
+			drawGradientRect(dist_x, dist_y, dist_x + mobdistlen, dist_y + mc.fontRenderer.FONT_HEIGHT, 
 							PANEL_STEEL, PANEL_TRANSPARENT);
 									
 			// дистанция текст
-			mc.fontRendererObj.drawStringWithShadow(mobdist, dist_x, dist_y, FONT_WHITE);			
+			mc.fontRenderer.drawStringWithShadow(mobdist, dist_x, dist_y, FONT_WHITE);			
 			
 			// дополнительные характеристики / коня, собачек и кошечек
 			if(!mobowner.isEmpty() || !mobspeed.isEmpty() || !mobjamp.isEmpty())
 			{
 			// панель
-				dist_y = TargetMobBar_y + mc.fontRendererObj.FONT_HEIGHT * 3 + 3;
+				dist_y = TargetMobBar_y + mc.fontRenderer.FONT_HEIGHT * 3 + 3;
 				drawGradientRect(dist_x, dist_y, 
 								dist_x + mobaddsetts1len + mobaddsetts2len + mobaddsetts3len + 3, 
-								dist_y + mc.fontRendererObj.FONT_HEIGHT, 
+								dist_y + mc.fontRenderer.FONT_HEIGHT, 
 								PANEL_STEEL, PANEL_TRANSPARENT);
 			// текст
-				mc.fontRendererObj.drawStringWithShadow(mobowner, dist_x, dist_y, FONT_WHITE);
+				mc.fontRenderer.drawStringWithShadow(mobowner, dist_x, dist_y, FONT_WHITE);
 				dist_x += mobaddsetts1len;
 				if(view.MobMovementSpeed >= 13.0D)
-					mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_AQUA); 
+					mc.fontRenderer.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_AQUA); 
 				else if(view.MobMovementSpeed >= 11.0D)
-					mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_GREEN);
+					mc.fontRenderer.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_GREEN);
 				else if(view.MobMovementSpeed >= 8.0D)
-					mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_WHITE);
+					mc.fontRenderer.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_WHITE);
 				else
-					mc.fontRendererObj.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_RED);
+					mc.fontRenderer.drawStringWithShadow(mobspeed, dist_x, dist_y, FONT_RED);
 				dist_x += mobaddsetts2len;
 				if(view.MobJumpHeight >= 5.0D)
-					mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_AQUA);
+					mc.fontRenderer.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_AQUA);
 				else if(view.MobJumpHeight >= 4.0D)
-					mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_GREEN);
+					mc.fontRenderer.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_GREEN);
 				else if(view.MobJumpHeight >= 2.75D)
-					mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_WHITE); 
+					mc.fontRenderer.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_WHITE); 
 				else
-					mc.fontRendererObj.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
+					mc.fontRenderer.drawStringWithShadow(mobjamp, dist_x, dist_y, FONT_RED);
 			}	
 						
 		}
@@ -1047,20 +1044,6 @@ public class OnRenderGameOverlay extends Gui
 			Informator.Gobal_ON = false;
 			Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.26", 
 					"The mod Informator made a mistake and was off"), null);
-		}
-	}
-	
-////////////////////////////////////////////////////////
-// TODO DrawThesaurusButton
-////////////////////////////////////////////////////////
-	public void DrawThesaurusButton()
-	{
-		if(Informator.ShowThesaurusButton && 
-				mc.currentScreen instanceof GuiChat)
-		{
-			mc.renderEngine.bindTexture(new ResourceLocation("avttrue_informator:textures/icons.png"));
-			drawTexturedModalRect(0, scaledResolution.getScaledHeight() - 35,
-									0, 28, 20, 20);
 		}
 	}
 }

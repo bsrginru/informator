@@ -20,7 +20,7 @@ public class OnClientTick
     	try
         {
     		// если игра ещё не начата вдруг
-    		if (mc.theWorld == null) 
+    		if (mc.world == null) 
     		{
     			Informator.worldTime = -1;
     			return;
@@ -34,9 +34,9 @@ public class OnClientTick
     			//
         		// вычисляем время
         		//
-    			if(mc.thePlayer.dimension == 0) // если в обычном мире
+    			if(mc.player.dimension == 0) // если в обычном мире
         		{
-        			Informator.worldTime = mc.theWorld.getWorldTime();	
+        			Informator.worldTime = mc.world.getWorldTime();	
         		}
         		
         		if (Informator.worldTime != -1) // если не в обычном мире и время уже определено
@@ -54,23 +54,23 @@ public class OnClientTick
         		if(Informator.lastXYZTick > -1 &&
         			Informator.SpeedBar_Show) 
         		{
-        			Informator.Speed = Functions.CulcSpeed(Informator.oldPayerX, mc.thePlayer.posX,
-        														Informator.oldPayerY, mc.thePlayer.posY,
-        														Informator.oldPayerZ, mc.thePlayer.posZ,
-        														Informator.lastXYZTick, mc.theWorld.getWorldTime());
+        			Informator.Speed = Functions.CulcSpeed(Informator.oldPayerX, mc.player.posX,
+        														Informator.oldPayerY, mc.player.posY,
+        														Informator.oldPayerZ, mc.player.posZ,
+        														Informator.lastXYZTick, mc.world.getWorldTime());
         				
         			// пересохраняем координаты
-        			Informator.lastXYZTick = mc.theWorld.getWorldTime();
-        			Informator.oldPayerX = mc.thePlayer.posX;
-        			Informator.oldPayerY = mc.thePlayer.posY;
-        			Informator.oldPayerZ =  mc.thePlayer.posZ;
+        			Informator.lastXYZTick = mc.world.getWorldTime();
+        			Informator.oldPayerX = mc.player.posX;
+        			Informator.oldPayerY = mc.player.posY;
+        			Informator.oldPayerZ =  mc.player.posZ;
         		}
         		else // если координаты и время ещё не определялись
         		{
-        			Informator.oldPayerX = mc.thePlayer.posX;
-            		Informator.oldPayerY = mc.thePlayer.posY;
-            		Informator.oldPayerZ = mc.thePlayer.posZ;
-            		Informator.lastXYZTick = mc.theWorld.getWorldTime();
+        			Informator.oldPayerX = mc.player.posX;
+            		Informator.oldPayerY = mc.player.posY;
+            		Informator.oldPayerZ = mc.player.posZ;
+            		Informator.lastXYZTick = mc.world.getWorldTime();
         		}
 
         	}
