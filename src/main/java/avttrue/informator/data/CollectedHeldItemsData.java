@@ -69,9 +69,9 @@ public class CollectedHeldItemsData
             damageMax = item.getMaxDamage(stack);
             damageFactor = (float)(damageMax-damageCurr) / (float)damageMax; 
             if (item != Items.BOW)
-                damageDesc = String.format("%d/%d", damageMax - damageCurr + 1, damageMax + 1);
+                damageDesc = String.format("%d/%d", damageMax - damageCurr, damageMax);
             else // ищем стрелы
-                damageDesc = String.format("%d/%d (%d)", damageMax - damageCurr + 1, damageMax + 1, arrows);
+                damageDesc = String.format("%d/%d (%d)", damageMax - damageCurr, damageMax, arrows);
             rarity = item.getRarity(stack);
         }
     }

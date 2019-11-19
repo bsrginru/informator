@@ -140,13 +140,13 @@ public class OnRenderGameOverlay //extends Gui
         // текст и иконки
         for (HeldItem hitm : held_items.held_damageable)
         {
+            final float alarm_level = (float)ModSettings.HELD.HeldItemDetails_DamageAlarm.get() / 100.0F;
+            final float warning_level = (float)ModSettings.HELD.HeldItemDetails_DamageWarning.get() / 100.0F;
+            final boolean critical = hitm.damageFactor < alarm_level;
+            final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
             // отрисовка панели
             if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
-                final float alarm_level = (float)ModSettings.HELD.HeldItemDetails_DamageAlarm.get() / 100.0F;
-                final float warning_level = (float)ModSettings.HELD.HeldItemDetails_DamageWarning.get() / 100.0F;
-                final boolean critical = hitm.damageFactor < alarm_level;
-                final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
                 final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
                 final int desc_len = mc.fontRenderer.getStringWidth(hitm.damageDesc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
                 GuiUtils.drawGradientRect(0,
@@ -160,12 +160,25 @@ public class OnRenderGameOverlay //extends Gui
             // отрисовка иконки
             final Item item = Item.getItemById(hitm.id);
             Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(item), xPos, yPos);
-            // отрисовка текста
-            mc.fontRenderer.drawStringWithShadow(
-                    hitm.damageDesc,
-                    xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
-                    yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
-                    hitm.rarity.color.getColor());
+            // отрисовка текста (на панели цвет текста всегда соответствует цвету раритетности вещи)
+            if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+            {
+                mc.fontRenderer.drawStringWithShadow(
+                        hitm.damageDesc,
+                        xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                        yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                        hitm.rarity.color.getColor());
+            }
+            // отрисовка текста (если панели отключены, то цвет текста учитывает предупреждения об износе брони и оружия)
+            else
+            {
+                final int color_text = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : hitm.rarity.color.getColor());
+                mc.fontRenderer.drawStringWithShadow(
+                        hitm.damageDesc,
+                        xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                        yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2+1,
+                        color_text);
+            }
             // смещаемся к следующей панели
             yPos += Skin.MC_ICON_SIZE;
         }
