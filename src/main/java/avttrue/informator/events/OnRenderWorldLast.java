@@ -38,8 +38,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public class OnRenderWorldLast
 {
     private Minecraft mc = Minecraft.getInstance();
-    private static Vec3i surface_at = new Vec3i(-8, -6, -8); // -1 соответствует одному блоку под ногами
-    private static Vec3i surface_to = new Vec3i(8, 2, 8); // на высоту головы
+    private boolean withChunkBorder;
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event)
@@ -82,9 +81,14 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
 	}
 }/**/
 
+            // определяем границы в которых будет прорисовываться поверхность, запоминаем и другие настройки
+            final int depth = ModSettings.ILLUMINATION.Illumination_Depth.get();
+            withChunkBorder = ModSettings.ILLUMINATION.Illumination_ShowChunkBorder.get();
             // получаем список блоков, в которых будет произведён рассчёт освещённости
             final BlockPos center = new BlockPos(player.posX, player.posY, player.posZ);
-            Stream<BlockPos> surface = BlockPos.getAllInBox(center.add(surface_at), center.add(surface_to));
+            Stream<BlockPos> surface = BlockPos.getAllInBox(
+        		center.add(-depth, -6, -depth), // -1 соответствует одному блоку под ногами; берём -6 чтобы смотреть с возвышений под ноги
+        		center.add(depth, 2, depth));   // на высоту головы
             IlluminationData illumination = new IlluminationData();
 
             GlStateManager.enableBlend();
@@ -177,7 +181,7 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
     	final double dx = ari.getProjectedView().x;
     	final double dy = ari.getProjectedView().y - illumination.block_height - 0.01d; // поправка на высоту блока (ковра, саженца,...)
     	final double dz = ari.getProjectedView().z;
-    	final double chunk_offset = illumination.our_chunk ? 0.0 : 256.0d;
+    	final double chunk_offset = withChunkBorder ? (illumination.our_chunk ? 0.0 : 256.0d) : 0.0d;
         final double item_lt = (16.0d * illumination.light + chunk_offset) / 512.0d;
         final double item_rb = item_lt + 16.0d / 512.0d;
 

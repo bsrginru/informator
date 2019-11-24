@@ -355,6 +355,32 @@ public class ModSettings
         }
     }
 
+    public static class Illumination
+    {
+        //----------------------------------------------------------------------
+        // Настройки отображения информации об освещённости поверхности
+        public final ForgeConfigSpec.IntValue Illumination_Depth;
+        public final ForgeConfigSpec.BooleanValue Illumination_ShowChunkBorder;
+        //----------------------------------------------------------------------
+
+        public Illumination(ForgeConfigSpec.Builder builder)
+        {
+            builder
+                .comment("Настройки отображения информации об освещённости поверхности")
+                .push("Illumination");
+            //----------------------------------------------------------------------
+            // Панель зачарований на предметах персонажа
+            Illumination_Depth = builder
+                    .comment("Глубина прорисовки информации об освещённости поверхности [8..64|default:8]")
+                    .defineInRange("illumination_depth", 8, 8, 64);
+            Illumination_ShowChunkBorder = builder
+                    .comment("Включает/отключает отображение границы чанков [false/true|default:true]")
+                    .define("illumination_show_chunks", true);
+            //----------------------------------------------------------------------
+            builder.pop();
+        }
+    }
+
     // === Два варианта инициализации ===
     // Первый (аналогично использованному в ForgeConfig) :
     //public static final ForgeConfigSpec spec;
@@ -375,6 +401,7 @@ public class ModSettings
     public static final TimeAndWeather TIME = new TimeAndWeather(BUILDER);
     public static final Enchants ENCHANTS = new Enchants(BUILDER);
     public static final Target TARGET = new Target(BUILDER);
+    public static final Illumination ILLUMINATION = new Illumination(BUILDER);
     public static final ForgeConfigSpec spec = BUILDER.build();
     // === === === ===
 
