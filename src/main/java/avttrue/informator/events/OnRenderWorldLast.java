@@ -11,6 +11,9 @@ import avttrue.informator.config.ModSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.DoorBlock;
+import net.minecraft.block.StandingSignBlock;
+import net.minecraft.block.WallSignBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -22,7 +25,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.LightType;
@@ -122,8 +124,8 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
     
     private boolean getLight(ClientWorld world, ISelectionContext ctx, BlockPos pos, IlluminationData illumination)
     {
-    	final BlockState state_current = world.getBlockState(pos);
 		illumination.block_height = -1;
+		final BlockState state_current = world.getBlockState(pos);
 		final Material material_current = state_current.getMaterial();
 		if ((material_current == Material.CARPET) ||
 			(material_current == Material.SNOW))
@@ -148,9 +150,11 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
     		final BlockPos pos_down = pos.down();
         	final BlockState down_state = world.getBlockState(pos_down);
         	final Material material_down = down_state.getMaterial();
+    		//final Block block_down = down_state.getBlock();
             if (material_down == Material.AIR) return false; // воздух (под чем-то прозрачным, под воздухом?) - не показываем
             if (material_down.isLiquid()) return false; // в воде (на воде) и в лаве (на лаве) не показываем
-			if ((material_down == material_current) && (material_current == Material.GLASS)) return false; // в стекле и под стеклом - не показываем
+            if ((material_down == material_current) && (material_current == Material.GLASS)) return false; // в стекле и под стеклом - не показываем
+            //if ((block_down instanceof DoorBlock) && (block_current instanceof DoorBlock)) return false; //  - не показываем
             if (!down_state.isNormalCube(world, pos_down)) return false; // под чем-то прозрачным (под воздухом?) что-то непрозрачное (и не кубическое) - не показываем
             //if (!down.isSolid()) return false;	
             
@@ -159,6 +163,13 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
             	// если под стеклом нет другого стекла, то поскольку стекло прозрачное, то информацию об освещённости
             	// не поднимаем на его верхнее ребро, а оставляем под основанием стеклянного блока
             	illumination.block_height = 0.0;
+            }
+            else if (block_current instanceof DoorBlock ||
+            		 block_current instanceof StandingSignBlock ||
+            		 block_current instanceof WallSignBlock)
+            {
+    			// отключаем расчёт высоты двери, табличек, иначе сведения появятся посередине двери
+    			illumination.block_height = 0.0;
             }
 		}
         //----------------------------------------------------------------
