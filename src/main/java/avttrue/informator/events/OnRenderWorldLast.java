@@ -119,95 +119,45 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
     private boolean getLight(ClientWorld world, ISelectionContext ctx, BlockPos pos, IlluminationData illumination)
     {
     	final BlockState state_current = world.getBlockState(pos);
-    	//----------------------------------------------------------------
-    	/**
-    	 * текущий блок сплошной - выход
-    	 * и текущий блок и блок под ним НЕ сплошные - выход
-    	 *
-    	{
-        	if (state_current.isSolid()) return -1;									
-        	final BlockState down = world.getBlockState(pos.down());
-            if (!down.isSolid()) return -1;	
-            //if (!down.isSolid() || down.getLightValue() > 14) return -1;	
-        }/**/
-    	//----------------------------------------------------------------
-    	/**
-    	 * текущий блок НЕпрозрачный - выход
-    	 * и текущий блок и блок под ним прозрачные - выход
-    	 *
-    	{
-    		if (state_current.isOpaqueCube(world, pos)) return -1;									
-    		final BlockPos bpd = pos.down();
-        	final BlockState down = world.getBlockState(bpd);
-            if (!down.isOpaqueCube(world, bpd)) return -1;
-        }/**/
-    	//----------------------------------------------------------------
-    	/**
-    	 * текущий блок НЕ воздух или твёрдый - выход
-    	 * текущий блок воздух или НЕ твёрдый, а блок под ним НЕ сплошной - выход
-    	 *
+		illumination.block_height = -1;
+		final Material material_current = state_current.getMaterial();
+		if ((material_current == Material.CARPET) ||
+			(material_current == Material.SNOW))
+        {
+        	// пофик что под ковром и под снегом - показываем освещённость этого прозрачного блока
+        }
+		else if (material_current.isLiquid())
 		{
-			final boolean cair = state_current.getMaterial() == Material.AIR;
-			final boolean cnohardness = state_current.getBlockHardness(world, pos) <= 0.01f;
-        	if (cair || cnohardness)
-        	{
-        		final BlockPos bpd = pos.down();
-            	final BlockState down = world.getBlockState(bpd);
-    			final boolean dair = down.getMaterial() == Material.AIR;
-    			final boolean dnohardness = down.getBlockHardness(world, bpd) <= 0.01f;
-    			if (dair || dnohardness) return -1;
-                //final Block blockdown = down.getBlock();
-        	}
-        	else
-        	{
-        		return -1;
-        	}
-        }/**/
-    	//----------------------------------------------------------------
-    	/**
-    	 * 
-    	 */
+			return false; // в воде (на воде) и в лаве (на лаве) не показываем
+		}
+		else if (state_current.isNormalCube(world, pos))
 		{
-			illumination.block_height = -1;
-			final Material material_current = state_current.getMaterial();
-			if ((material_current == Material.CARPET) ||
-    			(material_current == Material.SNOW))
+			return false; // блок в виде непрозрачного куба (бэдрок, дёрн, не факел, не стеклянный блок) - не показываем
+		}
+		else
+		{
+			final Block block_current = state_current.getBlock();
+            if (block_current == Blocks.BARRIER)
             {
-            	// пофик что под ковром и под снегом - показываем освещённость этого прозрачного блока
+            	return false; // граница мира - не показываем
             }
-			else if (material_current.isLiquid())
-			{
-				return false; // в воде (на воде) и в лаве (на лаве) не показываем
-			}
-			else if (state_current.isNormalCube(world, pos))
-			{
-				return false; // блок в виде непрозрачного куба (бэдрок, дёрн, не факел, не стеклянный блок) - не показываем
-			}
-			else
-			{
-				final Block block_current = state_current.getBlock();
-	            if (block_current == Blocks.BARRIER)
-	            {
-	            	return false; // граница мира - не показываем
-	            }
-        		final BlockPos pos_down = pos.down();
-            	final BlockState down_state = world.getBlockState(pos_down);
-            	final Material material_down = down_state.getMaterial();
-                if (material_down == Material.AIR) return false; // воздух (под чем-то прозрачным, под воздухом?) - не показываем
-                if (material_down.isLiquid()) return false; // в воде (на воде) и в лаве (на лаве) не показываем
-    			if ((material_down == material_current) && (material_current == Material.GLASS)) return false; // в стекле и под стеклом - не показываем
-                if (!down_state.isNormalCube(world, pos_down)) return false; // под чем-то прозрачным (под воздухом?) что-то непрозрачное (и не кубическое) - не показываем
-                //if (!down.isSolid()) return false;	
-                
-                if (material_current == Material.GLASS)
-                {
-                	// если под стеклом нет другого стекла, то поскольку стекло прозрачное, то информацию об освещённости
-                	// не поднимаем на его верхнее ребро, а оставляем под основанием стеклянного блока
-                	illumination.block_height = 0.0;
-                }
-			}
-        }/**/
-    	//----------------------------------------------------------------
+    		final BlockPos pos_down = pos.down();
+        	final BlockState down_state = world.getBlockState(pos_down);
+        	final Material material_down = down_state.getMaterial();
+            if (material_down == Material.AIR) return false; // воздух (под чем-то прозрачным, под воздухом?) - не показываем
+            if (material_down.isLiquid()) return false; // в воде (на воде) и в лаве (на лаве) не показываем
+			if ((material_down == material_current) && (material_current == Material.GLASS)) return false; // в стекле и под стеклом - не показываем
+            if (!down_state.isNormalCube(world, pos_down)) return false; // под чем-то прозрачным (под воздухом?) что-то непрозрачное (и не кубическое) - не показываем
+            //if (!down.isSolid()) return false;	
+            
+            if (material_current == Material.GLASS)
+            {
+            	// если под стеклом нет другого стекла, то поскольку стекло прозрачное, то информацию об освещённости
+            	// не поднимаем на его верхнее ребро, а оставляем под основанием стеклянного блока
+            	illumination.block_height = 0.0;
+            }
+		}
+        //----------------------------------------------------------------
 		if (illumination.block_height < 0)
 		{
 			// поправка на высоту блока (ковра, саженца,...)
