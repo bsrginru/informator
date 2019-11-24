@@ -22,6 +22,7 @@ public class ModSettings
         public final ForgeConfigSpec.BooleanValue Global_ON;
         public final ForgeConfigSpec.BooleanValue Global_HideInDebugMode;
         public final ForgeConfigSpec.BooleanValue Global_ShowPanel;
+        public final ForgeConfigSpec.BooleanValue Global_IlluminationOnSurface;
         //----------------------------------------------------------------------
 
         public General(ForgeConfigSpec.Builder builder)
@@ -70,6 +71,10 @@ public class ModSettings
             Global_ShowPanel = builder
                     .comment("Надписи Информатора выводятся на панелях [false/true|default:true]")
                     .define("general_show_panel", true);
+            Global_IlluminationOnSurface = builder
+                    .comment("Включает/отключает отображение освещённости поверхности [false/true|default:false]")
+                    .translation("avttrue_informator.illumination")
+                    .define("general_illumination", false);
             //----------------------------------------------------------------------
             builder.pop();
         }

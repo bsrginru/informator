@@ -26,19 +26,11 @@ public class OnKeyInput
         
         else if (KeyBindings.InformatorSurfaceCheckerSwitch.isPressed())
         {
-        //    Informator.SurfaceCheckerIsActive =! Informator.SurfaceCheckerIsActive;
-        //    if (Informator.SurfaceCheckerIsActive)
-        //    {
-        //        
-        //        Informator.LaunchSurfaceChecker();
-        //        Functions.SendMessageToUser("\u00A7a" + TxtRes.GetLocalText("avttrue.informator.38", 
-        //                "Surface properties indication is ON"), null);
-        //    } 
-        //    else
-        //    {
-        //        Functions.SendMessageToUser("\u00A7c" + TxtRes.GetLocalText("avttrue.informator.39", 
-        //                "Surface properties indication is OFF"), null);
-        //    }
+            ModSettings.GENERAL.Global_IlluminationOnSurface.set(!ModSettings.GENERAL.Global_IlluminationOnSurface.get());
+            if (ModSettings.GENERAL.Global_ON.get())
+                Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_illumination_enabled, (new Style()).setColor(TextFormatting.DARK_GRAY));
+            else
+                Informator.TOOLS.SendMessageToUser(Informator.TRANSLATOR.field_illumination_disabled, (new Style()).setColor(TextFormatting.DARK_GRAY));
         }
         
         /***else if (KeyBindings.InformatorDebug.isPressed())

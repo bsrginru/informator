@@ -3,18 +3,6 @@ package avttrue.informator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.versions.forge.ForgeVersion;
-import net.minecraftforge.versions.mcp.MCPVersion;
-
 import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
@@ -26,9 +14,22 @@ import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.events.OnClientTick;
 import avttrue.informator.events.OnKeyInput;
 import avttrue.informator.events.OnRenderGameOverlay;
+import avttrue.informator.events.OnRenderWorldLast;
 import avttrue.informator.events.OnRenderTick;
 import avttrue.informator.tools.Functions;
 import avttrue.informator.tools.TextTranslation;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.versions.forge.ForgeVersion;
+import net.minecraftforge.versions.mcp.MCPVersion;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Informator.MODID)
@@ -59,6 +60,11 @@ public class Informator
     // используется для обзора информации о сущностях
     public static CollectedEntityData entity = new CollectedEntityData();
 
+    // предварительно загруженные иконки, используемые для рисования погоды, времени суток
+    public static ResourceLocation weather_textures = new ResourceLocation("avttrue_informator:textures/wthr.png");
+    // предварительно загруженные иконки, используемые для рисования освещённости
+    public static ResourceLocation light_textures = new ResourceLocation("avttrue_informator:textures/illumination.png");
+
     // отладочные регистры, чтобы смотреть всякую отладочную ерунду в рантайме
 /*** //public static float R0 = 0;
     public static Integer R1 = null, R2 = null, R3 = null;
@@ -87,6 +93,7 @@ public class Informator
         MinecraftForge.EVENT_BUS.register(new OnClientTick());
         MinecraftForge.EVENT_BUS.register(new OnRenderTick());
         MinecraftForge.EVENT_BUS.register(new OnRenderGameOverlay());
+        MinecraftForge.EVENT_BUS.register(new OnRenderWorldLast());
         MinecraftForge.EVENT_BUS.register(this);
     }
 

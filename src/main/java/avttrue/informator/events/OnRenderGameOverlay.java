@@ -4,25 +4,6 @@ import java.awt.Color;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.LightType;
-
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ForgeI18n;
-import net.minecraftforge.fml.client.config.GuiUtils;
-
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
 import avttrue.informator.data.CollectedBlockData;
@@ -36,6 +17,22 @@ import avttrue.informator.data.CollectedWeatherData;
 import avttrue.informator.data.TimeOfDay;
 import avttrue.informator.tools.Drawing;
 import avttrue.informator.tools.TextTranslation;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.LightType;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ForgeI18n;
+import net.minecraftforge.fml.client.config.GuiUtils;
 
 public class OnRenderGameOverlay //extends Gui
 {
@@ -450,7 +447,7 @@ public class OnRenderGameOverlay //extends Gui
         }
 
         // ВРЕМЯ, ЛУНА, ПОГОДА (иконки): предварительная загрузка ресурсов (иконок, которые потом будем быстро наносить на экран)
-        mc.getTextureManager().bindTexture(new ResourceLocation("avttrue_informator:textures/wthr.png"));
+        mc.getTextureManager().bindTexture(Informator.weather_textures);
         if (ModSettings.TIME.TimeBarMoon_Show.get())
         {
             // ЛУНА: отрисовка иконки луны
