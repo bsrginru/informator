@@ -12,8 +12,12 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
+import net.minecraft.block.RedstoneTorchBlock;
+import net.minecraft.block.RedstoneWallTorchBlock;
 import net.minecraft.block.StandingSignBlock;
+import net.minecraft.block.TorchBlock;
 import net.minecraft.block.WallSignBlock;
+import net.minecraft.block.WallTorchBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -166,7 +170,11 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
             }
             else if (block_current instanceof DoorBlock ||
             		 block_current instanceof StandingSignBlock ||
-            		 block_current instanceof WallSignBlock)
+            		 block_current instanceof WallSignBlock ||
+            		 block_current instanceof TorchBlock ||
+            		 block_current instanceof WallTorchBlock ||
+            		 block_current instanceof RedstoneTorchBlock ||
+            		 block_current instanceof RedstoneWallTorchBlock)
             {
     			// отключаем расчёт высоты двери, табличек, иначе сведения появятся посередине двери
     			illumination.block_height = 0.0;
