@@ -68,10 +68,12 @@
 3. В Windows скачиваем [JDK и JRE] (https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html "например, jdk-8u212-windows-x64.exe, jre-8u212-windows-x64.exe" ) устанавливаем. В Linux в конмандной консоли выполняем:
 
     sudo apt install openjdk-8-jre openjdk-8-jdk
+
     sudo update-alternatives --config java # выбираем версию java (forge не работает с 11-jre, устанавливаемой по умолчанию)
 4. Выполняем в командной консоли:
 
-    ./gradlew --info clipse
+    ./gradlew --info eclipse
+
     ./gradlew --info build # из консоли не работает, пока проект не импортирован в eclipse (см. ниже) 
 
     Указанных команд достаточно для того, чтобы собрать .jar файл и установить его в качается mod-а.
