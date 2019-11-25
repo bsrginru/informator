@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import avttrue.informator.config.ModSettings;
+import avttrue.informator.config.ModSettingsScreen;
 import avttrue.informator.data.CollectedBlockData;
 import avttrue.informator.data.CollectedClockData;
 import avttrue.informator.data.CollectedEnchantmentsData;
@@ -20,12 +21,7 @@ import avttrue.informator.events.OnRenderTick;
 import avttrue.informator.events.OnRenderWorldLast;
 import avttrue.informator.tools.Functions;
 import avttrue.informator.tools.TextTranslation;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -34,7 +30,6 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -83,38 +78,7 @@ public class Informator
     public static Integer R1 = null, R2 = null, R3 = null;
     public static ArrayList<String> R4 = new ArrayList<String>();/***/
     
-    private class ExportingScreen extends Screen
-    {
-    	private Informator mod;
-    	private Button exitButton;
-    	public ExportingScreen(Minecraft mc, Screen last, Informator mod)
-    	{
-            super(new TranslationTextComponent("avttrue_informator.name"));
-            minecraft = mc;
-            this.mod = mod;
-        }
-    	@Override
-        public boolean shouldCloseOnEsc()
-    	{
-            return true;
-        }
-    	@Override
-        protected void init()
-    	{
-            super.init();
-            this.addButton(exitButton = new GuiButtonExt(50, this.height - 38, this.width / 2 - 55, 20,
-                                                         I18n.format("avttrue_informator.key.keyboard.enable"),
-                                                         b -> minecraft.displayGuiScreen(null)));
-        }
-    	@Override
-        public void render(int mouseX, int mouseY, float partialT) {
-            renderBackground();
-            drawCenteredString(font, title.getFormattedText(), width / 2, 15, 0x00ffffff);
-            super.render(mouseX, mouseY, partialT);
-        }
-    }
-
-    // Хватит руться в Интернете!
+    // Хватит рыться в Интернете!
     // правильный (актуальный) пример (и последовательность) инициализации см. в net.minecraftforge.common.ForgeMod
     // в ModExample инициализация неправильная!!!
     public Informator()
@@ -127,7 +91,7 @@ public class Informator
         
         DistExecutor.callWhenOn(Dist.CLIENT, () -> () -> {
         	LOGGER.info("Informator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! (0)");
-            ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (minecraft, screen) -> new ExportingScreen(minecraft, screen, this));
+            ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (minecraft, screen) -> new ModSettingsScreen(minecraft, screen, this));
             LOGGER.info("Informator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! (1)");
             ModInfo mi = ModList.get().getMods().stream().filter(min -> min.getModId().equals(Informator.MODID)).findAny().orElseThrow(() -> new IllegalStateException("We couldn't find ourselves in the mods list!"));
             List<ModInfo> mli = ModList.get().getMods();

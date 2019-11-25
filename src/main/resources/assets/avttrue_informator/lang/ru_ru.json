@@ -40,5 +40,12 @@
   "avttrue.informator.whose": "Чей: {0}",
   "avttrue.informator.movement_speed": "Б: {0}",
   "avttrue.informator.jump_height": "П: {0}",
-  "avttrue.informator.distance": "Дистанция: {0}"
+  "avttrue.informator.distance": "Дистанция: {0}",
+  "avttrue.informator.gui.on": "Вкл",
+  "avttrue.informator.gui.off": "Выкл",
+  "avttrue.informator.gui.close_settings": "Закрыть окно настроек",
+  "avttrue.informator.gui.enable": "Вывод сведений на экран: {0}",
+  "avttrue.informator.gui.illumination": "Показывать освещённость: {0}",
+  "avttrue.informator.gui.held_panel": "Индикаторы износа вещей: {0}",
+  "avttrue.informator.gui.block_panel": "Информация о блоке: {0}"
 }

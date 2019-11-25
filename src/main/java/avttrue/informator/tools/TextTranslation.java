@@ -48,6 +48,12 @@ public class TextTranslation
     public ITextComponent field_movement_speed = new TranslationTextComponent("avttrue.informator.movement_speed");
     public ITextComponent field_jump_height = new TranslationTextComponent("avttrue.informator.jump_height");
     public ITextComponent field_distance = new TranslationTextComponent("avttrue.informator.distance");
+    public ITextComponent field_gui_on = new TranslationTextComponent("avttrue.informator.gui.on");
+    public ITextComponent field_gui_off = new TranslationTextComponent("avttrue.informator.gui.off");
+    public ITextComponent field_gui_enable = new TranslationTextComponent("avttrue.informator.gui.enable");
+    public ITextComponent field_gui_illumination = new TranslationTextComponent("avttrue.informator.gui.illumination");
+    public ITextComponent field_gui_held_panel = new TranslationTextComponent("avttrue.informator.gui.held_panel");
+    public ITextComponent field_gui_block_panel = new TranslationTextComponent("avttrue.informator.gui.block_panel");
 
     //
     // возвращает название профессии селянина по ID
