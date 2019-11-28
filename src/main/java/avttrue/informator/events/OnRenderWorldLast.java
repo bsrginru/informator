@@ -136,9 +136,11 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
         {
         	// пофик что под ковром и под снегом - показываем освещённость этого прозрачного блока
         }
-		else if (material_current.isLiquid())
+		else if ((material_current == Material.PORTAL) ||
+				 (material_current == Material.BAMBOO) ||
+				 material_current.isLiquid())
 		{
-			return false; // в воде (на воде) и в лаве (на лаве) не показываем
+			return false; // в воде (на воде) и в лаве (на лаве), в порталах не показываем
 		}
 		else if (state_current.isNormalCube(world, pos))
 		{
@@ -156,6 +158,8 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
         	final Material material_down = down_state.getMaterial();
     		//final Block block_down = down_state.getBlock();
             if (material_down == Material.AIR) return false; // воздух (под чем-то прозрачным, под воздухом?) - не показываем
+            if (material_down == Material.PORTAL) return false; // в порталах не показываем
+            if (material_down == Material.BAMBOO) return false; // блок бамбука непроходим, нет нужды показывать освещение на нём
             if (material_down.isLiquid()) return false; // в воде (на воде) и в лаве (на лаве) не показываем
             if ((material_down == material_current) && (material_current == Material.GLASS)) return false; // в стекле и под стеклом - не показываем
             //if ((block_down instanceof DoorBlock) && (block_current instanceof DoorBlock)) return false; //  - не показываем
