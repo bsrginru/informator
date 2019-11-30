@@ -12,10 +12,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
+import net.minecraft.block.LadderBlock;
 import net.minecraft.block.RedstoneTorchBlock;
 import net.minecraft.block.RedstoneWallTorchBlock;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StandingSignBlock;
 import net.minecraft.block.TorchBlock;
+import net.minecraft.block.TrapDoorBlock;
 import net.minecraft.block.WallSignBlock;
 import net.minecraft.block.WallTorchBlock;
 import net.minecraft.block.material.Material;
@@ -26,6 +29,8 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.state.properties.Half;
+import net.minecraft.state.properties.SlabType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -153,6 +158,12 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
             {
             	return false; // граница мира - не показываем
             }
+            else if (block_current instanceof SlabBlock && (state_current.get(SlabBlock.TYPE) != SlabType.DOUBLE))
+            {
+            	// на полублоках BOTTOM сущности не генерируются - не показываем
+            	// на полублоках TOP освещённость считается неправильно, т.к. под полублоком как правило темнота - не показываем
+            	return false;
+            }
     		final BlockPos pos_down = pos.down();
         	final BlockState down_state = world.getBlockState(pos_down);
         	final Material material_down = down_state.getMaterial();
@@ -178,9 +189,11 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
             		 block_current instanceof TorchBlock ||
             		 block_current instanceof WallTorchBlock ||
             		 block_current instanceof RedstoneTorchBlock ||
-            		 block_current instanceof RedstoneWallTorchBlock)
+            		 block_current instanceof RedstoneWallTorchBlock ||
+            		 block_current instanceof LadderBlock ||
+            		 block_current instanceof TrapDoorBlock && (state_current.get(TrapDoorBlock.HALF) == Half.TOP) && state_current.get(TrapDoorBlock.OPEN))
             {
-    			// отключаем расчёт высоты двери, табличек, иначе сведения появятся посередине двери
+            	// отключаем расчёт высоты двери, табличек, люков,... иначе сведения появятся посередине двери
     			illumination.block_height = 0.0;
             }
 		}
