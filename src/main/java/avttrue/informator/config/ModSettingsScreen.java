@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.list.KeyBindingList.CategoryEntry;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -83,6 +84,13 @@ public class ModSettingsScreen extends Screen
                   									 56, 50, 16, null, "128"));
         textureSize.setMaxStringLength(4);
         textureSize.setText("128");
+        
+//        this.configOptionsList = new ConfigOptionsList(this, this.minecraft);
+//        this.children.add(arg0);
+        
+        final CategoryEntry clientCategoryEntry = new CategoryEntry(Informator.MODID + ".config.client");
+		entries.add(clientCategoryEntry);
+		this.addEntry(clientCategoryEntry); 
     }
 	@Override
     public void render(int mouseX, int mouseY, float partialT) {
