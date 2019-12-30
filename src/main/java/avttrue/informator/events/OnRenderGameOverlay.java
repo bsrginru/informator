@@ -21,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -88,7 +89,7 @@ public class OnRenderGameOverlay //extends Gui
             // Clock bar
             if (ModSettings.TIME.TimeBar_Show.get()) drawClockBar();
             // Velocity Bar
-            if (ModSettings.VELOCITY.VelocityBar_Show.get()) drawVelocityBar();
+            if (ModSettings.VELOCITY.VelocityBar_VelocityShow.get() || ModSettings.VELOCITY.VelocityBar_DirectionShow.get()) drawVelocityBar();
             // Held item bar
             if (ModSettings.HELD.HeldItemDetails_Show.get()) drawHeldItemBar();
             // Current Enchantments
@@ -132,7 +133,7 @@ public class OnRenderGameOverlay //extends Gui
         //int xPos = Informator.HeldItemDetails_xOffset;
         //int yPos = Informator.HeldItemDetails_yOffset;
         final int xPos = 0;
-        int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/;
+        int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/ + Skin.MC_ICON_SIZE /*направление*/;
 
         // текст и иконки
         for (HeldItem hitm : held_items.held_damageable)
@@ -182,88 +183,165 @@ public class OnRenderGameOverlay //extends Gui
     }
 
     private long startDrawMaxVelocity = 0;
+    private final static ITextComponent [] DIRECTION_NAMES = { // см. https://ru.wikipedia.org/wiki/Румб
+        Informator.TRANSLATOR.field_direction_s, // 0°
+        Informator.TRANSLATOR.field_direction_w, // 90°
+        Informator.TRANSLATOR.field_direction_n, // 180°
+        Informator.TRANSLATOR.field_direction_e  // 270°
+    };
+    private final static ITextComponent [] DETAILED_DIRECTION_NAMES = { // см. https://ru.wikipedia.org/wiki/Румб
+        Informator.TRANSLATOR.field_direction_s,  // 0°
+        Informator.TRANSLATOR.field_direction_sw, // 45°
+        Informator.TRANSLATOR.field_direction_w,  // 90°
+        Informator.TRANSLATOR.field_direction_nw, // 135°
+        Informator.TRANSLATOR.field_direction_n,  // 180°
+        Informator.TRANSLATOR.field_direction_ne, // 225°
+        Informator.TRANSLATOR.field_direction_e,  // 270°
+        Informator.TRANSLATOR.field_direction_se  // 315°
+    };
+    private final static ITextComponent [] SUPER_DETAILED_DIRECTION_NAMES = { // см. https://ru.wikipedia.org/wiki/Румб
+        Informator.TRANSLATOR.field_direction_s,   // 0°
+        Informator.TRANSLATOR.field_direction_ssw, // 22.5°
+        Informator.TRANSLATOR.field_direction_sw,  // 45°
+        Informator.TRANSLATOR.field_direction_wsw, // 67.5°
+        Informator.TRANSLATOR.field_direction_w,   // 90°
+        Informator.TRANSLATOR.field_direction_wnw, // 112.5°
+        Informator.TRANSLATOR.field_direction_nw,  // 135°
+        Informator.TRANSLATOR.field_direction_nnw, // 157.5°
+        Informator.TRANSLATOR.field_direction_n,   // 180°
+        Informator.TRANSLATOR.field_direction_nne, // 202.5°
+        Informator.TRANSLATOR.field_direction_ne,  // 225°
+        Informator.TRANSLATOR.field_direction_ene, // 247.5°
+        Informator.TRANSLATOR.field_direction_e,   // 270°
+        Informator.TRANSLATOR.field_direction_ese, // 292.5°
+        Informator.TRANSLATOR.field_direction_se,  // 315°
+        Informator.TRANSLATOR.field_direction_sse  // 337.5°
+    };
 
     private void drawVelocityBar()
     {
         final CollectedVelocityData.Data velocity = Informator.velocity.data;
-        if (!velocity.valid) return;
+
+        final int VelocityBar_lines = (velocity.velocity_valid ? 1 : 0) + (velocity.direction_valid ? 1 : 0);
+        if (VelocityBar_lines == 0) return;
 
         final int VelocityBar_xPos = ModSettings.VELOCITY.VelocityBar_xOffset.get();
         final int VelocityBar_yPos = ModSettings.VELOCITY.VelocityBar_yOffset.get() +  Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/;
+        int VelocityBar_yOffset = (VelocityBar_lines == 1) ? ((Skin.MC_ICON_SIZE-STRING_HEIGHT)/2) : 0;
 
         // отрисовка панели
         if (ModSettings.GENERAL.Global_ShowPanel.get()) 
         {
-            final int iVelocityLen = mc.fontRenderer.getStringWidth(velocity.sVelocity) + STRING_GROW_px;
+            final int iVelocityLen =
+                STRING_GROW_px + 
+                (   velocity.velocity_valid ?
+                    (mc.fontRenderer.getStringWidth(velocity.sVelocity)) :
+                    (mc.fontRenderer.getStringWidth(Informator.TRANSLATOR.field_direction_ne.getFormattedText())) // Северо-Восток (самый длинный из типовых)
+                );
+            final int iVelocityHeight = (VelocityBar_lines == 1) ? Skin.MC_ICON_SIZE : (VelocityBar_lines * STRING_HEIGHT);
             GuiUtils.drawGradientRect(0,
                     VelocityBar_xPos,
                     VelocityBar_yPos,
                     VelocityBar_xPos + Skin.MC_ICON_SIZE + iVelocityLen,
-                    VelocityBar_yPos + Skin.MC_ICON_SIZE,
+                    VelocityBar_yPos + iVelocityHeight,
                     PANEL_STEEL,
                     PANEL_TRANSPARENT);
         }
-        // отрисовка текста: максимальная скорость
-        boolean showMaxVelocity = false;
-        int color = FONT_RED;
-        if (ModSettings.VELOCITY.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
+        // отрисовка СКОРОСТИ
+        if (velocity.velocity_valid)
         {
-            if (startDrawMaxVelocity == 0)
-                startDrawMaxVelocity = Informator.realTimeTick;
-            final long diff = Informator.realTimeTick - startDrawMaxVelocity;
-            // дольше 5х секунд информацию о максимальной скорости не выводим
-            final int GLOW_DURATION = 250; // 5сек
-            final int FLICK_DURATION = 150; // 3сек
-            showMaxVelocity = diff <= GLOW_DURATION;
-            // добавляем эффект мерцания
-            int glow;
-            if (diff <= FLICK_DURATION)
+            // отрисовка текста: максимальная скорость
+            boolean showMaxVelocity = false;
+            int color = FONT_RED;
+            if (ModSettings.VELOCITY.VelocityBar_ShowMax.get() && velocity.isMotionless && velocity.knownVelocityPrevMax)
             {
-                // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
-                glow = (int)((float)diff * 5.1) % 0x100;
-                if (glow >= 0x80) glow = 0x100 - glow;
+                if (startDrawMaxVelocity == 0)
+                    startDrawMaxVelocity = Informator.realTimeTick;
+                final long diff = Informator.realTimeTick - startDrawMaxVelocity;
+                // дольше 5х секунд информацию о максимальной скорости не выводим
+                final int GLOW_DURATION = 250; // 5сек
+                final int FLICK_DURATION = 150; // 3сек
+                showMaxVelocity = diff <= GLOW_DURATION;
+                // добавляем эффект мерцания
+                int glow;
+                if (diff <= FLICK_DURATION)
+                {
+                    // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
+                    glow = (int)((float)diff * 5.1) % 0x100;
+                    if (glow >= 0x80) glow = 0x100 - glow;
+                }
+                
+                else
+                {
+                    // оставшиеся 2сек цвет спадает с 0xff0000 до 0xffffff
+                    glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
+                }
+                color = 0xff0000 | glow << 8 | glow;
             }
-            
+            if (velocity.knownVelocityPrevMax == false)
+                startDrawMaxVelocity = 0;
+            if (showMaxVelocity)
+            {
+                final int xPos = VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px;
+                final int yPos = VelocityBar_yPos + VelocityBar_yOffset;
+                final int lenPrefix = mc.fontRenderer.getStringWidth(velocity.sVelocityPrefix);
+                final int lenVelocityMax = mc.fontRenderer.getStringWidth(velocity.sVelocityPrevMax);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPrefix,
+                        xPos,
+                        yPos,
+                        FONT_WHITE);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPrevMax,
+                        xPos + lenPrefix,
+                        yPos,
+                        color);
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocityPostfix,
+                        xPos + lenPrefix + lenVelocityMax,
+                        yPos,
+                        color);
+            }
+            // отрисовка текста: текущая скорость
             else
             {
-                // оставшиеся 2сек цвет спадает с 0xff0000 до 0xffffff
-                glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
+                mc.fontRenderer.drawStringWithShadow(
+                        velocity.sVelocity,
+                        VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                        VelocityBar_yPos + VelocityBar_yOffset,
+                        FONT_WHITE);
             }
-            color = 0xff0000 | glow << 8 | glow;
+            // смещение к следующей строке
+            VelocityBar_yOffset += STRING_HEIGHT;
         }
-        if (velocity.knownVelocityPrevMax == false)
-            startDrawMaxVelocity = 0;
-        if (showMaxVelocity)
+        // отрисовка НАПРАВЛЕНИЯ ДВИЖЕНИЯ
+        if (velocity.direction_valid)
         {
-            final int xPos = VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px;
-            final int yPos = VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2;
-            final int lenPrefix = mc.fontRenderer.getStringWidth(velocity.sVelocityPrefix);
-            final int lenVelocityMax = mc.fontRenderer.getStringWidth(velocity.sVelocityPrevMax);
+            int yaw = 0;
+            String direction = "";
+            switch (ModSettings.VELOCITY.VelocityBar_DirectionDetalization.get())
+            {
+            case 0:
+                direction = DIRECTION_NAMES[velocity.facing.getHorizontalIndex()].getFormattedText();
+                break;
+            case 1:
+                yaw = MathHelper.floor(velocity.facing_yaw / 45.0D + 0.5D) & 7;
+                direction = DETAILED_DIRECTION_NAMES[yaw].getFormattedText();
+                break;
+            case 2:
+                yaw = MathHelper.floor(velocity.facing_yaw / 22.5D + 0.5D) & 15;
+                direction = SUPER_DETAILED_DIRECTION_NAMES[yaw].getFormattedText();
+                break;
+            }
+            //debug-only:direction += ", " + yaw + ", " + velocity.facing_yaw;
+            // отрисовка текста: направление взгляда
             mc.fontRenderer.drawStringWithShadow(
-                    velocity.sVelocityPrefix,
-                    xPos,
-                    yPos,
-                    FONT_WHITE);
-            mc.fontRenderer.drawStringWithShadow(
-                    velocity.sVelocityPrevMax,
-                    xPos + lenPrefix,
-                    yPos,
-                    color);
-            mc.fontRenderer.drawStringWithShadow(
-                    velocity.sVelocityPostfix,
-                    xPos + lenPrefix + lenVelocityMax,
-                    yPos,
-                    color);
-        }
-        // отрисовка текста: текущая скорость
-        else
-        {
-            mc.fontRenderer.drawStringWithShadow(
-                    velocity.sVelocity,
+                    direction,
                     VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
-                    VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2,
+                    VelocityBar_yPos + VelocityBar_yOffset,
                     FONT_WHITE);
         }
+
         // отрисовка иконки
         Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
     }
@@ -909,32 +987,36 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         target_xPos += ModSettings.TARGET.TargetMobBar_xOffset.get();
         target_yPos += ModSettings.TARGET.TargetMobBar_yOffset.get();
 
-        // отрисовка панелей
-        //игнорируется:if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        // имя Эндер-Дракона не отображаем, т.к. оно и так показывается клиентом, чтобы не происходило наслоения надписей
+        if (false == (details.isLiving && details.isEnderDragon))
         {
-            // основная панель
-            GuiUtils.drawGradientRect(0,
-                    target_xPos,
-                    target_yPos,
-                    target_xPos + TargetMobBar_Len,
-                    target_yPos + 1 + STRING_HEIGHT + 1,
-                    PANEL_GRAY_TRANSPARENT,
-                    PANEL_GRAY_TRANSPARENT);
-            // панель имени
-            GuiUtils.drawGradientRect(0,
-                    target_xPos + 1,
-                    target_yPos + 1,
-                    target_xPos + TargetMobBar_Len - 1,
-                    target_yPos + 1 + STRING_HEIGHT,
-                    PANEL_STEEL_TRANSPARENT,
-                    PANEL_TRANSPARENT);
+            // отрисовка панелей
+            //if (ModSettings.GENERAL.Global_ShowPanel.get())
+            {
+                // основная панель
+                GuiUtils.drawGradientRect(0,
+                        target_xPos,
+                        target_yPos,
+                        target_xPos + TargetMobBar_Len,
+                        target_yPos + 1 + STRING_HEIGHT + 1,
+                        PANEL_GRAY_TRANSPARENT,
+                        PANEL_GRAY_TRANSPARENT);
+                // панель имени
+                GuiUtils.drawGradientRect(0,
+                        target_xPos + 1,
+                        target_yPos + 1,
+                        target_xPos + TargetMobBar_Len - 1,
+                        target_yPos + 1 + STRING_HEIGHT,
+                        PANEL_STEEL_TRANSPARENT,
+                        PANEL_TRANSPARENT);
+            }
+            // имя текст
+            mc.fontRenderer.drawStringWithShadow(
+                    details.name,
+                    target_xPos + 1 + (TargetMobBar_Len - nameLen) / 2,
+                    target_yPos + 1 + 1,
+                    FONT_WHITE);
         }
-        // имя текст
-        mc.fontRenderer.drawStringWithShadow(
-                details.name,
-                target_xPos + 1 + (TargetMobBar_Len - nameLen) / 2,
-                target_yPos + 1 + 1,
-                FONT_WHITE);
 
         if (details.isLiving)
         {
@@ -945,9 +1027,15 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             final int healthLen = mc.fontRenderer.getStringWidth(healthStr);
             int healthLineLen = TargetMobBar_Len;
             final int health_xPos = target_xPos + portraitSize;
-            final int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
+            int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
             final int health_wPos = target_xPos + TargetMobBar_Len;
-            final int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
+            int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
+            // когда летает Эндер-Дракон, то его имя и здоровье клентом и так показывается, чтобы всё влезно на экран и не было наслоений - двигаем здоровье вниз
+            if (details.isEnderDragon)
+            {
+                health_yPos += 6;
+                health_hPos += 6;
+            }
             // панели здоровья
             if (details.health <= 0 || details.healthMax <= 0.01F) // исключительные ситуации (на ноль делить тоже нельзя ;)
                 healthLineLen = 1;
@@ -987,6 +1075,9 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                     health_yPos + 1 + 1,
                     FONT_WHITE);
         }
+        
+        // когда летает Эндер-Дракон, то на экране и так много информации, дистанция не нужна, другие подробности не нужны - выходим
+        if (details.isLiving && details.isEnderDragon) return;
 
         // рисуем портреты
         if (portraitPresent)

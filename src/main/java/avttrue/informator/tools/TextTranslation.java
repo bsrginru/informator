@@ -48,6 +48,22 @@ public class TextTranslation
     public ITextComponent field_movement_speed = new TranslationTextComponent("avttrue.informator.movement_speed");
     public ITextComponent field_jump_height = new TranslationTextComponent("avttrue.informator.jump_height");
     public ITextComponent field_distance = new TranslationTextComponent("avttrue.informator.distance");
+    public ITextComponent field_direction_n =   new TranslationTextComponent("avttrue.informator.direction.n");
+    public ITextComponent field_direction_nne = new TranslationTextComponent("avttrue.informator.direction.nne");
+    public ITextComponent field_direction_ne =  new TranslationTextComponent("avttrue.informator.direction.ne");
+    public ITextComponent field_direction_ene = new TranslationTextComponent("avttrue.informator.direction.ene");
+    public ITextComponent field_direction_e =   new TranslationTextComponent("avttrue.informator.direction.e");
+    public ITextComponent field_direction_ese = new TranslationTextComponent("avttrue.informator.direction.ese");
+    public ITextComponent field_direction_se =  new TranslationTextComponent("avttrue.informator.direction.se");
+    public ITextComponent field_direction_sse = new TranslationTextComponent("avttrue.informator.direction.sse");
+    public ITextComponent field_direction_s =   new TranslationTextComponent("avttrue.informator.direction.s");
+    public ITextComponent field_direction_ssw = new TranslationTextComponent("avttrue.informator.direction.ssw");
+    public ITextComponent field_direction_sw =  new TranslationTextComponent("avttrue.informator.direction.sw");
+    public ITextComponent field_direction_wsw = new TranslationTextComponent("avttrue.informator.direction.wsw");
+    public ITextComponent field_direction_w =   new TranslationTextComponent("avttrue.informator.direction.w");
+    public ITextComponent field_direction_wnw = new TranslationTextComponent("avttrue.informator.direction.wnw");
+    public ITextComponent field_direction_nw =  new TranslationTextComponent("avttrue.informator.direction.nw");
+    public ITextComponent field_direction_nnw = new TranslationTextComponent("avttrue.informator.direction.nnw");
 
     //
     // возвращает название профессии селянина по ID

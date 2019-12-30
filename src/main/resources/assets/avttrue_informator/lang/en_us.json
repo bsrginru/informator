@@ -40,5 +40,21 @@
   "avttrue.informator.whose": "Whose: {0}",
   "avttrue.informator.movement_speed": "S: {0}",
   "avttrue.informator.jump_height": "J: {0}",
-  "avttrue.informator.distance": "Distance: {0}"
+  "avttrue.informator.distance": "Distance: {0}",
+  "avttrue.informator.direction.n": "North",
+  "avttrue.informator.direction.nne": "North-northeast",
+  "avttrue.informator.direction.ne": "Northeast",
+  "avttrue.informator.direction.ene": "East-northeast",
+  "avttrue.informator.direction.e": "East",
+  "avttrue.informator.direction.ese": "East-southeast",
+  "avttrue.informator.direction.se": "Southeast",
+  "avttrue.informator.direction.sse": "South-southeast",
+  "avttrue.informator.direction.s": "South",
+  "avttrue.informator.direction.ssw": "South-southwest",
+  "avttrue.informator.direction.sw": "Southwest",
+  "avttrue.informator.direction.wsw": "West-southwest",
+  "avttrue.informator.direction.w": "West",
+  "avttrue.informator.direction.wnw": "West-northwest",
+  "avttrue.informator.direction.nw": "Northwest",
+  "avttrue.informator.direction.nnw": "North-northwest"
 }

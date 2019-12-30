@@ -3,12 +3,12 @@ package avttrue.informator.data;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import avttrue.informator.Informator;
+import avttrue.informator.config.ModSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
-
-import avttrue.informator.Informator;
-import avttrue.informator.config.ModSettings;
+import net.minecraft.util.Direction;
 
 
 public class CollectedVelocityData
@@ -26,7 +26,7 @@ public class CollectedVelocityData
     public class Data
     {
         // признак того, что собранными данными можно пользоваться (иначе считаются невалидными)
-        public boolean valid = false;
+        public boolean velocity_valid = false;
         // данные полученные из мира
         private static final int NUM_LOCATIONS = 15; // можно менять это число (для сглаживания статистики)
         private Location[] locations = {
@@ -48,6 +48,12 @@ public class CollectedVelocityData
         // хранящаяся до тех пор, пока персонаж не двигается
         public boolean knownVelocityPrevMax;
         public String sVelocityPrevMax;
+        
+        // признак того, что собранными данными можно пользоваться (иначе считаются невалидными)
+        public boolean direction_valid;
+        // данные о направлении движения персонажа (север, юг, восток, запад)
+        public Direction facing;
+        public float facing_yaw;
     }
 
     // если приращение по всем x,y,z-осям составит не больше этого значения, то им будет соответствовать
@@ -59,11 +65,13 @@ public class CollectedVelocityData
 
     public void collectDataDuringTick()
     {
-        if (!ModSettings.VELOCITY.VelocityBar_Show.get())
+        if (!ModSettings.VELOCITY.VelocityBar_VelocityShow.get() && !ModSettings.VELOCITY.VelocityBar_DirectionShow.get())
         {
-            data.valid = false;
+            data.velocity_valid = false;
             data.locCursor = 0;
             data.locNum = 0;
+            data.direction_valid = false;
+            data.facing = Direction.DOWN;
             return;
         }
         final Minecraft mc = Minecraft.getInstance();
@@ -72,27 +80,39 @@ public class CollectedVelocityData
         // если игра ещё не начата вдруг
         if (world == null || player == null)
         {
-            if (data.valid)
+            if (data.velocity_valid)
             {
-                data.valid = false;
+                data.velocity_valid = false;
                 data.locCursor = 0;
                 data.locNum = 0;
+                data.direction_valid = false;
+                data.facing = Direction.DOWN;
             }
             return;
         }
+        // сохраняем сведения о направлении взгляда персонажа
+        if (ModSettings.VELOCITY.VelocityBar_DirectionShow.get())
+        {
+            data.direction_valid = true;
+            data.facing = player.getHorizontalFacing();
+            data.facing_yaw = player.getYaw(1.0F);
+        }
         // сохраняем позицию игрока
-        // поскольку всякая позиция сюда приходит каждый следующий tick, то неправильно считать "скорость в течении тика", т.к.
-        // каждое подпрыгивание персонажа будет резко увеличивать скорость и резко уменьшать, и потому сведения о скорости окажутся
-        // слишком быстро меняющимися, так что понять что будет написано на экране будет трудоёмко
-        Location loc = data.locations[data.locCursor];
-        loc.x = player.posX;
-        loc.y = player.posY;
-        loc.z = player.posZ;
-        loc.tick = world.dimension.getWorldTime();
-        data.locCursor = (data.locCursor + 1) % Data.NUM_LOCATIONS;
-        if (data.locNum != Data.NUM_LOCATIONS) ++data.locNum;
-        // вычисляем скорость
-        refreshCalculatedData();
+        if (ModSettings.VELOCITY.VelocityBar_VelocityShow.get())
+        {
+            // поскольку всякая позиция сюда приходит каждый следующий tick, то неправильно считать "скорость в течении тика", т.к.
+            // каждое подпрыгивание персонажа будет резко увеличивать скорость и резко уменьшать, и потому сведения о скорости окажутся
+            // слишком быстро меняющимися, так что понять что будет написано на экране будет трудоёмко
+            Location loc = data.locations[data.locCursor];
+            loc.x = player.posX;
+            loc.y = player.posY;
+            loc.z = player.posZ;
+            loc.tick = world.dimension.getWorldTime();
+            data.locCursor = (data.locCursor + 1) % Data.NUM_LOCATIONS;
+            if (data.locNum != Data.NUM_LOCATIONS) ++data.locNum;
+            // вычисляем скорость
+            refreshCalculatedData();
+        }
     }
 
     public void refreshCalculatedData()
@@ -101,7 +121,7 @@ public class CollectedVelocityData
         {
             data.velocity = 0;
             formatVelocityDesc();
-            data.valid = true;
+            data.velocity_valid = true;
             return;
         }
         // берём теперь уже предыдущую запись и считаем её текущей
@@ -176,7 +196,7 @@ public class CollectedVelocityData
         //отладка максимальной скорости:if (samePosition) str += ", RESET";
         //отладка максимальной скорости:System.out.println(str);
 
-        data.valid = true;
+        data.velocity_valid = true;
     }
 
     private void formatVelocityDesc()

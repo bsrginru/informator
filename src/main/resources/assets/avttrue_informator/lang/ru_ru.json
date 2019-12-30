@@ -40,5 +40,21 @@
   "avttrue.informator.whose": "Чей: {0}",
   "avttrue.informator.movement_speed": "Б: {0}",
   "avttrue.informator.jump_height": "П: {0}",
-  "avttrue.informator.distance": "Дистанция: {0}"
+  "avttrue.informator.distance": "Дистанция: {0}",
+  "avttrue.informator.direction.n": "Север",
+  "avttrue.informator.direction.nne": "Северо-северо-восток",
+  "avttrue.informator.direction.ne": "Северо-восток",
+  "avttrue.informator.direction.ene": "Востоко-северо-восток",
+  "avttrue.informator.direction.e": "Восток",
+  "avttrue.informator.direction.ese": "Востоко-юго-восток",
+  "avttrue.informator.direction.se": "Юго-восток",
+  "avttrue.informator.direction.sse": "Юго-юго-восток",
+  "avttrue.informator.direction.s": "Юг",
+  "avttrue.informator.direction.ssw": "Юго-юго-запад",
+  "avttrue.informator.direction.sw": "Юго-запад",
+  "avttrue.informator.direction.wsw": "Западо-юго-запад",
+  "avttrue.informator.direction.w": "Запад",
+  "avttrue.informator.direction.wnw": "Западо-северо-запад",
+  "avttrue.informator.direction.nw": "Северо-запад",
+  "avttrue.informator.direction.nnw": "Северо-северо-запад"
 }
