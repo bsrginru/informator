@@ -32,12 +32,14 @@ public class ModSettings
                          " Все настройки разделены на группы (held, block, velocity и т.д.), отображение каждой",
                          " из которых отключается соответствующим параметром (held_show, block_show, velocity_show и т.д.)",
                          "",
+                         " Файл можно редактировать во время работы программы, изменения будут применяться автоматически.",
+                         "",
                          " Группы и сооветствующие им 'выключатели' отображения:",
                          "    * general_on - полное отключение работы мода;",
                          "    * time_show - панель времени, и расширяющие её дополнительные панели:",
                          "      * time_moon_show - панель фаз луны;",
                          "      * time_weather_show - панель погоды;",
-                         "    * velocity_show - индикатор скорости перемещения;",
+                         "    * velocity_show - индикатор направления и скорости перемещения;",
                          "    * held_show - индикаторы износа оружия, инструментов, брони;",
                          "    * enchants_show - чары, наложенные на предметы",
                          "    * block_show - информация о блоке на который направлен взгляд персонажа;",
@@ -167,9 +169,11 @@ public class ModSettings
     public static class Velocity
     {
         //----------------------------------------------------------------------
-        // Панель скорости перемещения персонажа
-        public final ForgeConfigSpec.BooleanValue VelocityBar_Show;
+        // Панель направления и скорости перемещения персонажа
+        public final ForgeConfigSpec.BooleanValue VelocityBar_VelocityShow;
         public final ForgeConfigSpec.IntValue VelocityBar_xOffset;
+        public final ForgeConfigSpec.BooleanValue VelocityBar_DirectionShow;
+        public final ForgeConfigSpec.IntValue VelocityBar_DirectionDetalization;
         public final ForgeConfigSpec.IntValue VelocityBar_yOffset;
         public final ForgeConfigSpec.BooleanValue VelocityBar_ShowMax;
         //----------------------------------------------------------------------
@@ -177,16 +181,22 @@ public class ModSettings
         public Velocity(ForgeConfigSpec.Builder builder)
         {
             builder
-                .comment("Панель скорости перемещения персонажа")
+                .comment("Панель направления и скорости перемещения персонажа")
                 .push("Velocity");
             //----------------------------------------------------------------------
-            // Панель скорости перемещения персонажа
-            VelocityBar_Show = builder
+            // Панель направления и скорости перемещения персонажа
+            VelocityBar_VelocityShow = builder
                     .comment("Включает/отключает отображение скорости перемещения персонажа [false/true|default:true]")
                     .define("velocity_show", true);
             VelocityBar_ShowMax = builder
                     .comment("Отображение максимальной зарегистрированной скорости на интервале движения персонажа [false/true|default:true]")
                     .define("velocity_show_max", true);
+            VelocityBar_DirectionShow = builder
+                    .comment("Включает/отключает отображение направления перемещения персонажа [false/true|default:true]")
+                    .define("direction_show", true);
+            VelocityBar_DirectionDetalization = builder
+                    .comment("Детализация направления, например 'юг' или 'юго-юго-восток' [0:4 стороны света,1:8 сторон света,2:16 сторон света|default:1]")
+                    .defineInRange("direction_detalization", 1, 0, 2);
             VelocityBar_xOffset = builder
                     .comment("Смещение на экране индикатора скорости по оси x [-9999..9999:default:0]")
                     .defineInRange("velocity_offset_x", 0, -9999, 9999);
