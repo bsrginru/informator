@@ -21,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -132,7 +133,7 @@ public class OnRenderGameOverlay //extends Gui
         //int xPos = Informator.HeldItemDetails_xOffset;
         //int yPos = Informator.HeldItemDetails_yOffset;
         final int xPos = 0;
-        int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/;
+        int yPos = Skin.MC_ICON_SIZE /*time*/ + Skin.ICON_WEATHER_PRETTY.size /*погода*/ + Skin.MC_ICON_SIZE /*скорость*/ + Skin.MC_ICON_SIZE /*направление*/;
 
         // текст и иконки
         for (HeldItem hitm : held_items.held_damageable)
@@ -266,6 +267,39 @@ public class OnRenderGameOverlay //extends Gui
         }
         // отрисовка иконки
         Drawing.DrawItemStack(mc.getItemRenderer(), new ItemStack(Items.COMPASS), VelocityBar_xPos, VelocityBar_yPos);
+   
+        final Minecraft mc = Minecraft.getInstance();
+        final PlayerEntity player = mc.player;
+        if (player == null) return;
+
+        String direction = "";
+        switch (player.getHorizontalFacing())
+        {
+        case NORTH: direction = "North"; break;
+        case SOUTH: direction = "South"; break;
+        case WEST: direction = "West"; break;
+        case EAST: direction = "East"; break;
+        default: return;
+        }
+
+        // отрисовка панели
+        if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        {
+            final int iDirectionLen = mc.fontRenderer.getStringWidth(direction) + STRING_GROW_px;
+            GuiUtils.drawGradientRect(0,
+                    VelocityBar_xPos + Skin.MC_ICON_SIZE,
+                    VelocityBar_yPos + STRING_HEIGHT,
+                    VelocityBar_xPos + Skin.MC_ICON_SIZE + iDirectionLen,
+                    VelocityBar_yPos + Skin.MC_ICON_SIZE + STRING_HEIGHT,
+                    PANEL_STEEL,
+                    PANEL_TRANSPARENT);
+        }
+        // отрисовка текста: направление взгляда
+        mc.fontRenderer.drawStringWithShadow(
+        		direction,
+                VelocityBar_xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,
+                VelocityBar_yPos + (Skin.MC_ICON_SIZE-STRING_HEIGHT)/2 + STRING_HEIGHT,
+                FONT_WHITE);
     }
 
     private void drawClockBar()
@@ -909,32 +943,36 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         target_xPos += ModSettings.TARGET.TargetMobBar_xOffset.get();
         target_yPos += ModSettings.TARGET.TargetMobBar_yOffset.get();
 
-        // отрисовка панелей
-        //игнорируется:if (ModSettings.GENERAL.Global_ShowPanel.get()) 
+        // имя Эндер-Дракона не отображаем, т.к. оно и так показывается клиентом, чтобы не происходило наслоения надписей
+        if (false == (details.isLiving && details.isEnderDragon))
         {
-            // основная панель
-            GuiUtils.drawGradientRect(0,
-                    target_xPos,
-                    target_yPos,
-                    target_xPos + TargetMobBar_Len,
-                    target_yPos + 1 + STRING_HEIGHT + 1,
-                    PANEL_GRAY_TRANSPARENT,
-                    PANEL_GRAY_TRANSPARENT);
-            // панель имени
-            GuiUtils.drawGradientRect(0,
-                    target_xPos + 1,
-                    target_yPos + 1,
-                    target_xPos + TargetMobBar_Len - 1,
-                    target_yPos + 1 + STRING_HEIGHT,
-                    PANEL_STEEL_TRANSPARENT,
-                    PANEL_TRANSPARENT);
+	        // отрисовка панелей
+	        //if (ModSettings.GENERAL.Global_ShowPanel.get())
+	        {
+	            // основная панель
+	            GuiUtils.drawGradientRect(0,
+	                    target_xPos,
+	                    target_yPos,
+	                    target_xPos + TargetMobBar_Len,
+	                    target_yPos + 1 + STRING_HEIGHT + 1,
+	                    PANEL_GRAY_TRANSPARENT,
+	                    PANEL_GRAY_TRANSPARENT);
+	            // панель имени
+	            GuiUtils.drawGradientRect(0,
+	                    target_xPos + 1,
+	                    target_yPos + 1,
+	                    target_xPos + TargetMobBar_Len - 1,
+	                    target_yPos + 1 + STRING_HEIGHT,
+	                    PANEL_STEEL_TRANSPARENT,
+	                    PANEL_TRANSPARENT);
+	        }
+	        // имя текст
+	        mc.fontRenderer.drawStringWithShadow(
+	                details.name,
+	                target_xPos + 1 + (TargetMobBar_Len - nameLen) / 2,
+	                target_yPos + 1 + 1,
+	                FONT_WHITE);
         }
-        // имя текст
-        mc.fontRenderer.drawStringWithShadow(
-                details.name,
-                target_xPos + 1 + (TargetMobBar_Len - nameLen) / 2,
-                target_yPos + 1 + 1,
-                FONT_WHITE);
 
         if (details.isLiving)
         {
@@ -945,9 +983,15 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             final int healthLen = mc.fontRenderer.getStringWidth(healthStr);
             int healthLineLen = TargetMobBar_Len;
             final int health_xPos = target_xPos + portraitSize;
-            final int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
+            int health_yPos = target_yPos + 1 + STRING_HEIGHT + 1;
             final int health_wPos = target_xPos + TargetMobBar_Len;
-            final int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
+            int health_hPos = health_yPos + 1 + STRING_HEIGHT + 1;
+            // когда летает Эндер-Дракон, то его имя и здоровье клентом и так показывается, чтобы всё влезно на экран и не было наслоений - двигаем здоровье вниз
+            if (details.isEnderDragon)
+            {
+            	health_yPos += 6;
+            	health_hPos += 6;
+            }
             // панели здоровья
             if (details.health <= 0 || details.healthMax <= 0.01F) // исключительные ситуации (на ноль делить тоже нельзя ;)
                 healthLineLen = 1;
@@ -987,6 +1031,9 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                     health_yPos + 1 + 1,
                     FONT_WHITE);
         }
+        
+        // когда летает Эндер-Дракон, то на экране и так много информации, дистанция не нужна, другие подробности не нужны - выходим
+        if (details.isLiving && details.isEnderDragon) return;
 
         // рисуем портреты
         if (portraitPresent)

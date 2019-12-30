@@ -3,10 +3,13 @@ package avttrue.informator.data;
 import java.util.Optional;
 import java.util.UUID;
 
+import avttrue.informator.config.ModSettings;
+import avttrue.informator.tools.Functions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
@@ -20,9 +23,6 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
-
-import avttrue.informator.config.ModSettings;
-import avttrue.informator.tools.Functions;
 
 public class CollectedEntityData
 {
@@ -50,6 +50,7 @@ public class CollectedEntityData
         public boolean isLiving; // признак того, что это сущность типа LivingEntity
         public boolean isChild; // признак того, что это ребёнок (валидно при isLiving=true)
         public boolean isUndead; // признак того, что это нежить (валидно при isLiving=true)
+        public boolean isEnderDragon; // признак того, что это Эндер-Дракон (валидно при isLiving=true)
         public float health; // жизнь entity (валидно при isLiving=true)
         public float healthMax; // максимальная жизнь entity (валидно при isLiving=true)
         public int armor; // броня entity (валидно при isLiving=true)
@@ -112,6 +113,7 @@ public class CollectedEntityData
         data.isLiving = lentity != null;
         data.isChild = data.isLiving ? lentity.isChild() : false;
         data.isUndead = data.isLiving ? lentity.isEntityUndead() : false;
+        data.isEnderDragon = data.isLiving ? (lentity.getType() == EntityType.ENDER_DRAGON) : false;
         data.health = data.isLiving ? lentity.getHealth() : -1.0F;
         data.healthMax = data.isLiving ? lentity.getMaxHealth() : -1.0F;
         data.armor = data.isLiving ? lentity.getTotalArmorValue() : -1;
