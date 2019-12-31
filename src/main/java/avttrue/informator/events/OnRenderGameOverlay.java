@@ -139,13 +139,17 @@ public class OnRenderGameOverlay //extends Gui
         for (HeldItem hitm : held_items.held_damageable)
         {
             final float alarm_level = (float)ModSettings.HELD.HeldItemDetails_DamageAlarm.get() / 100.0F;
+            final float flick_and_glow_level = alarm_level / 2.0F;
             final float warning_level = (float)ModSettings.HELD.HeldItemDetails_DamageWarning.get() / 100.0F;
             final boolean critical = hitm.damageFactor < alarm_level;
+            final boolean flick_and_glow = hitm.damageFactor < flick_and_glow_level;
             final boolean warning = (hitm.damageFactor < 0.5) ? (hitm.damageFactor < warning_level) : false;
             // отрисовка панели
             if (ModSettings.GENERAL.Global_ShowPanel.get()) 
             {
-                final int color_panel = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL);
+                final int color_panel =
+                    flick_and_glow ? Drawing.getGlowAndFlickColor() :
+                    (critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : PANEL_STEEL));
                 final int desc_len = mc.fontRenderer.getStringWidth(hitm.damageDesc) + STRING_GROW_px + Skin.MC_ICON_SIZE;
                 GuiUtils.drawGradientRect(0,
                         xPos,
@@ -170,7 +174,9 @@ public class OnRenderGameOverlay //extends Gui
             // отрисовка текста (если панели отключены, то цвет текста учитывает предупреждения об износе брони и оружия)
             else
             {
-                final int color_text = critical ? Color.red.getRGB() : (warning ? Color.yellow.getRGB() : hitm.rarity.color.getColor());
+                final int color_text =
+                    flick_and_glow ? Drawing.getGlowAndFlickColor() :
+                    (critical ? FONT_RED : (warning ? Color.yellow.getRGB() : hitm.rarity.color.getColor()));
                 mc.fontRenderer.drawStringWithShadow(
                         hitm.damageDesc,
                         xPos + Skin.MC_ICON_SIZE + STRING_PREFIX_px,

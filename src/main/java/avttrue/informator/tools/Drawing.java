@@ -3,6 +3,7 @@ package avttrue.informator.tools;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import avttrue.informator.Informator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.RenderHelper;
@@ -62,5 +63,32 @@ public class Drawing
         renderitem.zLevel = 200.0F;
         renderitem.renderItemAndEffectIntoGUI(istack, xPos, yPos);
     }
-    
+
+    public static int getGlowAndFlickColor()
+    {
+        final int GLOW_DURATION = 350; // 7сек
+        final int FLICK_DURATION = 150; // 3сек
+        final int LIGHTING_DURATION = FLICK_DURATION + (GLOW_DURATION-FLICK_DURATION)/2; // 5сек
+        final long diff = Informator.realTimeTick % GLOW_DURATION;
+        // добавляем эффект мерцания
+        int glow;
+        if (diff <= FLICK_DURATION)
+        {
+            // циклически 3сек: за 0.5сек цвет достигает значения с 0xff0000 до 0xff8080, и ещё 0.5сек возвращается к 0xff0000
+            glow = (int)((float)diff * 5.1) % 0x100;
+            if (glow >= 0x80) glow = 0x100 - glow;
+        }
+        else if (diff <= LIGHTING_DURATION)
+        {
+            // ещё 2сек цвет поднимается с 0xff0000 до 0xffffff
+            glow = (int)((float)(diff-FLICK_DURATION) * 2.55) % 0x100;
+        }
+        else
+        {
+            // оставшиеся 2сек цвет спадает с 0xffffff до 0xff0000
+            glow = 0xff - (int)((float)(diff-LIGHTING_DURATION) * 2.55) % 0x100;
+        }
+        int color = 0xffff0000 | glow << 8 | glow;
+        return color;
+    }
 }
