@@ -2,7 +2,10 @@ package avttrue.informator.events;
 
 import java.awt.Color;
 
+import org.lwjgl.opengl.GL11;
+
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import avttrue.informator.Informator;
 import avttrue.informator.config.ModSettings;
@@ -21,12 +24,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.LightType;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -82,8 +85,8 @@ public class OnRenderGameOverlay //extends Gui
         try
         {
             STRING_HEIGHT = mc.fontRenderer.FONT_HEIGHT;
-            mainWndScaledWidth = mc.mainWindow.getScaledWidth();
-            mainWndScaledHeight = mc.mainWindow.getScaledHeight();
+            mainWndScaledWidth = mc.func_228018_at_()/*mainWindow*/.getScaledWidth();
+            mainWndScaledHeight = mc.func_228018_at_()/*mainWindow*/.getScaledHeight();
 
             // === ИНФОРМАЦИОННЫЕ ПАНЕЛИ НА ЭКРАНЕ ===
             // Clock bar
@@ -695,7 +698,8 @@ public class OnRenderGameOverlay //extends Gui
         // раньше смещение игрока относительно координат, нак оторые смотрим были абсолютные, что было неправильно, т.к.
         // если смотреть вправо, то X будет +1, если смотреть влево, то X тоже станет +1 (хотя правильнее показывать направление
         // уменьшения координат !!!)
-        final BlockPos playerPos = new BlockPos(player.posX, player.posY, player.posZ);
+        final Vec3d ppos = player.getPositionVec();
+        final BlockPos playerPos = new BlockPos(ppos.x, ppos.y, ppos.z);
         final int x = details.pos.getX();
         final int y = details.pos.getY();
         final int z = details.pos.getZ();
@@ -782,17 +786,17 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
         // поскольку система тут оперирует с дробными значениями, получаем именно координаты __поверхности__ блока
         final BlockPos blockpos = details.pos.up();
         // освещение (светимость) светом блоков, т.е. это свет поверности блока в полночь
-        final int blockIllumination = this.mc.world.getLightFor(LightType.BLOCK, blockpos);
+        final int blockIllumination = this.mc.world.getChunkProvider().getLightManager().getLightEngine(LightType.BLOCK).getLightFor(blockpos);
         // либо над поверхностью блока стоит прозрачный блок (факел, сундук, вода); либо там ничего нет, т.е. там воздух
         final boolean hasSkyLight = world.getDimension().hasSkyLight();
         if (hasSkyLight && (world.isAirBlock(blockpos) || world.canBlockSeeSky(blockpos)))
         {
             // освещение блока небом, т.е. это свет поверхности блока в полдень
-            final int skyLuminosity = this.mc.world.getLightFor(LightType.SKY, blockpos);
+            final int skyLuminosity = this.mc.world.getChunkProvider().getLightManager().getLightEngine(LightType.SKY).getLightFor(blockpos);
             //---
             // код светимости неба взят из метода updatePower у DaylightDetectorBlock
             // мощность света на блоке от неба в текущий момент (утро, день, вечер, ночь... погода не влияет)
-            int daylightPower = world.getLightFor(LightType.SKY, blockpos) - world.getSkylightSubtracted();
+            int daylightPower = world.getChunkProvider().getLightManager().getLightEngine(LightType.SKY).getLightFor(blockpos) - world.getSkylightSubtracted();
             float f = world.getCelestialAngleRadians(1.0F); // радиус небесного угла
             if (daylightPower > 0)
             {
@@ -1221,10 +1225,10 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
     {
         if (skin.blend)
         {
-            GlStateManager.pushMatrix();
-            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(org.lwjgl.opengl.GL11.GL_SRC_ALPHA, org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glPushMatrix();
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.enableBlend();
+            GL11.glBlendFunc(org.lwjgl.opengl.GL11.GL_SRC_ALPHA, org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
         }
         GuiUtils.drawTexturedModalRect(
                 x,
@@ -1236,8 +1240,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                 0);
         if (skin.blend)
         {
-            GlStateManager.disableBlend();
-            GlStateManager.popMatrix();
+            RenderSystem.disableBlend();
+            GL11.glPopMatrix();
         }
     }
 
@@ -1261,10 +1265,10 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
             // пересчитываем индекс иконки погоды, т.к. облака имеются только для weather=1 и weather=5
             weather = (weather == 1) ? 0 : ((weather == 5) ? 1 : -1);
             // рисуем одну иконку поверх другой
-            GlStateManager.pushMatrix();
-            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(org.lwjgl.opengl.GL11.GL_SRC_ALPHA, org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glPushMatrix();
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.enableBlend();
+            GL11.glBlendFunc(org.lwjgl.opengl.GL11.GL_SRC_ALPHA, org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
             GuiUtils.drawTexturedModalRect(
                     x,
                     y,
@@ -1282,8 +1286,8 @@ strLines[strLinesUsed++] = String.format("d0=%.2f d0=%.2f d0=%.2f | %s", d0, d1,
                         cloud_skin.size,
                         cloud_skin.size,
                         0);
-            GlStateManager.disableBlend();
-            GlStateManager.popMatrix();
+            RenderSystem.disableBlend();
+            GL11.glPopMatrix();
         }
     }
 

@@ -34,6 +34,7 @@ import net.minecraft.state.properties.SlabType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.LightType;
@@ -96,10 +97,11 @@ if ((rtr != null) && (rtr.getType() == RayTraceResult.Type.BLOCK))
             final int depth = ModSettings.ILLUMINATION.Illumination_Depth.get();
             withChunkBorder = ModSettings.ILLUMINATION.Illumination_ShowChunkBorder.get();
             // получаем список блоков, в которых будет произведён рассчёт освещённости
-            final BlockPos center = new BlockPos(player.posX, player.posY, player.posZ);
+            final Vec3d ppos = player.getPositionVec();
+            final BlockPos center = new BlockPos(ppos.x, ppos.y, ppos.z);
             Stream<BlockPos> surface = BlockPos.getAllInBox(
-        		center.add(-depth, -6, -depth), // -1 соответствует одному блоку под ногами; берём -6 чтобы смотреть с возвышений под ноги
-        		center.add(depth, 2, depth));   // на высоту головы
+                center.add(-depth, -6, -depth), // -1 соответствует одному блоку под ногами; берём -6 чтобы смотреть с возвышений под ноги
+                center.add(depth, 2, depth));   // на высоту головы
             IlluminationData illumination = new IlluminationData();
 
             GlStateManager.enableBlend();

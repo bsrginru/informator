@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.Vec3d;
 
 
 public class CollectedVelocityData
@@ -104,9 +105,10 @@ public class CollectedVelocityData
             // каждое подпрыгивание персонажа будет резко увеличивать скорость и резко уменьшать, и потому сведения о скорости окажутся
             // слишком быстро меняющимися, так что понять что будет написано на экране будет трудоёмко
             Location loc = data.locations[data.locCursor];
-            loc.x = player.posX;
-            loc.y = player.posY;
-            loc.z = player.posZ;
+            final Vec3d ppos = player.getPositionVec();
+            loc.x = ppos.x;
+            loc.y = ppos.y;
+            loc.z = ppos.z;
             loc.tick = world.dimension.getWorldTime();
             data.locCursor = (data.locCursor + 1) % Data.NUM_LOCATIONS;
             if (data.locNum != Data.NUM_LOCATIONS) ++data.locNum;

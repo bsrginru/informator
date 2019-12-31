@@ -204,7 +204,7 @@ data.entity.getType().getTags().forEach(t -> Informator.R4.add("#" + t));/**/
         // криппер
         else if (data.entity instanceof CreeperEntity)
         {
-            data.isCreeperPowered = ((CreeperEntity)data.entity).getPowered();
+            data.isCreeperPowered = ((CreeperEntity)data.entity).func_225509_J__(); // getPowered();
         }
         // крестьянин
         else if(data.entity instanceof VillagerEntity)
